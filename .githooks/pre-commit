@@ -9,4 +9,5 @@ cp -rL result out
 chmod +w out
 
 rm -f result
+git add out
 echo "DONE!"
