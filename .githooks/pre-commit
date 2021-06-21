@@ -6,7 +6,7 @@ nix-build 'bootstrap.nix'
 
 rm -rf out
 cp -rL result out
-chmod +w -R out
+chmod -R +w out
 
 rm -f result
 git add out
