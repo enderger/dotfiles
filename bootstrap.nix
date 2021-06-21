@@ -7,7 +7,7 @@ let myNUR = builtins.getFlake "git+https://git.sr.ht/~hutzdog/NUR"; in
 pkgs.stdenv.mkDerivation {
   name = "tangle";
   nativeBuildInputs = [ lmt ];
-  src = ./.;
+  src = builtins.filterSource (p: t: t != "symlink" && baseNameOf p != "out");
 
   buildPhase = ''
     export PATHS=$(find ./ -type f -name '*.md')
