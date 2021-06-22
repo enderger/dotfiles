@@ -5,7 +5,8 @@ echo "Building..."
 nix-build 'bootstrap.nix'
 
 rm -rf out
-cp -rL result out
+mkdir out
+cp -rL result/* out
 chmod -R +w out
 
 rm -f result

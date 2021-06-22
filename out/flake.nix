@@ -1,18 +1,22 @@
 {
-  description = "My dotfiles";
+  description = "My literate dotfiles in Nix";
 
-  inputs.nur.url = "github:nix-community/nur";
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable-small";
-
-  outputs = { self, nixpkgs, nur, ... }: let
-    mkPkgs = system: import nixpkgs { inherit system; overlays = [ nur.overlay ]; };
-    systems = [ "x86_64-linux" ];
-    forEachSystem = f: nixpkgs.lib.genAttrs systems f;
-  in {
-    packages = forEachSystem (system: let
-      pkgs = mkPkgs system;
-    in {
-      tangle = import ./bootstrap.nix { inherit system pkgs; lmt = pkgs.nur.repos.hutzdog.lmt; };
-    });
+  inputs = rec {
+    stable.url = "github:nixos/nixpkgs/nixos-21.05";
+    unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    unstable-fallback.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs = unstable;
+    hm.url = "github:nix-community/home-manager";
+    fup.url = "github:gytis-ivaskevicius/flake-utils-plus";
+    nur.url = "github:nix-community/NUR";
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    neovim.url = "github:nix-community/neovim-nightly-overlay";
   };
+
+  outputs = inputs@{ self, ... }:
+    <<<flake/outputs>>>
+  ;
 }
