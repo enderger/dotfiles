@@ -19,7 +19,7 @@ pkgs.stdenv.mkDerivation {
   buildPhase = ''
     export PATHS=$(find ./ -type f -name '*.md')
     lmt $PATHS
-    rm -rf $PATHS "out"
+    rm -rf $PATHS
   '';
 
   installPhase = ''
