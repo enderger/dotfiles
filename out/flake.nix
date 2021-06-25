@@ -74,6 +74,7 @@
       # flake/outputs/modules
       nixosModules = let
         moduleList = [
+          ./modules/home-manager.nix
         ];
       in (inputs.fup.lib.modulesFromList moduleList) // {
         combined = { imports = moduleList; };
