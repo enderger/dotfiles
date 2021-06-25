@@ -164,7 +164,7 @@ hostDefaults = {
 };
 
 hosts = with inputs; {
-  <<<flake/outputs/hosts/cumulative>>>
+#  <<<flake/outputs/hosts/cumulative>>>
 };
 ```
 
@@ -189,7 +189,7 @@ nixosModules = let
   moduleList = [
     <<<modules/module-list>>>
   ];
-in (fup.lib.modulesFromList moduleList) // {
+in (inputs.fup.lib.modulesFromList moduleList) // {
   combined = { imports = moduleList; };
 };
 ```

@@ -69,13 +69,13 @@
       };
 
       hosts = with inputs; {
-  <<<flake/outputs/hosts/cumulative>>>
+      #  <<<flake/outputs/hosts/cumulative>>>
       };
       # flake/outputs/modules
       nixosModules = let
         moduleList = [
         ];
-      in (fup.lib.modulesFromList moduleList) // {
+      in (inputs.fup.lib.modulesFromList moduleList) // {
         combined = { imports = moduleList; };
       };
       # flake/outputs/shell
