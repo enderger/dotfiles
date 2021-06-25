@@ -1,6 +1,7 @@
 # Home Manager Configuration
 This module simply provides a configuration for [home-manager](https://github.com/nix-community/home-manager) which is a bit more Flake-friendly.
 ```nix modules/home-manager.nix
+<<<license>>>
 { inputs, lib, ... }:
 {
   imports = with inputs; [
