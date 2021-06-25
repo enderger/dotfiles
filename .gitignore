@@ -1,1 +1,6 @@
+# Secrets
+.gitsecret/keys/random_seed
+secrets/*
+!*.secret
+
 result*
