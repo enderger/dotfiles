@@ -17,5 +17,6 @@ This module simply provides a configuration for [home-manager](https://github.co
 
 All that's left now is to include the module in the `module-list` macro.
 ```nix "modules/module-list" +=
+# modules/module-list.home-manager
 ./modules/home-manager.nix
 ```

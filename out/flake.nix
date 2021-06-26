@@ -78,6 +78,9 @@ This Source Code Form is subject to the terms of the Mozilla Public
       # flake/outputs/modules
       nixosModules = let
         moduleList = [
+          # modules/module-list.doas
+          ./modules/doas.nix
+          # modules/module-list.home-manager
           ./modules/home-manager.nix
         ];
       in (inputs.fup.lib.modulesFromList moduleList) // {
