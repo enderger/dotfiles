@@ -201,13 +201,14 @@ Here, we will define the development shell. This is the environment needed to wo
 devShellBuilder = { stable, ... }: stable.mkShell {
   name = "shelly";
   buildInputs = with stable; [
-    git git-secret gnupg
+    git gnupg transcrypt
+    python39Packages.mistletoe
   ];
 };
 ```
 
 # License
-This project is licensed under the Mozilla Public License 2.0 (see the license page).
+This project is licensed under the Mozilla Public License 2.0 (see <./LICENSE>).
 ```nix "license"
 /*
 This Source Code Form is subject to the terms of the Mozilla Public

@@ -18,7 +18,7 @@ pkgs.stdenv.mkDerivation {
     filter = p: t: let
         bn = baseNameOf p;
         inherit (pkgs) lib;
-      in t != "symlink" && (t != "directory" || bn != "out") && !(lib.hasPrefix "." bn) && !(lib.hasSuffix ".secret" bn);
+      in t != "symlink" && (t != "directory" || bn != "out") && !(lib.hasPrefix "." bn);
     path = ./.; 
     name = "src"; 
   };

@@ -90,7 +90,8 @@ This Source Code Form is subject to the terms of the Mozilla Public
       devShellBuilder = { stable, ... }: stable.mkShell {
         name = "shelly";
         buildInputs = with stable; [
-          git git-secret gnupg
+          git gnupg transcrypt
+          python39Packages.mistletoe
         ];
       };
     }
