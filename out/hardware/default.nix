@@ -9,6 +9,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
   [ "networking"
     "audio"
     "gui"
+    "printing"
   ]
   lib.mkEnableOption;
 }

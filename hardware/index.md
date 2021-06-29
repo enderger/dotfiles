@@ -10,7 +10,8 @@ I've chosen to name the hardware after rockets, with the idea that the hardware 
 The interface for hardware modules provides a means for determining what exactly is configured by the hardware.
 - `networking`: Whether there is some form of network support enabled
 - `audio`: Whether there is audio configured
-- `gui`: Whether there should be graphical support
+- `gui`: Whether the hardware can run graphical applications
+- `printing` : Whether there is printing support
 
 ```nix hardware/default.nix
 <<<license>>>
@@ -20,6 +21,7 @@ The interface for hardware modules provides a means for determining what exactly
   [ "networking"
     "audio"
     "gui"
+    "printing"
   ]
   lib.mkEnableOption;
 }
