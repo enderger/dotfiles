@@ -1,24 +1,27 @@
 ---
 title: GRUB config
 ---
-This module configures the GRUB bootloader for EFI systems.
+This module tweaks GRUB's defaults to prefer UEFI over BIOS, among other things.
 
+# Implementation
 ```nix hardware/modules/grub.nix
 <<<license>>>
 { lib, ... }:
 {
   boot.loader = {
     grub = {
-      enable = true;
-      efiSupport = true;
-      useOSProber = true;
-
-      version = 2;
-      devices = [ "nodev" ];
-      configurationLimit = 60;
+      efiSupport = lib.mkDefault true;
+      devices = lib.mkDefault [ "nodev" ];
+      configurationLimit = lib.mkDefault 60;
     };
 
-    efi.canTouchEfiVariables = true;
+    efi.canTouchEfiVariables = lib.mkDefault true;
   };
 }
+```
+
+# Module List
+```nix "hardware/modules"
+# hardware/modules.grub
+./hardware/modules/grub.nix
 ```

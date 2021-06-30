@@ -151,14 +151,12 @@ fallback = {
 ```
 
 ### Hosts
-Now, we get to use our inputs to make a set of system configurations. I've separated the description of this into it's own file.
+Now, we get to use our inputs to make a set of system configurations.
 ```nix "flake/outputs/hosts"
 # flake/outputs/hosts
 hostDefaults = {
   system = "x86_64-linux";
-  modules = with inputs; [
-    <<<flake/outputs/hosts/prelude>>>
-  ];
+  modules = self.nixosModules.system // self.nixosModules.hardware;
   channelName = "unstable";
   specialArgs = { inherit inputs; };
 };
@@ -168,29 +166,28 @@ hosts = with inputs; {
 };
 ```
 
-#### Prelude Modules
-Here, we'll define all of the modules that are included with every system. These should provide togglable functionality or overridable defaults.
-```nix "flake/outputs/hosts/prelude"
-# flake/outputs/hosts/prelude
-fup.nixosModules.saneFlakeDefaults
-self.nixosModules.combined
-```
-
 ### Modules
-Here, we'll handle the set of modules to expose via the Flake. Note that these are intended for use within this repo, and may not work outside it. Note that the module-list macro is a global accumulator, so no value will be given here.
-<!--
-```nix "modules/module-list" +=
-```
--->
+Here, we'll handle the set of modules to expose via the Flake.
 
 ```nix "flake/outputs/modules"
 # flake/outputs/modules
 nixosModules = let
   moduleList = [
-    <<<modules/module-list>>>
+    <<<systems/modules>>>
+    <<<hardware/modules>>>
+    <<<users/modules>>>
   ];
 in (inputs.fup.lib.modulesFromList moduleList) // {
-  combined = { imports = moduleList; };
+  system.imports = {
+    inputs.fup.nixosModules.saneFlakeDefaults
+    <<<systems/modules>>>
+  };
+  hardware.imports = {
+    <<<hardware/modules>>>
+  };
+  user.imports = {
+    <<<users/modules>>>
+  };
 };
 ```
 

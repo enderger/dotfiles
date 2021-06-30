@@ -16,16 +16,15 @@ This is the hardware configuration for my main development PC. It may sound a bi
 let secrets = import ./soyuz.secret.nix;
 in {
   imports = [
-    ./.
     inputs.nixpkgs.nixosModules.notDetected
-    ./modules/broadcom.nix
-    ./modules/grub.nix
   ];
 
+  time = { inherit (secrets) timeZone };
   <<<hardware/soyuz/kernel>>>
   <<<hardware/soyuz/bootloader>>>
   <<<hardware/soyuz/networking>>>
   <<<hardware/soyuz/gui>>>
+  <<<hardware/soyuz/audio>>>
   <<<hardware/soyuz/printing>>>
   <<<hardware/soyuz/filesystem>>>
   nix.maxJobs = lib.mkDefault 16;
@@ -50,13 +49,14 @@ boot.loader.grub.theme = pkgs.nixos-grub2-theme;
 ```
 
 ## Networking
-We set up the networking configuration here, I prefer to use Networkd to make things work. I should note that the network configuration itself is in the secret file, so you'll need to supply your own.
+We set up the networking configuration here, I prefer to use Networkd to make things work. I should note that the network configuration itself is in the secret file, so you'll need to supply your own. I also enable the custom Broadcom module.
 ```nix "hardware/soyuz/networking"
 # hardware/soyuz/networking
 networking = {
   useNetworkd = true;
   useDHCP = false;
   usePredictableInterfaceNames = true;
+  enableBCMWL = true;
 
   wireless = {
     inherit (secrets) networks;
@@ -85,9 +85,17 @@ services.xserver.videoDrivers = [ "amdgpu" ];
 interface.hardware.gui = true;
 ```
 
+## Audio
+Here, we enable PipeWire audio (note that defaults are set in the PipeWire module)
+```nix "hardware/soyuz/audio"
+# hardware/soyuz/audio
+services.pipewire.enable = true;
+```
+
 ## Printing
 Here is the printer configuration, not particularly exciting.
 ```nix "hardware/soyuz/printing"
+# hardware/soyuz/printing
 services.printing = {
   enable = true;
   tempDir = "/tmp/cups/";

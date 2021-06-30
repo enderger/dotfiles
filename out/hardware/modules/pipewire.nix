@@ -1,11 +1,8 @@
----
-title: Pipewire
----
-This module auto-enables a few of Pipewire's submodules automatically, if they are applicable.
-
-# Implementation
-```nix hardware/modules/pipewire.nix
-<<<license>>>
+/*
+This Source Code Form is subject to the terms of the Mozilla Public
+  License, v. 2.0. If a copy of the MPL was not distributed with this
+  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  */
 { config, lib, ... }:
 
 let cfg = config.services.pipewire;
@@ -22,10 +19,3 @@ in lib.mkIf cfg.enable {
 
   interface.hardware.audio = true;
 }
-```
-
-# Modules List
-```nix "hardware/modules" +=
-# hardware/modules.pipewire
-./hardware/modules/pipewire.nix
-```

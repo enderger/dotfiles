@@ -7,12 +7,10 @@ This Source Code Form is subject to the terms of the Mozilla Public
 let secrets = import ./soyuz.secret.nix;
 in {
   imports = [
-    ./.
     inputs.nixpkgs.nixosModules.notDetected
-    ./modules/broadcom.nix
-    ./modules/grub.nix
   ];
 
+  time = { inherit (secrets) timeZone };
   # hardware/soyuz/kernel
   boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usb_storage" "ums_realtek" "usbhid" "sd_mod" "sr_mod" ];
   boot.kernelModules = [ "kvm-amd" "amdgpu" ];
@@ -25,6 +23,7 @@ in {
     useNetworkd = true;
     useDHCP = false;
     usePredictableInterfaceNames = true;
+    enableBCMWL = true;
 
     wireless = {
       inherit (secrets) networks;
@@ -46,6 +45,9 @@ in {
   services.xserver.videoDrivers = [ "amdgpu" ];
 
   interface.hardware.gui = true;
+  # hardware/soyuz/audio
+  services.pipewire.enable = true;
+  # hardware/soyuz/printing
   services.printing = {
     enable = true;
     tempDir = "/tmp/cups/";

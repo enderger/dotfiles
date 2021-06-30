@@ -63,11 +63,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
       # flake/outputs/hosts
       hostDefaults = {
         system = "x86_64-linux";
-        modules = with inputs; [
-          # flake/outputs/hosts/prelude
-          fup.nixosModules.saneFlakeDefaults
-          self.nixosModules.combined
-        ];
+        modules = self.nixosModules.system // self.nixosModules.hardware;
         channelName = "unstable";
         specialArgs = { inherit inputs; };
       };
@@ -78,13 +74,33 @@ This Source Code Form is subject to the terms of the Mozilla Public
       # flake/outputs/modules
       nixosModules = let
         moduleList = [
-          # modules/module-list.doas
-          ./modules/doas.nix
-          # modules/module-list.home-manager
-          ./modules/home-manager.nix
+          # systems/modules.doas
+          ./systems/modules/doas.nix
+          # hardware/modules.grub
+          ./hardware/modules/grub.nix
+          # hardware/modules.interface
+          ./hardware/modules/interface.nix
+          # hardware/modules.pipewire
+          ./hardware/modules/pipewire.nix
+    <<<users/modules>>>
         ];
       in (inputs.fup.lib.modulesFromList moduleList) // {
-        combined = { imports = moduleList; };
+        system.imports = {
+          inputs.fup.nixosModules.saneFlakeDefaults
+          # systems/modules.doas
+          ./systems/modules/doas.nix
+        };
+        hardware.imports = {
+          # hardware/modules.grub
+          ./hardware/modules/grub.nix
+          # hardware/modules.interface
+          ./hardware/modules/interface.nix
+          # hardware/modules.pipewire
+          ./hardware/modules/pipewire.nix
+        };
+        user.imports = {
+    <<<users/modules>>>
+        };
       };
       # flake/outputs/shell
       devShellBuilder = { stable, ... }: stable.mkShell {

@@ -8,21 +8,20 @@ This Source Code Form is subject to the terms of the Mozilla Public
 let cfg = config.security.doas;
 in {
   options.security.doas = {
-    # modules/doas/options.persist
+    # systems/modules/doas/options
     persist = lib.mkEnableOption "persistent doas login";
-    # modules/doas/options.sudoAlias
     sudoAlias = lib.mkEnableOption "alias Sudo to Doas";
   };
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
-    # modules/doas/persist
+    # systems/modules/doas/persist
     (lib.mkIf cfg.persist {
       security.doas.extraRules = [{
         groups = [ "wheel" ];
         persist = true;
       }];
     })
-    # modules/doas/sudoAlias
+    # systems/modules/doas/sudoAlias
     (lib.mkIf cfg.sudoAlias {
       assertions = [
         { assertion = !config.security.sudo.enable;

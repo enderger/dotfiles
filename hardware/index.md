@@ -6,23 +6,3 @@ The hardware configuration is used to define hardware-specific properties such a
 # Naming
 I've chosen to name the hardware after rockets, with the idea that the hardware "launches" the system. This makes more sense when taking into account the naming schemes of systems and users.
 
-# Interface
-The interface for hardware modules provides a means for determining what exactly is configured by the hardware.
-- `networking`: Whether there is some form of network support enabled
-- `audio`: Whether there is audio configured
-- `gui`: Whether the hardware can run graphical applications
-- `printing` : Whether there is printing support
-
-```nix hardware/default.nix
-<<<license>>>
-{ lib, ... }:
-{
-  options.interface.hardware = lib.genAttrs 
-  [ "networking"
-    "audio"
-    "gui"
-    "printing"
-  ]
-  lib.mkEnableOption;
-}
-```

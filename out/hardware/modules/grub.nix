@@ -7,15 +7,11 @@ This Source Code Form is subject to the terms of the Mozilla Public
 {
   boot.loader = {
     grub = {
-      enable = true;
-      efiSupport = true;
-      useOSProber = true;
-
-      version = 2;
-      devices = [ "nodev" ];
-      configurationLimit = 60;
+      efiSupport = lib.mkDefault true;
+      devices = lib.mkDefault [ "nodev" ];
+      configurationLimit = lib.mkDefault 60;
     };
 
-    efi.canTouchEfiVariables = true;
+    efi.canTouchEfiVariables = lib.mkDefault true;
   };
 }
