@@ -9,8 +9,8 @@ let cfg = config.security.doas;
 in {
   options.security.doas = {
     # systems/modules/doas/options
-    persist = lib.mkEnableOption "persistent doas login";
-    sudoAlias = lib.mkEnableOption "alias Sudo to Doas";
+    persist = (lib.mkEnableOption "persistent Doas login") // { default = true; };
+    sudoAlias = (lib.mkEnableOption "alias Sudo to Doas") // { default = true; };
   };
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
@@ -28,7 +28,8 @@ in {
           message = "Cannot alias Sudo: Sudo is enabled";
         }
       ];
-
+      
+      security.sudo.enable = lib.mkDefault false;
       security.wrappers.sudo.source = "${pkgs.doas}/bin/doas";
     })
   ]);

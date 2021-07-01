@@ -4,6 +4,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
   file, You can obtain one at http://mozilla.org/MPL/2.0/.
   */
 { config, pkgs, lib, inputs, ... }:
+
 let secrets = import ./sputnik.secret.nix;
 in {
   assertions = let
@@ -19,10 +20,56 @@ in {
   ];
 
   # systems/sputnik/networking
-  networking.firewall = secrets.firewall;
-  <<<systems/sputnik/rootUser>>>
-  <<<systems/sputnik/security>>>
-  <<<systems/sputnik/kernel>>>
-  <<<systems/sputnik/packages>>>
-  <<<systems/sputnik/misc>>>
+  networking = {
+    inherit (secrets) hostName firewall;
+  };
+  services.ntp.enable = true;
+  # systems/sputnik/user
+  users.mutableUsers = false;
+  users.users.root = {
+    shell = pkgs.oksh;
+    hashedPassword = secrets.hashedPasswords.root;
+  };
+  # systems/sputnik/security
+  security.doas.enable = true;
+  security.polkit.enable = true;
+
+  services.clamav = {
+    daemon.enable = true;
+    updater = {
+      enable = true;
+      frequency = 4;
+    };
+  };
+
+  services.openssh.enable = true;
+  programs.ssh.startAgent = true;
+  # systems/sputnik/kernel
+  # TODO: Introduce a separate gaming specialisation so that I can use a hardened kernel by default.
+  boot.kernelPackages = pkgs.linuxPackages_xanmod;
+  virtualisation.docker.enable = true;
+  # systems/sputnik/gui
+  services.xserver = {
+    enable = true;
+    layout = "us";
+
+    displayManager.lightdm = {
+      enable = true;
+      greeters.enso = {
+        enable = true;
+        theme = {
+          package = pkgs.nordic;
+          name = "Nordic";
+        };
+        iconTheme = {
+          package = pkgs.numix-icon-theme-circle;
+          name = "Numix-Circle";
+        };
+      };
+    };
+  }
+  # "systems/sputnik/packages"
+  environment.systemPackages = with pkgs; [
+    wget curl git htop tinycc lynx neovim-nightly
+  ];
 }

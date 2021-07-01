@@ -27,8 +27,8 @@ in {
 
 ```nix "systems/modules/doas/options"
 # systems/modules/doas/options
-persist = lib.mkEnableOption "persistent doas login";
-sudoAlias = lib.mkEnableOption "alias Sudo to Doas";
+persist = (lib.mkEnableOption "persistent Doas login") // { default = true; };
+sudoAlias = (lib.mkEnableOption "alias Sudo to Doas") // { default = true; };
 ```
 
 ## Persistence
@@ -53,7 +53,8 @@ Here, we add a `security.wrapper` of `sudo` to `doas`, in order to ensure script
       message = "Cannot alias Sudo: Sudo is enabled";
     }
   ];
-
+  
+  security.sudo.enable = lib.mkDefault false;
   security.wrappers.sudo.source = "${pkgs.doas}/bin/doas";
 })
 ```
