@@ -175,19 +175,19 @@ nixosModules = let
   moduleList = [
     <<<systems/modules>>>
     <<<hardware/modules>>>
-    <<<users/modules>>>
+    # <<<users/modules>>>
   ];
 in (inputs.fup.lib.modulesFromList moduleList) // {
-  system.imports = {
+  system.imports = [
     inputs.fup.nixosModules.saneFlakeDefaults
     <<<systems/modules>>>
-  };
-  hardware.imports = {
+  ];
+  hardware.imports = [
     <<<hardware/modules>>>
-  };
-  user.imports = {
-    <<<users/modules>>>
-  };
+  ];
+  user.imports = [
+  #<<<users/modules>>>
+  ];
 };
 ```
 

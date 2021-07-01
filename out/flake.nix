@@ -82,25 +82,25 @@ This Source Code Form is subject to the terms of the Mozilla Public
           ./hardware/modules/interface.nix
           # hardware/modules.pipewire
           ./hardware/modules/pipewire.nix
-    <<<users/modules>>>
+          # <<<users/modules>>>
         ];
       in (inputs.fup.lib.modulesFromList moduleList) // {
-        system.imports = {
+        system.imports = [
           inputs.fup.nixosModules.saneFlakeDefaults
           # systems/modules.doas
           ./systems/modules/doas.nix
-        };
-        hardware.imports = {
+        ];
+        hardware.imports = [
           # hardware/modules.grub
           ./hardware/modules/grub.nix
           # hardware/modules.interface
           ./hardware/modules/interface.nix
           # hardware/modules.pipewire
           ./hardware/modules/pipewire.nix
-        };
-        user.imports = {
-    <<<users/modules>>>
-        };
+        ];
+        user.imports = [
+        #<<<users/modules>>>
+        ];
       };
       # flake/outputs/shell
       devShellBuilder = { stable, ... }: stable.mkShell {
