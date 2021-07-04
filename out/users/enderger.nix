@@ -202,7 +202,23 @@ in {
         theme = "base16";
       };
     };
-    <<<users/enderger/neovim>>>
+    # users/enderger/neovim
+    programs.neovim = {
+      enable = true;
+      package = pkgs.neovim-nightly;
+      
+      plugins = with pkgs.vimPlugins; [
+        # users/enderger/neovim/plugins.lsp
+        nvim-lspconfig
+        completion-nvim
+        vim-vsnip vim-vsnip-integ
+        # users/enderger/neovim/plugins.lsp
+      ];
+
+      fnlConfig = ''
+    <<<users/enderger/neovim/config>>>
+      '';
+    };
     # users/enderger/git
     programs.git = {
       enable = true;

@@ -37,6 +37,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
 
       sharedOverlays = with inputs; [
         # flake/outputs/channels/overlays
+        self.overlay
         nur.overlay
         neovim.overlay
         fenix.overlay
@@ -84,7 +85,8 @@ This Source Code Form is subject to the terms of the Mozilla Public
           ./hardware/modules/interface.nix
           # hardware/modules.pipewire
           ./hardware/modules/pipewire.nix
-          # <<<users/modules>>>
+          # users/modules.neovim
+          ./users/modules/neovim.nix
         ];
       in (inputs.fup.lib.modulesFromList moduleList) // {
         system.imports = [
@@ -103,9 +105,11 @@ This Source Code Form is subject to the terms of the Mozilla Public
           ./hardware/modules/pipewire.nix
         ];
         user.imports = [
-        #<<<users/modules>>>
+          # users/modules.neovim
+          ./users/modules/neovim.nix
         ];
       };
+      overlay = import ./pkgs;
       # flake/outputs/shell
       devShellBuilder = { stable, ... }: stable.mkShell {
         name = "shelly";
