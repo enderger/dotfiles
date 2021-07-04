@@ -5,7 +5,7 @@ This is the system configuration for my primary development PC.
 
 ```nix systems/sputnik.nix
 <<<license>>>
-{ config, pkgs, lib, inputs, ... }:
+{ config, pkgs, lib, ... }:
 
 let secrets = import ./sputnik.secret.nix;
 in {
@@ -41,7 +41,8 @@ Now, we get to defining networking configurations. This is mostly done in hardwa
 ```nix "systems/sputnik/networking"
 # systems/sputnik/networking
 networking = {
-  inherit (secrets) hostName firewall;
+  inherit (secrets) firewall;
+  hostName = lib.mkForce secrets.hostName;
 };
 services.ntp.enable = true;
 ```

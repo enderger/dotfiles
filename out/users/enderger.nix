@@ -26,7 +26,7 @@ let
     "B48EAD" # base0E
     "5E81AC" # base0F
   ];
-  font = "FiraCode Nerd Font"
+  font = "FiraCode Nerd Font";
 in {
   users.users.enderger = {
     # users/enderger/userOptions
