@@ -76,6 +76,8 @@ This Source Code Form is subject to the terms of the Mozilla Public
         moduleList = [
           # systems/modules.doas
           ./systems/modules/doas.nix
+          # systems/modules.home-manager
+          ./systems/modules/home-manager.nix
           # hardware/modules.grub
           ./hardware/modules/grub.nix
           # hardware/modules.interface
@@ -89,6 +91,8 @@ This Source Code Form is subject to the terms of the Mozilla Public
           inputs.fup.nixosModules.saneFlakeDefaults
           # systems/modules.doas
           ./systems/modules/doas.nix
+          # systems/modules.home-manager
+          ./systems/modules/home-manager.nix
         ];
         hardware.imports = [
           # hardware/modules.grub

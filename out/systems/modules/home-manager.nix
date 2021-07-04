@@ -12,5 +12,6 @@ This Source Code Form is subject to the terms of the Mozilla Public
   home-manager = {
     useGlobalPkgs = lib.mkDefault true;
     useUserPackages = lib.mkDefault true;
+    sharedModules = inputs.self.nixosModules.user;
   };
 }

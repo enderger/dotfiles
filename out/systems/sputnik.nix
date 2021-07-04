@@ -3,7 +3,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
   file, You can obtain one at http://mozilla.org/MPL/2.0/.
   */
-{ config, pkgs, lib, inputs, ... }:
+{ config, pkgs, lib, ... }:
 
 let secrets = import ./sputnik.secret.nix;
 in {
@@ -21,7 +21,8 @@ in {
 
   # systems/sputnik/networking
   networking = {
-    inherit (secrets) hostName firewall;
+    inherit (secrets) firewall;
+    hostName = lib.mkForce secrets.hostName;
   };
   services.ntp.enable = true;
   # systems/sputnik/user
