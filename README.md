@@ -87,6 +87,7 @@ inputs.fup.lib.systemFlake {
   <<<flake/outputs/channels>>>
   <<<flake/outputs/hosts>>>
   <<<flake/outputs/modules>>>
+  <<<flake/outputs/overlay>>>
   <<<flake/outputs/shell>>>
 }
 ```
@@ -114,6 +115,7 @@ channels = {
 Before we define our channels, we need to define the `flake/outputs/channels/overlays` macro to contain the overlays of all known inputs.
 ```nix "flake/outputs/channels/overlays"
 # flake/outputs/channels/overlays
+self.overlay
 nur.overlay
 neovim.overlay
 fenix.overlay
@@ -175,7 +177,7 @@ nixosModules = let
   moduleList = [
     <<<systems/modules>>>
     <<<hardware/modules>>>
-    # <<<users/modules>>>
+    <<<users/modules>>>
   ];
 in (inputs.fup.lib.modulesFromList moduleList) // {
   system.imports = [
@@ -186,9 +188,15 @@ in (inputs.fup.lib.modulesFromList moduleList) // {
     <<<hardware/modules>>>
   ];
   user.imports = [
-  #<<<users/modules>>>
+    <<<users/modules>>>
   ];
 };
+```
+
+### Overlay
+Here, we include the overlay for the packages contined in the pkgs directory.
+```nix "flake/outputs/overlay"
+overlay = import ./pkgs;
 ```
 
 ### Shell

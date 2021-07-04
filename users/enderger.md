@@ -237,6 +237,44 @@ programs.bat = {
 ```
 
 ### Neovim
+Here, we configure my text editor of choice: Neovim. I use Aniseed to configure it with Fennel LISP (see the module for more info), and take full advantage of nightly features.
+```nix "users/enderger/neovim"
+# users/enderger/neovim
+programs.neovim = {
+  enable = true;
+  package = pkgs.neovim-nightly;
+  
+  plugins = with pkgs.vimPlugins; [
+    <<<users/enderger/neovim/plugins>>>
+  ];
+
+  fnlConfig = ''
+    <<<users/enderger/neovim/config>>>
+  '';
+};
+```
+
+#### Plugins
+Here is the list of plugins I include with this install. Note that some plugins may be included in the module, such as `aniseed`.
+Since there are several plugins, I'll use an accumulator macro.
+
+##### Langauge Server Protocol
+These plugins are used to provide the facilities of the Language Server Protocol, for instance autocomplete.
+Note that this makes use of the Neovim 0.5 builtin LSP support.
+- `nvim-lspconfig` is the official configuration quickstart for Neovim's LSP.
+- `completion-nvim` supplies automcompletion using the Neovim LSP. 
+- `vim-vsnip` / `vim-vsnip-integ` supplies snippet integration compatible with `completion-nvim`.
+
+```nix "users/enderger/neovim/plugins" +=
+# users/enderger/neovim/plugins.lsp
+nvim-lspconfig
+completion-nvim
+vim-vsnip vim-vsnip-integ
+```
+
+```nix "users/enderger/neovim/plugins" +=
+# users/enderger/neovim/plugins.lsp
+```
 
 ## Other
 ### Git
