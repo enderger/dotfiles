@@ -326,6 +326,7 @@ registers-nvim
 
 ##### Integrations
 These plugins integrate Neovim with the outside world, making Neovim act more as a Unix-philosophy "shell".
+- `gitsigns-nvim` adds in Git decorations for Neovim
 - `glow-nvim` adds in a nice Markdown preview to Neovim.
 - `neogit` adds in a Magit-like interface for Git in Neovim.
 - `nvim-toggleterm-lua` adds in better terminal integration to Neovim.
@@ -333,6 +334,7 @@ These plugins integrate Neovim with the outside world, making Neovim act more as
 
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.integrations
+gitsigns-nvim
 glow-nvim
 neogit
 nvim-toggleterm-lua
@@ -341,6 +343,18 @@ vim-test
 
 ##### UI Plugins
 These provide the building blocks of my editor user interface.
+- `galaxyline-nvim` provides the building blocks used for my statusline.
+- `minimap-vim` adds in a minimap.
+- `nvim-base16` provides strong support for Base16 colorschemes in Neovim.
+- `nvim-web-devicons` / `nvim-nonicons` give Neovim icons.
+
+```nix "users/enderger/neovim/plugins" +=
+# users/enderger/neovim/plugins.ui
+galaxyline-nvim
+minimap-vim
+nvim-base16
+nvim-web-devicons nvim-nonicons
+```
 
 ## Other
 ### Git

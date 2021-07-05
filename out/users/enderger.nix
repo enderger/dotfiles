@@ -237,10 +237,16 @@ in {
         nvim-ts-rainbow
         registers-nvim
         # users/enderger/neovim/plugins.integrations
+        gitsigns-nvim
         glow-nvim
         neogit
         nvim-toggleterm-lua
         vim-test
+        # users/enderger/neovim/plugins.ui
+        galaxyline-nvim
+        minimap-vim
+        nvim-base16
+        nvim-web-devicons nvim-nonicons
       ];
 
       fnlConfig = ''
