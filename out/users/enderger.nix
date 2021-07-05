@@ -6,8 +6,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
 { pkgs, inputs, ... }:
 let 
   secrets = import ./enderger.secret.nix;
-  # HACK: This section allows me to get theme colors without having to use the elemAt function constantly.
-  theme = builtins.elemAt [
+  theme = [
     # users/enderger/colors
     "2E3440" # base00
     "3B4252" # base01
@@ -160,7 +159,7 @@ in {
         };
 
         colors = let
-          mkColor = id: "0x${colors id}";
+          mkColor = id: "0x${builtins.elemAt colors id}";
         in {
           primary.background = mkColor 0;
           primary.foreground = mkColor 5;
@@ -208,11 +207,40 @@ in {
       package = pkgs.neovim-nightly;
       
       plugins = with pkgs.vimPlugins; [
-        # users/enderger/neovim/plugins.lsp
+        # users/enderger/neovim/plugins.backend
         nvim-lspconfig
+        nvim-tree-lua
+        (nvim-treesitter.withPlugins (p: with p; [
+          tree-sitter-bash
+          tree-sitter-fennel
+          tree-sitter-haskell
+          tree-sitter-nix
+          tree-sitter-rust
+        ]))
+        telescope-nvim
+        # users/enderger/neovim/plugins.editing
         completion-nvim
+        conjure
+        lightspeed-nvim
+        nvim-autopairs
+        nvim-treesitter-refactor
+        supertab
+        vim-endwise
+        vim-surround
         vim-vsnip vim-vsnip-integ
-        # users/enderger/neovim/plugins.lsp
+        # users/enderger/neovim/plugins.utilities
+        auto-session
+        lsp-rooter-nvim
+        nvim-lightbulb
+        nvim-treesitter-context
+        nvim-treesitter-pyfold
+        nvim-ts-rainbow
+        registers-nvim
+        # users/enderger/neovim/plugins.integrations
+        glow-nvim
+        neogit
+        nvim-toggleterm-lua
+        vim-test
       ];
 
       fnlConfig = ''

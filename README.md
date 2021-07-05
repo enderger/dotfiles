@@ -17,7 +17,7 @@ The remainder of this document will be used to define the **Flake**, which is th
 {
   description = "My literate dotfiles in Nix";
 
-  inputs = rec {
+  inputs = {
     <<<flake/inputs>>>
   };
 
@@ -42,7 +42,7 @@ The first input we need is the main repo for Nix, called **Nixpkgs**. The differ
 stable.url = "github:nixos/nixpkgs/nixos-21.05";
 unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
 fallback.url = "github:nixos/nixpkgs/nixos-unstable";
-nixpkgs = unstable;
+nixpkgs = "github:nixos/nixpkgs/nixos-unstable-small";
 ```
 
 ### Core Tools

@@ -8,8 +8,7 @@ This is my primary user, not much more to say.
 { pkgs, inputs, ... }:
 let 
   secrets = import ./enderger.secret.nix;
-  # HACK: This section allows me to get theme colors without having to use the elemAt function constantly.
-  theme = builtins.elemAt [
+  theme = [
     <<<users/enderger/colors>>>
   ];
   font = "FiraCode Nerd Font";
@@ -181,7 +180,7 @@ programs.alacritty = {
     };
 
     colors = let
-      mkColor = id: "0x${colors id}";
+      mkColor = id: "0x${builtins.elemAt colors id}";
     in {
       primary.background = mkColor 0;
       primary.foreground = mkColor 5;
@@ -258,23 +257,90 @@ programs.neovim = {
 Here is the list of plugins I include with this install. Note that some plugins may be included in the module, such as `aniseed`.
 Since there are several plugins, I'll use an accumulator macro.
 
-##### Langauge Server Protocol
-These plugins are used to provide the facilities of the Language Server Protocol, for instance autocomplete.
-Note that this makes use of the Neovim 0.5 builtin LSP support.
-- `nvim-lspconfig` is the official configuration quickstart for Neovim's LSP.
-- `completion-nvim` supplies automcompletion using the Neovim LSP. 
-- `vim-vsnip` / `vim-vsnip-integ` supplies snippet integration compatible with `completion-nvim`.
+##### Core
+These plugins provide the core functionality used in this config.
+- `nvim-lspconfig` sets up the Neovim builtin `Language Server Protocol` client
+- `nvim-tree-lua` adds a file navigation tree
+- `nvim-treesitter` adds support for `tree-sitter` parsers
+- `telescope-nvim` adds an exceptionally powerful fuzzy finder for Neovim
 
 ```nix "users/enderger/neovim/plugins" +=
-# users/enderger/neovim/plugins.lsp
+# users/enderger/neovim/plugins.backend
 nvim-lspconfig
+nvim-tree-lua
+(nvim-treesitter.withPlugins (p: with p; [
+  tree-sitter-bash
+  tree-sitter-fennel
+  tree-sitter-haskell
+  tree-sitter-nix
+  tree-sitter-rust
+]))
+telescope-nvim
+```
+
+##### Editing Facilities
+These plugins add in facilities which make editing more powerful.
+- `completion-nvim` gives the builtin Neovim LSP client automatic completion support.
+- `conjure` gives strong editing support for LISPs.
+- `lightspeed-nvim` improves the navigation experience provided by Neovim.
+- `nvim-autopairs` adds in automatic bracket closing for Neovim.
+- `nvim-treesitter-refactor` gives refactoring abilities using `tree-sitter`.
+- `supertab` makes all Vim completions use `<TAB>`
+- `vim-endwise` automatically adds in closing delimiters like `end`.
+- `vim-surround` gives Vim bindings to surround text.
+- `vim-vsnip` / `vim-vsnip-integ` give support for snippets.
+
+```nix "users/enderger/neovim/plugins" +=
+# users/enderger/neovim/plugins.editing
 completion-nvim
+conjure
+lightspeed-nvim
+nvim-autopairs
+nvim-treesitter-refactor
+supertab
+vim-endwise
+vim-surround
 vim-vsnip vim-vsnip-integ
 ```
 
+##### Utilities
+These plugins enhance the editing experience in a small way.
+- `auto-session` sets up automatic session management for Neovim.
+- `lsp-rooter-nvim` automatically sets the CWD using LSP.
+- `nvim-lightbulb` adds in VSCode's lightbulb for Neovim's LSP.
+- `nvim-treesitter-context` shows the context of what you can see onscreen.
+- `nvim-treesitter-pyfold` adds in much better folding to Neovim.
+- `nvim-ts-rainbow` highlights matching parentheses.
+- `registers-nvim` adds a preview window for Neovim registers.
+
 ```nix "users/enderger/neovim/plugins" +=
-# users/enderger/neovim/plugins.lsp
+# users/enderger/neovim/plugins.utilities
+auto-session
+lsp-rooter-nvim
+nvim-lightbulb
+nvim-treesitter-context
+nvim-treesitter-pyfold
+nvim-ts-rainbow
+registers-nvim
 ```
+
+##### Integrations
+These plugins integrate Neovim with the outside world, making Neovim act more as a Unix-philosophy "shell".
+- `glow-nvim` adds in a nice Markdown preview to Neovim.
+- `neogit` adds in a Magit-like interface for Git in Neovim.
+- `nvim-toggleterm-lua` adds in better terminal integration to Neovim.
+- `vim-test` integrates various test runners with Neovim.
+
+```nix "users/enderger/neovim/plugins" +=
+# users/enderger/neovim/plugins.integrations
+glow-nvim
+neogit
+nvim-toggleterm-lua
+vim-test
+```
+
+##### UI Plugins
+These provide the building blocks of my editor user interface.
 
 ## Other
 ### Git
