@@ -246,6 +246,10 @@ programs.neovim = {
   plugins = with pkgs.vimPlugins; [
     <<<users/enderger/neovim/plugins>>>
   ];
+
+  extraPackages = with pkgs; [
+    <<<users/enderger/neovim/plugins/packages>>>
+  ];
   
   luaInit = "init";
   luaModules = {
@@ -261,6 +265,7 @@ Since there are several plugins, I'll use an accumulator macro.
 ##### Core
 These plugins provide the core functionality used in this config.
 - `completion-nvim` gives the builtin Neovim LSP client automatic completion support.
+- `neoformat` adds in automatic code formatting support
 - `nvim-lspconfig` sets up the Neovim builtin `Language Server Protocol` client.
 - `nvim-treesitter` adds support for `tree-sitter` parsers.
 - `telescope-nvim` adds an exceptionally powerful fuzzy finder for Neovim.
@@ -270,6 +275,7 @@ These plugins provide the core functionality used in this config.
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.backend
 completion-nvim
+neoformat
 nvim-lspconfig
 # this loads all tree-sitter grammars
 (nvim-treesitter.withPlugins builtins.attrValues)
@@ -300,6 +306,7 @@ vim-surround
 ##### Utilities
 These plugins enhance the editing experience in a small way.
 - `auto-session` sets up automatic session management for Neovim.
+- `friendly-snippets` adds a bunch of useful snippets for `vim-vsnip`.
 - `lsp-rooter-nvim` automatically sets the CWD using LSP.
 - `minimap-vim` adds in a minimap.
 - `nvim-treesitter-context` shows the context of what you can see onscreen.
@@ -309,6 +316,7 @@ These plugins enhance the editing experience in a small way.
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.utilities
 auto-session
+friendly-snippets
 lsp-rooter-nvim
 minimap-vim
 nvim-treesitter-context
@@ -348,6 +356,17 @@ nvim-lightbulb
 nvim-web-devicons nvim-nonicons
 ```
 
+##### Environment
+Here, we'll set up the environment within which Neovim operates. This includes things such as LSP servers.
+```nix "users/enderger/neovim/plugins/packages"
+# users/enderger/neovim/plugins/packages
+rnix-lsp
+(with fenix; combine [
+  default.rustfmt-preview rust-analyzer
+])
+zig zls
+```
+
 #### Config
 Now, we'll set up my Neovim config. It takes the form of a set of Lua modules that are loaded by Neovim through the Neovim module.
 ```nix "users/enderger/neovim/config"
@@ -358,26 +377,17 @@ init = ''
 preferences = ''
   <<<users/enderger/neovim/config/preferences>>>
 '';
-
-completions = ''
-  <<<users/enderger/neovim/config/completions>>>
-'';
 editor = ''
   <<<users/enderger/neovim/config/editor>>>
-'';
-integrations = ''
-  <<<users/enderger/neovim/config/integrations>>>
 '';
 keys = ''
   <<<users/enderger/neovim/config/keys>>>
 '';
-navigation = ''
-  <<<users/enderger/neovim/config/navigation>>>
+
+editing = ''
+  <<<users/enderger/neovim/config/completions>>>
 '';
-syntax = ''
-  <<<users/enderger/neovim/config/syntax>>>
-'';
-utilities = ''
+tweaks = ''
   <<<users/enderger/neovim/config/utils>>>
 '';
 ui = ''
@@ -390,6 +400,8 @@ This is the module which bootstraps the others. It's job is to load the other mo
 ```lua "users/enderger/neovim/config/init"
 -- users/enderger/neovim/config/init
 require("editor")
+require("keys")
+require("editing")
 ```
 
 ##### Preferences
@@ -430,6 +442,30 @@ opt.confirm = true
 opt.mouse = "a"
 opt.spell = true
 opt.title = true
+```
+
+##### Keys
+Here, we set up my keybindings (primarily using `which-key`)
+```lua "users/enderger/neovim/config/keys"
+-- users/enderger/neovim/config/keys
+error("Not yet implemented!")
+```
+
+##### Editing
+Here, we set up plugins which focus on improving the editing experience of Vim.
+```lua "users/enderger/neovim/config/editing"
+-- users/enderger/neovim/config/editing
+-- LSP
+
+-- Completion
+
+-- Snippets
+
+-- Syntax
+
+-- Navigation
+
+-- Surround
 ```
 
 ## Other

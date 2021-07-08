@@ -209,6 +209,7 @@ in {
       plugins = with pkgs.vimPlugins; [
         # users/enderger/neovim/plugins.backend
         completion-nvim
+        neoformat
         nvim-lspconfig
         # this loads all tree-sitter grammars
         (nvim-treesitter.withPlugins builtins.attrValues)
@@ -224,6 +225,7 @@ in {
         vim-surround
         # users/enderger/neovim/plugins.utilities
         auto-session
+        friendly-snippets
         lsp-rooter-nvim
         minimap-vim
         nvim-treesitter-context
@@ -241,6 +243,15 @@ in {
         nvim-lightbulb
         nvim-web-devicons nvim-nonicons
       ];
+
+      extraPackages = with pkgs; [
+        # users/enderger/neovim/plugins/packages
+        rnix-lsp
+        (with fenix; combine [
+          default.rustfmt-preview rust-analyzer
+        ])
+        zig zls
+      ];
       
       luaInit = "init";
       luaModules = {
@@ -248,6 +259,8 @@ in {
         init = ''
           -- users/enderger/neovim/config/init
           require("editor")
+          require("keys")
+          require("editing")
         '';
         preferences = ''
           -- users/enderger/neovim/config/preferences
@@ -258,10 +271,6 @@ in {
           prefs.localLeader = ","
 
           return prefs
-        '';
-
-        completions = ''
-  <<<users/enderger/neovim/config/completions>>>
         '';
         editor = ''
           -- users/enderger/neovim/config/editor
@@ -287,19 +296,15 @@ in {
           opt.spell = true
           opt.title = true
         '';
-        integrations = ''
-  <<<users/enderger/neovim/config/integrations>>>
-        '';
         keys = ''
-  <<<users/enderger/neovim/config/keys>>>
+          -- users/enderger/neovim/config/keys
+          error("Not yet implemented!")
         '';
-        navigation = ''
-  <<<users/enderger/neovim/config/navigation>>>
+
+        editing = ''
+  <<<users/enderger/neovim/config/completions>>>
         '';
-        syntax = ''
-  <<<users/enderger/neovim/config/syntax>>>
-        '';
-        utilities = ''
+        tweaks = ''
   <<<users/enderger/neovim/config/utils>>>
         '';
         ui = ''
