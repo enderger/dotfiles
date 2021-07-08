@@ -11,7 +11,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
     stable.url = "github:nixos/nixpkgs/nixos-21.05";
     unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
     fallback.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs = "github:nixos/nixpkgs/nixos-unstable-small";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
     # flake/inputs.core
     hm.url = "github:nix-community/home-manager";
     fup.url = "github:gytis-ivaskevicius/flake-utils-plus";

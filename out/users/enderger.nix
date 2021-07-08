@@ -208,18 +208,14 @@ in {
       
       plugins = with pkgs.vimPlugins; [
         # users/enderger/neovim/plugins.backend
-        nvim-lspconfig
-        nvim-tree-lua
-        (nvim-treesitter.withPlugins (p: with p; [
-          tree-sitter-bash
-          tree-sitter-fennel
-          tree-sitter-haskell
-          tree-sitter-nix
-          tree-sitter-rust
-        ]))
-        telescope-nvim
-        # users/enderger/neovim/plugins.editing
         completion-nvim
+        nvim-lspconfig
+        # this loads all tree-sitter grammars
+        (nvim-treesitter.withPlugins builtins.attrValues)
+        telescope-nvim
+        vim-vsnip vim-vsnip-integ
+        which-key-nvim
+        # users/enderger/neovim/plugins.editing
         conjure
         lightspeed-nvim
         nvim-autopairs
@@ -227,15 +223,13 @@ in {
         supertab
         vim-endwise
         vim-surround
-        vim-vsnip vim-vsnip-integ
         # users/enderger/neovim/plugins.utilities
         auto-session
         lsp-rooter-nvim
-        nvim-lightbulb
+        minimap-vim
         nvim-treesitter-context
         nvim-treesitter-pyfold
         nvim-ts-rainbow
-        registers-nvim
         # users/enderger/neovim/plugins.integrations
         gitsigns-nvim
         glow-nvim
@@ -244,14 +238,60 @@ in {
         vim-test
         # users/enderger/neovim/plugins.ui
         galaxyline-nvim
-        minimap-vim
         nvim-base16
+        nvim-lightbulb
         nvim-web-devicons nvim-nonicons
       ];
+      
+      luaInit = "init";
+      luaModules = {
+        # users/enderger/neovim/config
+        init = ''
+          -- users/enderger/neovim/config/init
+          require("editorSettings")
+        '';
+        preferences = ''
+          -- users/enderger/neovim/config/preferences
+          return {
+            tabSize = 2,
+            leader = " ",
+            localLeader = ",",
+          }
+        '';
+        editorSettings = ''
+          -- users/enderger/neovim/config/editorSettings
+          local opt = vim.o
+          local prefs = require("preferences")
 
-      fnlConfig = ''
-    <<<users/enderger/neovim/config>>>
-      '';
+          -- asthetic
+          opt.background = "dark"
+          opt.cursorline = true
+          opt.number = true
+          opt.showmode = false
+          opt.signcolumn = "yes:3"
+
+          -- indentation
+          opt.expandtab = true
+          opt.shiftwidth = prefs.tabSize
+          opt.smartindent = true
+          opt.tabstop = prefs.tabSize
+
+          -- misc
+          opt.confirm = true
+          opt.mouse = "a"
+          opt.spell = true
+          opt.title = true
+        '';
+        pluginSettings = ''
+  <<<users/enderger/neovim/config/pluginSettings>>>
+        '';
+        keys = ''
+  <<<users/enderger/neovim/config/keys>>>
+        '';
+        ui = ''
+  <<<users/enderger/neovim/config/ui>>>
+        '';
+      };
     };
     # users/enderger/git
     programs.git = {

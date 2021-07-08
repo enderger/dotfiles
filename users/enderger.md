@@ -246,41 +246,40 @@ programs.neovim = {
   plugins = with pkgs.vimPlugins; [
     <<<users/enderger/neovim/plugins>>>
   ];
-
-  fnlConfig = ''
+  
+  luaInit = "init";
+  luaModules = {
     <<<users/enderger/neovim/config>>>
-  '';
+  };
 };
 ```
 
 #### Plugins
-Here is the list of plugins I include with this install. Note that some plugins may be included in the module, such as `aniseed`.
+Here is the list of plugins I include with this install.
 Since there are several plugins, I'll use an accumulator macro.
 
 ##### Core
 These plugins provide the core functionality used in this config.
-- `nvim-lspconfig` sets up the Neovim builtin `Language Server Protocol` client
-- `nvim-tree-lua` adds a file navigation tree
-- `nvim-treesitter` adds support for `tree-sitter` parsers
-- `telescope-nvim` adds an exceptionally powerful fuzzy finder for Neovim
+- `completion-nvim` gives the builtin Neovim LSP client automatic completion support.
+- `nvim-lspconfig` sets up the Neovim builtin `Language Server Protocol` client.
+- `nvim-treesitter` adds support for `tree-sitter` parsers.
+- `telescope-nvim` adds an exceptionally powerful fuzzy finder for Neovim.
+- `vim-vsnip` / `vim-vsnip-integ` give support for snippets.
+- `which-key-nvim` provides a better keybinding system.
 
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.backend
+completion-nvim
 nvim-lspconfig
-nvim-tree-lua
-(nvim-treesitter.withPlugins (p: with p; [
-  tree-sitter-bash
-  tree-sitter-fennel
-  tree-sitter-haskell
-  tree-sitter-nix
-  tree-sitter-rust
-]))
+# this loads all tree-sitter grammars
+(nvim-treesitter.withPlugins builtins.attrValues)
 telescope-nvim
+vim-vsnip vim-vsnip-integ
+which-key-nvim
 ```
 
 ##### Editing Facilities
 These plugins add in facilities which make editing more powerful.
-- `completion-nvim` gives the builtin Neovim LSP client automatic completion support.
 - `conjure` gives strong editing support for LISPs.
 - `lightspeed-nvim` improves the navigation experience provided by Neovim.
 - `nvim-autopairs` adds in automatic bracket closing for Neovim.
@@ -288,11 +287,9 @@ These plugins add in facilities which make editing more powerful.
 - `supertab` makes all Vim completions use `<TAB>`
 - `vim-endwise` automatically adds in closing delimiters like `end`.
 - `vim-surround` gives Vim bindings to surround text.
-- `vim-vsnip` / `vim-vsnip-integ` give support for snippets.
 
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.editing
-completion-nvim
 conjure
 lightspeed-nvim
 nvim-autopairs
@@ -300,28 +297,25 @@ nvim-treesitter-refactor
 supertab
 vim-endwise
 vim-surround
-vim-vsnip vim-vsnip-integ
 ```
 
 ##### Utilities
 These plugins enhance the editing experience in a small way.
 - `auto-session` sets up automatic session management for Neovim.
 - `lsp-rooter-nvim` automatically sets the CWD using LSP.
-- `nvim-lightbulb` adds in VSCode's lightbulb for Neovim's LSP.
+- `minimap-vim` adds in a minimap.
 - `nvim-treesitter-context` shows the context of what you can see onscreen.
 - `nvim-treesitter-pyfold` adds in much better folding to Neovim.
 - `nvim-ts-rainbow` highlights matching parentheses.
-- `registers-nvim` adds a preview window for Neovim registers.
 
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.utilities
 auto-session
 lsp-rooter-nvim
-nvim-lightbulb
+minimap-vim
 nvim-treesitter-context
 nvim-treesitter-pyfold
 nvim-ts-rainbow
-registers-nvim
 ```
 
 ##### Integrations
@@ -344,16 +338,85 @@ vim-test
 ##### UI Plugins
 These provide the building blocks of my editor user interface.
 - `galaxyline-nvim` provides the building blocks used for my statusline.
-- `minimap-vim` adds in a minimap.
 - `nvim-base16` provides strong support for Base16 colorschemes in Neovim.
+- `nvim-lightbulb` adds in VSCode's lightbulb for Neovim's LSP.
 - `nvim-web-devicons` / `nvim-nonicons` give Neovim icons.
 
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.ui
 galaxyline-nvim
-minimap-vim
 nvim-base16
+nvim-lightbulb
 nvim-web-devicons nvim-nonicons
+```
+
+#### Config
+Now, we'll set up my Neovim config. It takes the form of a set of Lua modules that are loaded by Neovim through the Neovim module.
+```nix "users/enderger/neovim/config"
+# users/enderger/neovim/config
+init = ''
+  <<<users/enderger/neovim/config/init>>>
+'';
+preferences = ''
+  <<<users/enderger/neovim/config/preferences>>>
+'';
+editorSettings = ''
+  <<<users/enderger/neovim/config/editorSettings>>>
+'';
+pluginSettings = ''
+  <<<users/enderger/neovim/config/pluginSettings>>>
+'';
+keys = ''
+  <<<users/enderger/neovim/config/keys>>>
+'';
+ui = ''
+  <<<users/enderger/neovim/config/ui>>>
+'';
+```
+
+##### Init
+This is the module which bootstraps the others. It's job is to load the other modules.
+```lua "users/enderger/neovim/config/init"
+-- users/enderger/neovim/config/init
+require("editorSettings")
+```
+
+##### Preferences
+This module acts as a configuration file for the other modules.
+```lua "users/enderger/neovim/config/preferences"
+-- users/enderger/neovim/config/preferences
+return {
+  tabSize = 2,
+  leader = " ",
+  localLeader = ",",
+}
+```
+
+##### Editor
+This module is used to set up the editor itself.
+```lua "users/enderger/neovim/config/editorSettings"
+-- users/enderger/neovim/config/editorSettings
+local opt = vim.o
+local prefs = require("preferences")
+
+-- asthetic
+opt.background = "dark"
+opt.cursorline = true
+opt.number = true
+opt.showmode = false
+opt.signcolumn = "yes:3"
+
+-- indentation
+opt.expandtab = true
+opt.shiftwidth = prefs.tabSize
+opt.smartindent = true
+opt.tabstop = prefs.tabSize
+
+-- misc
+opt.confirm = true
+opt.mouse = "a"
+opt.spell = true
+opt.title = true
 ```
 
 ## Other

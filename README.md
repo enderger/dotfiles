@@ -42,7 +42,7 @@ The first input we need is the main repo for Nix, called **Nixpkgs**. The differ
 stable.url = "github:nixos/nixpkgs/nixos-21.05";
 unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
 fallback.url = "github:nixos/nixpkgs/nixos-unstable";
-nixpkgs = "github:nixos/nixpkgs/nixos-unstable-small";
+nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
 ```
 
 ### Core Tools

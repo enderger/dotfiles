@@ -4,30 +4,46 @@ This Source Code Form is subject to the terms of the Mozilla Public
   file, You can obtain one at http://mozilla.org/MPL/2.0/.
   */
 { config, lib, pkgs, ... }:
-let cfg = config.programs.neovim;
+let 
+  cfg = config.programs.neovim;
 in {
   options = {
     # users/modules/neovim/options
-    fnlConfig = lib.mkOption {
-      type = lib.types.lines;
+    luaModules = lib.mkOption {
+      type = with lib.types; attrsOf lines;
+      default = {};
+      description = ''
+        Lua modules to add to ~/.config/nvim/lua
+      '';
+    };
+
+    luaInit = lib.mkOption {
+      type = lib.types.str;
       default = "";
       description = ''
-        Fennel LISP to load via Aniseed
+        Lua module to load in `init.vim`
       '';
     };
   };
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
-    # users/modules/neovim/aniseed
-    (lib.mkIf (cfg.fnlConfig != "") {
-      programs.neovim = {
-        plugins = [ pkgs.vimPlugins.aniseed ];
-        extraConfig = ''
-          let g:aniseed#env = { "input": "" }
-        '';
-      };
+    # users/modules/neovim/lua
+    (lib.mkIf (cfg.luaInit != "") {
+      assertions = [
+        { assertion = builtins.hasAttr cfg.luaInit cfg.luaModules;
+          message = "Unknown module: ${cfg.luaInit}";
+        }
+      ];
 
-      xdg.configFile."nvim/init.fnl".text = cfg.fnlConfig;
+      programs.neovim.extraConfig = ''
+        :lua require("${cfg.luaInit}")
+      '';
+    })
+
+    (lib.mkIf (cfg.luaModules != {}) {
+      xdg.configFile = lib.mapAttrs' 
+        (module: text: lib.nameValuePair "nvim/lua/${module}.lua" { inherit text; }) 
+        cfg.luaModules;
     })
   ]);
 }
