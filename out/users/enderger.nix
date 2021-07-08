@@ -221,7 +221,6 @@ in {
         nvim-autopairs
         nvim-treesitter-refactor
         supertab
-        vim-endwise
         vim-surround
         # users/enderger/neovim/plugins.utilities
         auto-session
@@ -248,18 +247,24 @@ in {
         # users/enderger/neovim/config
         init = ''
           -- users/enderger/neovim/config/init
-          require("editorSettings")
+          require("editor")
         '';
         preferences = ''
           -- users/enderger/neovim/config/preferences
-          return {
-            tabSize = 2,
-            leader = " ",
-            localLeader = ",",
-          }
+          local prefs = {}
+
+          prefs.tabSize = 2
+          prefs.leader = " "
+          prefs.localLeader = ","
+
+          return prefs
         '';
-        editorSettings = ''
-          -- users/enderger/neovim/config/editorSettings
+
+        completions = ''
+  <<<users/enderger/neovim/config/completions>>>
+        '';
+        editor = ''
+          -- users/enderger/neovim/config/editor
           local opt = vim.o
           local prefs = require("preferences")
 
@@ -282,11 +287,20 @@ in {
           opt.spell = true
           opt.title = true
         '';
-        pluginSettings = ''
-  <<<users/enderger/neovim/config/pluginSettings>>>
+        integrations = ''
+  <<<users/enderger/neovim/config/integrations>>>
         '';
         keys = ''
   <<<users/enderger/neovim/config/keys>>>
+        '';
+        navigation = ''
+  <<<users/enderger/neovim/config/navigation>>>
+        '';
+        syntax = ''
+  <<<users/enderger/neovim/config/syntax>>>
+        '';
+        utilities = ''
+  <<<users/enderger/neovim/config/utils>>>
         '';
         ui = ''
   <<<users/enderger/neovim/config/ui>>>

@@ -285,7 +285,6 @@ These plugins add in facilities which make editing more powerful.
 - `nvim-autopairs` adds in automatic bracket closing for Neovim.
 - `nvim-treesitter-refactor` gives refactoring abilities using `tree-sitter`.
 - `supertab` makes all Vim completions use `<TAB>`
-- `vim-endwise` automatically adds in closing delimiters like `end`.
 - `vim-surround` gives Vim bindings to surround text.
 
 ```nix "users/enderger/neovim/plugins" +=
@@ -295,7 +294,6 @@ lightspeed-nvim
 nvim-autopairs
 nvim-treesitter-refactor
 supertab
-vim-endwise
 vim-surround
 ```
 
@@ -360,14 +358,27 @@ init = ''
 preferences = ''
   <<<users/enderger/neovim/config/preferences>>>
 '';
-editorSettings = ''
-  <<<users/enderger/neovim/config/editorSettings>>>
+
+completions = ''
+  <<<users/enderger/neovim/config/completions>>>
 '';
-pluginSettings = ''
-  <<<users/enderger/neovim/config/pluginSettings>>>
+editor = ''
+  <<<users/enderger/neovim/config/editor>>>
+'';
+integrations = ''
+  <<<users/enderger/neovim/config/integrations>>>
 '';
 keys = ''
   <<<users/enderger/neovim/config/keys>>>
+'';
+navigation = ''
+  <<<users/enderger/neovim/config/navigation>>>
+'';
+syntax = ''
+  <<<users/enderger/neovim/config/syntax>>>
+'';
+utilities = ''
+  <<<users/enderger/neovim/config/utils>>>
 '';
 ui = ''
   <<<users/enderger/neovim/config/ui>>>
@@ -378,24 +389,26 @@ ui = ''
 This is the module which bootstraps the others. It's job is to load the other modules.
 ```lua "users/enderger/neovim/config/init"
 -- users/enderger/neovim/config/init
-require("editorSettings")
+require("editor")
 ```
 
 ##### Preferences
 This module acts as a configuration file for the other modules.
 ```lua "users/enderger/neovim/config/preferences"
 -- users/enderger/neovim/config/preferences
-return {
-  tabSize = 2,
-  leader = " ",
-  localLeader = ",",
-}
+local prefs = {}
+
+prefs.tabSize = 2
+prefs.leader = " "
+prefs.localLeader = ","
+
+return prefs
 ```
 
 ##### Editor
 This module is used to set up the editor itself.
-```lua "users/enderger/neovim/config/editorSettings"
--- users/enderger/neovim/config/editorSettings
+```lua "users/enderger/neovim/config/editor"
+-- users/enderger/neovim/config/editor
 local opt = vim.o
 local prefs = require("preferences")
 
