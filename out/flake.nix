@@ -111,13 +111,8 @@ This Source Code Form is subject to the terms of the Mozilla Public
       };
       overlay = import ./pkgs;
       # flake/outputs/shell
-      devShellBuilder = { stable, ... }: stable.mkShell {
-        name = "shelly";
-        buildInputs = with stable; [
-          git gnupg transcrypt
-          python39Packages.mistletoe
-        ];
-      };
+      devShellBuilder = { stable, ... }:
+        import ./shell.nix { pkgs = stable; };
     }
   ;
 }

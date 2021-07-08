@@ -200,16 +200,11 @@ overlay = import ./pkgs;
 ```
 
 ### Shell
-Here, we will define the development shell. This is the environment needed to work with this Git repository. I base it on stable since it is least likely to bork. Note that this is not needed to use the bootstrap script, since that is self-contained.
+Here, we will include the development shell. This is the environment needed to work with this Git repository. I base it on stable since it is least likely to bork. Note that this is not needed to use the bootstrap script, since that is self-contained.
 ```nix "flake/outputs/shell"
 # flake/outputs/shell
-devShellBuilder = { stable, ... }: stable.mkShell {
-  name = "shelly";
-  buildInputs = with stable; [
-    git gnupg transcrypt
-    python39Packages.mistletoe
-  ];
-};
+devShellBuilder = { stable, ... }:
+  import ./shell.nix { pkgs = stable; };
 ```
 
 # License
