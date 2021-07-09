@@ -551,6 +551,25 @@ local gitsigns = require('gitsigns')
 gitsigns.setup {}
 ```
 
+##### Extensions
+Here, we have plugins which add in new environments to provide features which suppliment editing capabilities.
+```lua "users/enderger/neovim/config/extensions"
+-- users/enderger/neovim/config/extensions
+-- Telescope
+
+-- REPL
+
+-- Minimap
+
+-- Markdown
+
+-- Git
+
+-- Terminal
+
+-- Testing
+```
+
 ## Other
 ### Git
 ```nix "users/enderger/git"

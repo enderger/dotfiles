@@ -391,7 +391,20 @@ in {
           gitsigns.setup {}
         '';
         extensions = ''
-  <<<users/enderger/neovim/config/extensions>>>
+          -- users/enderger/neovim/config/extensions
+          -- Telescope
+
+          -- REPL
+
+          -- Minimap
+
+          -- Markdown
+
+          -- Git
+
+          -- Terminal
+
+          -- Testing
         '';
         ui = ''
   <<<users/enderger/neovim/config/ui>>>
