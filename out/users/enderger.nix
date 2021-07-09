@@ -248,7 +248,7 @@ in {
         # users/enderger/neovim/plugins/packages
         rnix-lsp
         (with fenix; combine [
-          default.rustfmt-preview rust-analyzer
+          default.rustfmt-preview default.clippy rust-analyzer
         ])
         zig zls
       ];

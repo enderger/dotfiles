@@ -362,7 +362,7 @@ Here, we'll set up the environment within which Neovim operates. This includes t
 # users/enderger/neovim/plugins/packages
 rnix-lsp
 (with fenix; combine [
-  default.rustfmt-preview rust-analyzer
+  default.rustfmt-preview default.clippy rust-analyzer
 ])
 zig zls
 ```
@@ -456,12 +456,29 @@ Here, we set up plugins which focus on improving the editing experience of Vim.
 ```lua "users/enderger/neovim/config/editing"
 -- users/enderger/neovim/config/editing
 -- LSP
+local lsp = require("lspconfig")
+
+--- Nix
+lsp.rnix.setup {}
+
+--- Rust
+lsp.rust_analyzer.setup {
+  settings["rust-analyzer"] = {
+    -- use Clippy
+    checkOnSave.command = "clippy",
+  },
+}
+
+--- Zig
+lsp.zls.setup {}
 
 -- Completion
 
 -- Snippets
 
 -- Syntax
+
+-- Formatting
 
 -- Navigation
 
