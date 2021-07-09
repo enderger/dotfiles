@@ -377,6 +377,9 @@ init = ''
 preferences = ''
   <<<users/enderger/neovim/config/preferences>>>
 '';
+lib = ''
+  <<<users/enderger/neovim/config/lib>>>
+'';
 editor = ''
   <<<users/enderger/neovim/config/editor>>>
 '';
@@ -399,9 +402,9 @@ ui = ''
 This is the module which bootstraps the others. It's job is to load the other modules.
 ```lua "users/enderger/neovim/config/init"
 -- users/enderger/neovim/config/init
-require("editor")
-require("keys")
-require("editing")
+require('editor')
+require('keys')
+require('editing')
 ```
 
 ##### Preferences
@@ -411,25 +414,38 @@ This module acts as a configuration file for the other modules.
 local prefs = {}
 
 prefs.tabSize = 2
-prefs.leader = " "
-prefs.localLeader = ","
+prefs.leader = ' '
+prefs.localLeader = ','
 
 return prefs
+```
+
+##### Library Functions
+These functions make some things, such as registering autocommands, easier. 
+```lua "users/enderger/neovim/config/lib"
+-- users/enderger/neovim/config/lib
+local lib = {};
+
+function lib.autocmd(event, action, filter='*')
+  vim.cmd(string.format("autocmd %s %s %s", event, filter, action))
+end
+
+return lib
 ```
 
 ##### Editor
 This module is used to set up the editor itself.
 ```lua "users/enderger/neovim/config/editor"
 -- users/enderger/neovim/config/editor
-local opt = vim.o
-local prefs = require("preferences")
+local opt = vim.opt
+local prefs = require('preferences')
 
 -- asthetic
-opt.background = "dark"
+opt.background = 'dark'
 opt.cursorline = true
 opt.number = true
 opt.showmode = false
-opt.signcolumn = "yes:3"
+opt.signcolumn = 'yes:3'
 
 -- indentation
 opt.expandtab = true
@@ -439,7 +455,8 @@ opt.tabstop = prefs.tabSize
 
 -- misc
 opt.confirm = true
-opt.mouse = "a"
+opt.completeopt = { 'menuone', 'noinsert', 'noselect' }
+opt.mouse = 'a'
 opt.spell = true
 opt.title = true
 ```
@@ -448,24 +465,28 @@ opt.title = true
 Here, we set up my keybindings (primarily using `which-key`)
 ```lua "users/enderger/neovim/config/keys"
 -- users/enderger/neovim/config/keys
-error("Not yet implemented!")
+error('Not yet implemented!')
 ```
 
 ##### Editing
 Here, we set up plugins which focus on improving the editing experience of Vim.
 ```lua "users/enderger/neovim/config/editing"
 -- users/enderger/neovim/config/editing
+local lib = require('lib')
+local opt = vim.opt
+local g = vim.g
+
 -- LSP
-local lsp = require("lspconfig")
+local lsp = require('lspconfig')
 
 --- Nix
 lsp.rnix.setup {}
 
 --- Rust
 lsp.rust_analyzer.setup {
-  settings["rust-analyzer"] = {
+  settings['rust-analyzer'] = {
     -- use Clippy
-    checkOnSave.command = "clippy",
+    checkOnSave.command = 'clippy',
   },
 }
 
@@ -473,8 +494,12 @@ lsp.rust_analyzer.setup {
 lsp.zls.setup {}
 
 -- Completion
+lib.autocmd('BufEnter', 'lua require(\'completion\').on_attach()')
+opt.shortmess:append('c')
+g.completion_matching_smart_case = true
 
 -- Snippets
+g.completion_enable_snippet = 'vim-vsnip'
 
 -- Syntax
 

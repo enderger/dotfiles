@@ -258,31 +258,41 @@ in {
         # users/enderger/neovim/config
         init = ''
           -- users/enderger/neovim/config/init
-          require("editor")
-          require("keys")
-          require("editing")
+          require('editor')
+          require('keys')
+          require('editing')
         '';
         preferences = ''
           -- users/enderger/neovim/config/preferences
           local prefs = {}
 
           prefs.tabSize = 2
-          prefs.leader = " "
-          prefs.localLeader = ","
+          prefs.leader = ' '
+          prefs.localLeader = ','
 
           return prefs
         '';
+        lib = ''
+          -- users/enderger/neovim/config/lib
+          local lib = {};
+
+          function lib.autocmd(event, action, filter='*')
+            vim.cmd(string.format("autocmd %s %s %s", event, filter, action))
+          end
+
+          return lib
+        '';
         editor = ''
           -- users/enderger/neovim/config/editor
-          local opt = vim.o
-          local prefs = require("preferences")
+          local opt = vim.opt
+          local prefs = require('preferences')
 
           -- asthetic
-          opt.background = "dark"
+          opt.background = 'dark'
           opt.cursorline = true
           opt.number = true
           opt.showmode = false
-          opt.signcolumn = "yes:3"
+          opt.signcolumn = 'yes:3'
 
           -- indentation
           opt.expandtab = true
@@ -292,13 +302,14 @@ in {
 
           -- misc
           opt.confirm = true
-          opt.mouse = "a"
+          opt.completeopt = { 'menuone', 'noinsert', 'noselect' }
+          opt.mouse = 'a'
           opt.spell = true
           opt.title = true
         '';
         keys = ''
           -- users/enderger/neovim/config/keys
-          error("Not yet implemented!")
+          error('Not yet implemented!')
         '';
 
         editing = ''
