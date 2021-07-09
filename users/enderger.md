@@ -310,7 +310,6 @@ These plugins enhance the editing experience in a small way.
 - `lsp-rooter-nvim` automatically sets the CWD using LSP.
 - `minimap-vim` adds in a minimap.
 - `nvim-treesitter-context` shows the context of what you can see onscreen.
-- `nvim-treesitter-pyfold` adds in much better folding to Neovim.
 - `nvim-ts-rainbow` highlights matching parentheses.
 
 ```nix "users/enderger/neovim/plugins" +=
@@ -320,7 +319,6 @@ friendly-snippets
 lsp-rooter-nvim
 minimap-vim
 nvim-treesitter-context
-nvim-treesitter-pyfold
 nvim-ts-rainbow
 ```
 
@@ -388,10 +386,10 @@ keys = ''
 '';
 
 editing = ''
-  <<<users/enderger/neovim/config/completions>>>
+  <<<users/enderger/neovim/config/editing>>>
 '';
-tweaks = ''
-  <<<users/enderger/neovim/config/utils>>>
+misc = ''
+  <<<users/enderger/neovim/config/misc>>>
 '';
 ui = ''
   <<<users/enderger/neovim/config/ui>>>
@@ -413,9 +411,9 @@ This module acts as a configuration file for the other modules.
 -- users/enderger/neovim/config/preferences
 local prefs = {}
 
-prefs.tabSize = 2
 prefs.leader = ' '
 prefs.localLeader = ','
+prefs.tabSize = 2
 
 return prefs
 ```
@@ -456,6 +454,7 @@ opt.tabstop = prefs.tabSize
 -- misc
 opt.confirm = true
 opt.completeopt = { 'menuone', 'noinsert', 'noselect' }
+opt.foldmethod = 'expr'
 opt.mouse = 'a'
 opt.spell = true
 opt.title = true
@@ -501,11 +500,36 @@ g.completion_matching_smart_case = true
 -- Snippets
 g.completion_enable_snippet = 'vim-vsnip'
 
--- Syntax
+-- Treesitter
+local ts = require('nvim-treesitter')
+ts.configs.setup {
+  highlight.enable = true,
+
+  indent.enable = true,
+
+  refactor = {
+    highlight_definitions.enable = true,
+    smart_rename.enable = true,
+    navigation.enable = true,
+  },
+
+  rainbow = {
+    enable = true,
+    extended_mode = true,
+  },
+}
+require('treesitter-context.config').setup {
+  enable = true,
+}
+
+opt.foldexpr = vim.fn['nvim_treesitter#foldexpr']()
 
 -- Formatting
+lib.autocmd('BufWritePre', 'undojoin | Neoformat')
 
 -- Navigation
+local lightspeed = require('lightspeed')
+lightspeed.setup {}
 
 -- Surround
 ```

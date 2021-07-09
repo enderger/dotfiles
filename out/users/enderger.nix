@@ -229,7 +229,6 @@ in {
         lsp-rooter-nvim
         minimap-vim
         nvim-treesitter-context
-        nvim-treesitter-pyfold
         nvim-ts-rainbow
         # users/enderger/neovim/plugins.integrations
         gitsigns-nvim
@@ -266,9 +265,9 @@ in {
           -- users/enderger/neovim/config/preferences
           local prefs = {}
 
-          prefs.tabSize = 2
           prefs.leader = ' '
           prefs.localLeader = ','
+          prefs.tabSize = 2
 
           return prefs
         '';
@@ -303,6 +302,7 @@ in {
           -- misc
           opt.confirm = true
           opt.completeopt = { 'menuone', 'noinsert', 'noselect' }
+          opt.foldmethod = 'expr'
           opt.mouse = 'a'
           opt.spell = true
           opt.title = true
@@ -313,10 +313,71 @@ in {
         '';
 
         editing = ''
-  <<<users/enderger/neovim/config/completions>>>
+          -- users/enderger/neovim/config/editing
+          local lib = require('lib')
+          local opt = vim.opt
+          local g = vim.g
+
+          -- LSP
+          local lsp = require('lspconfig')
+
+          --- Nix
+          lsp.rnix.setup {}
+
+          --- Rust
+          lsp.rust_analyzer.setup {
+            settings['rust-analyzer'] = {
+              -- use Clippy
+              checkOnSave.command = 'clippy',
+            },
+          }
+
+          --- Zig
+          lsp.zls.setup {}
+
+          -- Completion
+          lib.autocmd('BufEnter', 'lua require(\'completion\').on_attach()')
+          opt.shortmess:append('c')
+          g.completion_matching_smart_case = true
+
+          -- Snippets
+          g.completion_enable_snippet = 'vim-vsnip'
+
+          -- Treesitter
+          local ts = require('nvim-treesitter')
+          ts.configs.setup {
+            highlight.enable = true,
+
+            indent.enable = true,
+
+            refactor = {
+              highlight_definitions.enable = true,
+              smart_rename.enable = true,
+              navigation.enable = true,
+            },
+
+            rainbow = {
+              enable = true,
+              extended_mode = true,
+            },
+          }
+          require('treesitter-context.config').setup {
+            enable = true,
+          }
+
+          opt.foldexpr = vim.fn['nvim_treesitter#foldexpr']()
+
+          -- Formatting
+          lib.autocmd('BufWritePre', 'undojoin | Neoformat')
+
+          -- Navigation
+          local lightspeed = require('lightspeed')
+          lightspeed.setup {}
+
+          -- Surround
         '';
-        tweaks = ''
-  <<<users/enderger/neovim/config/utils>>>
+        misc = ''
+  <<<users/enderger/neovim/config/misc>>>
         '';
         ui = ''
   <<<users/enderger/neovim/config/ui>>>
