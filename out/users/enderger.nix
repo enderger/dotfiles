@@ -228,6 +228,7 @@ in {
         friendly-snippets
         lsp-rooter-nvim
         minimap-vim
+        nvim-lightbulb
         nvim-treesitter-context
         nvim-ts-rainbow
         # users/enderger/neovim/plugins.integrations
@@ -239,7 +240,6 @@ in {
         # users/enderger/neovim/plugins.ui
         galaxyline-nvim
         nvim-base16
-        nvim-lightbulb
         nvim-web-devicons nvim-nonicons
       ];
 
@@ -346,6 +346,8 @@ in {
           -- Treesitter
           local ts = require('nvim-treesitter')
           ts.configs.setup {
+            autopairs.enable = true,
+
             highlight.enable = true,
 
             indent.enable = true,
@@ -370,17 +372,32 @@ in {
           -- Formatting
           lib.autocmd('BufWritePre', 'undojoin | Neoformat')
 
-          -- Navigation
+          -- Lightspeed
           local lightspeed = require('lightspeed')
           lightspeed.setup {}
 
-          -- Surround
+          -- Autopairs
+          local autopairs = require('nvim-autopairs')
+          local autopairs-ts = autopairs['ts-rule']
+          autopairs.setup {
+            check_ts = true,
+          }
+
+          -- Lightbulb
+          lib.autocmd('CursorHold,CursorHoldI', 'lua require(\'nvim-lightbulb\').update_lightbulb()')
+
+          -- Git Signs
+          local gitsigns = require('gitsigns')
+          gitsigns.setup {}
         '';
-        misc = ''
-  <<<users/enderger/neovim/config/misc>>>
+        extensions = ''
+  <<<users/enderger/neovim/config/extensions>>>
         '';
         ui = ''
   <<<users/enderger/neovim/config/ui>>>
+        '';
+        misc = ''
+  <<<users/enderger/neovim/config/misc>>>
         '';
       };
     };

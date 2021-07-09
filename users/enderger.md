@@ -309,6 +309,7 @@ These plugins enhance the editing experience in a small way.
 - `friendly-snippets` adds a bunch of useful snippets for `vim-vsnip`.
 - `lsp-rooter-nvim` automatically sets the CWD using LSP.
 - `minimap-vim` adds in a minimap.
+- `nvim-lightbulb` adds in VSCode's lightbulb for Neovim's LSP.
 - `nvim-treesitter-context` shows the context of what you can see onscreen.
 - `nvim-ts-rainbow` highlights matching parentheses.
 
@@ -318,12 +319,13 @@ auto-session
 friendly-snippets
 lsp-rooter-nvim
 minimap-vim
+nvim-lightbulb
 nvim-treesitter-context
 nvim-ts-rainbow
 ```
 
 ##### Integrations
-These plugins integrate Neovim with the outside world, making Neovim act more as a Unix-philosophy "shell".
+These plugins integrate Neovim with the outside world.
 - `gitsigns-nvim` adds in Git decorations for Neovim
 - `glow-nvim` adds in a nice Markdown preview to Neovim.
 - `neogit` adds in a Magit-like interface for Git in Neovim.
@@ -343,14 +345,12 @@ vim-test
 These provide the building blocks of my editor user interface.
 - `galaxyline-nvim` provides the building blocks used for my statusline.
 - `nvim-base16` provides strong support for Base16 colorschemes in Neovim.
-- `nvim-lightbulb` adds in VSCode's lightbulb for Neovim's LSP.
 - `nvim-web-devicons` / `nvim-nonicons` give Neovim icons.
 
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.ui
 galaxyline-nvim
 nvim-base16
-nvim-lightbulb
 nvim-web-devicons nvim-nonicons
 ```
 
@@ -388,11 +388,14 @@ keys = ''
 editing = ''
   <<<users/enderger/neovim/config/editing>>>
 '';
-misc = ''
-  <<<users/enderger/neovim/config/misc>>>
+extensions = ''
+  <<<users/enderger/neovim/config/extensions>>>
 '';
 ui = ''
   <<<users/enderger/neovim/config/ui>>>
+'';
+misc = ''
+  <<<users/enderger/neovim/config/misc>>>
 '';
 ```
 
@@ -468,7 +471,7 @@ error('Not yet implemented!')
 ```
 
 ##### Editing
-Here, we set up plugins which focus on improving the editing experience of Vim.
+Here, we set up plugins which focus on directly extending the Vim experience.
 ```lua "users/enderger/neovim/config/editing"
 -- users/enderger/neovim/config/editing
 local lib = require('lib')
@@ -503,6 +506,8 @@ g.completion_enable_snippet = 'vim-vsnip'
 -- Treesitter
 local ts = require('nvim-treesitter')
 ts.configs.setup {
+  autopairs.enable = true,
+
   highlight.enable = true,
 
   indent.enable = true,
@@ -527,11 +532,23 @@ opt.foldexpr = vim.fn['nvim_treesitter#foldexpr']()
 -- Formatting
 lib.autocmd('BufWritePre', 'undojoin | Neoformat')
 
--- Navigation
+-- Lightspeed
 local lightspeed = require('lightspeed')
 lightspeed.setup {}
 
--- Surround
+-- Autopairs
+local autopairs = require('nvim-autopairs')
+local autopairs-ts = autopairs['ts-rule']
+autopairs.setup {
+  check_ts = true,
+}
+
+-- Lightbulb
+lib.autocmd('CursorHold,CursorHoldI', 'lua require(\'nvim-lightbulb\').update_lightbulb()')
+
+-- Git Signs
+local gitsigns = require('gitsigns')
+gitsigns.setup {}
 ```
 
 ## Other
