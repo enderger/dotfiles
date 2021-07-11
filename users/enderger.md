@@ -286,7 +286,6 @@ which-key-nvim
 
 ##### Editing Facilities
 These plugins add in facilities which make editing more powerful.
-- `conjure` gives strong editing support for LISPs.
 - `lightspeed-nvim` improves the navigation experience provided by Neovim.
 - `nvim-autopairs` adds in automatic bracket closing for Neovim.
 - `nvim-treesitter-refactor` gives refactoring abilities using `tree-sitter`.
@@ -295,7 +294,6 @@ These plugins add in facilities which make editing more powerful.
 
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.editing
-conjure
 lightspeed-nvim
 nvim-autopairs
 nvim-treesitter-refactor
@@ -406,19 +404,18 @@ This is the module which bootstraps the others. It's job is to load the other mo
 require('editor')
 require('keys')
 require('editing')
+require('extensions')
 ```
 
 ##### Preferences
 This module acts as a configuration file for the other modules.
 ```lua "users/enderger/neovim/config/preferences"
 -- users/enderger/neovim/config/preferences
-local prefs = {}
-
-prefs.leader = ' '
-prefs.localLeader = ','
-prefs.tabSize = 2
-
-return prefs
+return = {
+  leader = ' ',
+  localLeader = ',',
+  tabSize = 2,
+}
 ```
 
 ##### Library Functions
@@ -444,6 +441,7 @@ local prefs = require('preferences')
 -- asthetic
 opt.background = 'dark'
 opt.cursorline = true
+opt.guifont = '${font}' -- interpolated via Nix
 opt.number = true
 opt.showmode = false
 opt.signcolumn = 'yes:3'
@@ -458,6 +456,7 @@ opt.tabstop = prefs.tabSize
 opt.confirm = true
 opt.completeopt = { 'menuone', 'noinsert', 'noselect' }
 opt.foldmethod = 'expr'
+opt.hidden = true
 opt.mouse = 'a'
 opt.spell = true
 opt.title = true
@@ -555,19 +554,58 @@ gitsigns.setup {}
 Here, we have plugins which add in new environments to provide features which suppliment editing capabilities.
 ```lua "users/enderger/neovim/config/extensions"
 -- users/enderger/neovim/config/extensions
--- Telescope
+local g = vim.g
 
--- REPL
+-- Telescope
+local tsc = require('telescope')
+tsc.setup {
+  defaults = tsc.themes.get_ivy {
+    mappings.i = {
+      ["<Tab>"] = tsc.actions.move_selection_next,
+      ["<S-Tab>"] = tsc.actions.move_selection_previous,
+      ["<Esc>"] = tsc.actions.close,
+    },
+    
+    prompt_prefix = '$ ',
+    selection_caret = '> ',
+  },
+}
 
 -- Minimap
-
--- Markdown
+g.minimap_git_colors = true
+g.minimap_highlight_range = true
+g.minimap_width = 10
 
 -- Git
+local neogit = require('neogit')
+neogit.setup {
+  signs = {
+    section = { "|", ":" },
+    item = { "|", ":" },
+    hunk = { "|", ":" },
+  },
+}
 
 -- Terminal
+local toggle_term = require('toggleterm')
+toggle_term.setup {
+  shading_factor = 1,
+  open_mapping = "<C-S-t>",
+}
 
 -- Testing
+g['test#strategy'] = 'neovim'
+```
+
+##### UI
+Here, we have plugins which add UI improvements to Neovim.
+```lua "users/enderger/neovim/config/ui"
+-- users/enderger/neovim/config/ui
+-- colours
+
+-- statusline
+
+-- icons
 ```
 
 ## Other

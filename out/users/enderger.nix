@@ -217,7 +217,6 @@ in {
         vim-vsnip vim-vsnip-integ
         which-key-nvim
         # users/enderger/neovim/plugins.editing
-        conjure
         lightspeed-nvim
         nvim-autopairs
         nvim-treesitter-refactor
@@ -260,16 +259,15 @@ in {
           require('editor')
           require('keys')
           require('editing')
+          require('extensions')
         '';
         preferences = ''
           -- users/enderger/neovim/config/preferences
-          local prefs = {}
-
-          prefs.leader = ' '
-          prefs.localLeader = ','
-          prefs.tabSize = 2
-
-          return prefs
+          return = {
+            leader = ' ',
+            localLeader = ',',
+            tabSize = 2,
+          }
         '';
         lib = ''
           -- users/enderger/neovim/config/lib
@@ -289,6 +287,7 @@ in {
           -- asthetic
           opt.background = 'dark'
           opt.cursorline = true
+          opt.guifont = '${font}' -- interpolated via Nix
           opt.number = true
           opt.showmode = false
           opt.signcolumn = 'yes:3'
@@ -303,6 +302,7 @@ in {
           opt.confirm = true
           opt.completeopt = { 'menuone', 'noinsert', 'noselect' }
           opt.foldmethod = 'expr'
+          opt.hidden = true
           opt.mouse = 'a'
           opt.spell = true
           opt.title = true
@@ -392,22 +392,55 @@ in {
         '';
         extensions = ''
           -- users/enderger/neovim/config/extensions
-          -- Telescope
+          local g = vim.g
 
-          -- REPL
+          -- Telescope
+          local tsc = require('telescope')
+          tsc.setup {
+            defaults = tsc.themes.get_ivy {
+              mappings.i = {
+                ["<Tab>"] = tsc.actions.move_selection_next,
+                ["<S-Tab>"] = tsc.actions.move_selection_previous,
+                ["<Esc>"] = tsc.actions.close,
+              },
+              
+              prompt_prefix = '$ ',
+              selection_caret = '> ',
+            },
+          }
 
           -- Minimap
-
-          -- Markdown
+          g.minimap_git_colors = true
+          g.minimap_highlight_range = true
+          g.minimap_width = 10
 
           -- Git
+          local neogit = require('neogit')
+          neogit.setup {
+            signs = {
+              section = { "|", ":" },
+              item = { "|", ":" },
+              hunk = { "|", ":" },
+            },
+          }
 
           -- Terminal
+          local toggle_term = require('toggleterm')
+          toggle_term.setup {
+            shading_factor = 1,
+            open_mapping = "<C-S-t>",
+          }
 
           -- Testing
+          g['test#strategy'] = 'neovim'
         '';
         ui = ''
-  <<<users/enderger/neovim/config/ui>>>
+          -- users/enderger/neovim/config/ui
+          -- colours
+
+          -- statusline
+
+          -- icons
         '';
         misc = ''
   <<<users/enderger/neovim/config/misc>>>
