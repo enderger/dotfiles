@@ -41,7 +41,7 @@ The first input we need is the main repo for Nix, called **Nixpkgs**. The differ
 # flake/inputs.nixpkgs
 stable.url = "github:nixos/nixpkgs/nixos-21.05";
 unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
-master.url = "github:nixos/nixpkgs/master;"
+master.url = "github:nixos/nixpkgs/master";
 fallback.url = "github:nixos/nixpkgs/nixos-unstable";
 nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
 ```

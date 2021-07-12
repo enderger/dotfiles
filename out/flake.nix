@@ -10,7 +10,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
     # flake/inputs.nixpkgs
     stable.url = "github:nixos/nixpkgs/nixos-21.05";
     unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
-    master.url = "github:nixos/nixpkgs/master;"
+    master.url = "github:nixos/nixpkgs/master";
     fallback.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
     # flake/inputs.core
