@@ -10,5 +10,5 @@ cp -rL result/* out
 chmod -R +w out
 
 rm -f result
-git add .
+git add out
 echo "DONE!"
