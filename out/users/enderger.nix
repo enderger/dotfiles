@@ -343,10 +343,6 @@ in {
               "<Cmd>MinimapToggle<CR>",
               "minimap"
             },
-            p = {
-              "<Cmd>Glow<CR>",
-              "markdown-preview"
-            },
             s = {
               "<Cmd>ToggleTerm<CR>",
               "shell"
@@ -357,9 +353,59 @@ in {
             },
           }
 
+          -- goto
+          local goto_keys = {
+            name = 'goto/',
+            b = {
+              function() ts.buffers {} end,
+              "buffer"
+            },
+            d = {
+              function() ts.lsp_definitions {} end,
+              "definition"
+            },
+            f = {
+              function() ts.find_files {} end,
+              "file"
+            },
+            ["<S-f>"] = {
+              function() ts.find_files { hidden = true } end,
+              "file (hidden)"
+            },
+            i = {
+              function() ts.lsp_implementations {} end,
+              "implementation"
+            },
+            r = {
+              function() ts.lsp_references {} end,
+              "reference"
+            }
+          }
+
+          -- actions
+          local action_keys = {
+            name = 'actions/',
+            c = {
+              function() ts.lsp_code_actions {} end,
+              "code-actions"
+            },
+            f = {
+              "<Cmd>Neoformat<CR>",
+              "format"
+            },
+            m = {
+              "<Cmd>Glow<CR>",
+              "markdown-preview"
+            },
+            r = {
+              require("nvim-treesitter-refactor.smart_rename").smart_rename,
+              "rename"
+            }
+          }
+
           -- help
           local help_keys = {
-            name = 'help',
+            name = 'help/',
             t = {
               function() ts.help_tags {} end,
               "help-tags"
@@ -411,15 +457,15 @@ in {
 
             indent.enable = true,
 
-            refactor = {
-              highlight_definitions.enable = true,
-              smart_rename.enable = true,
-              navigation.enable = true,
-            },
-
             rainbow = {
               enable = true,
               extended_mode = true,
+            },
+
+            refactor = {
+              highlight_current_scope.enable = true,
+              highlight_definitions.enable = true,
+              smart_rename.enable = true,
             },
           }
           require('treesitter-context.config').setup {
