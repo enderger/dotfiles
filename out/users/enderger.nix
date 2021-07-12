@@ -262,14 +262,6 @@ in {
           require('editing')
           require('extensions')
         '';
-        preferences = ''
-          -- users/enderger/neovim/config/preferences
-          return = {
-            leader = ' ',
-            localLeader = ',',
-            tabSize = 2,
-          }
-        '';
         lib = ''
           -- users/enderger/neovim/config/lib
           local lib = {};
@@ -283,7 +275,6 @@ in {
         editor = ''
           -- users/enderger/neovim/config/editor
           local opt = vim.opt
-          local prefs = require('preferences')
 
           -- asthetic
           opt.background = 'dark'
@@ -294,10 +285,11 @@ in {
           opt.signcolumn = 'yes:3'
 
           -- indentation
+          local tabsize = 2
           opt.expandtab = true
-          opt.shiftwidth = prefs.tabSize
+          opt.shiftwidth = tabsize
           opt.smartindent = true
-          opt.tabstop = prefs.tabSize
+          opt.tabstop = tabsize
 
           -- misc
           opt.confirm = true
@@ -379,7 +371,6 @@ in {
 
           -- Autopairs
           local autopairs = require('nvim-autopairs')
-          local autopairs-ts = autopairs['ts-rule']
           autopairs.setup {
             check_ts = true,
           }
@@ -610,8 +601,6 @@ in {
             properties = feline_config.properties,
             vi_mode_colors = feline_config.mode_colours,
           }
-
-          -- icons
         '';
         misc = ''
   <<<users/enderger/neovim/config/misc>>>

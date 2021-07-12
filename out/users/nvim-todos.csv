@@ -11,9 +11,9 @@ nvim-autopairs,editing,done
 nvim-treesitter-refactor,editing,done
 supertab,editing,done
 vim-surround,editing,done
-auto-session,misc,todo
+auto-session,misc,done
 friendly-snippets,editing,done
-lsp-rooter-nvim,misc,todo
+lsp-rooter-nvim,misc,done
 minimap-vim,extension,done
 nvim-lightbulb,editing,done
 nvim-treesitter-context,editing,done
@@ -23,6 +23,6 @@ glow-nvim,extension,done
 neogit,extension,done
 nvim-toggleterm-lua,extension,done
 vim-test,extension,done
-feline-nvim,ui,todo
+feline-nvim,ui,done
 nvim-base16,ui,done
-nvim-web-devicons,ui,todo
+nvim-web-devicons,ui,done

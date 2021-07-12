@@ -371,9 +371,6 @@ Now, we'll set up my Neovim config. It takes the form of a set of Lua modules th
 init = ''
   <<<users/enderger/neovim/config/init>>>
 '';
-preferences = ''
-  <<<users/enderger/neovim/config/preferences>>>
-'';
 lib = ''
   <<<users/enderger/neovim/config/lib>>>
 '';
@@ -408,17 +405,6 @@ require('editing')
 require('extensions')
 ```
 
-##### Preferences
-This module acts as a configuration file for the other modules.
-```lua "users/enderger/neovim/config/preferences"
--- users/enderger/neovim/config/preferences
-return = {
-  leader = ' ',
-  localLeader = ',',
-  tabSize = 2,
-}
-```
-
 ##### Library Functions
 These functions make some things, such as registering autocommands, easier. 
 ```lua "users/enderger/neovim/config/lib"
@@ -437,7 +423,6 @@ This module is used to set up the editor itself.
 ```lua "users/enderger/neovim/config/editor"
 -- users/enderger/neovim/config/editor
 local opt = vim.opt
-local prefs = require('preferences')
 
 -- asthetic
 opt.background = 'dark'
@@ -448,10 +433,11 @@ opt.showmode = false
 opt.signcolumn = 'yes:3'
 
 -- indentation
+local tabsize = 2
 opt.expandtab = true
-opt.shiftwidth = prefs.tabSize
+opt.shiftwidth = tabsize
 opt.smartindent = true
-opt.tabstop = prefs.tabSize
+opt.tabstop = tabsize
 
 -- misc
 opt.confirm = true
@@ -538,7 +524,6 @@ lightspeed.setup {}
 
 -- Autopairs
 local autopairs = require('nvim-autopairs')
-local autopairs-ts = autopairs['ts-rule']
 autopairs.setup {
   check_ts = true,
 }
@@ -775,8 +760,6 @@ feline.setup {
   properties = feline_config.properties,
   vi_mode_colors = feline_config.mode_colours,
 }
-
--- icons
 ```
 
 ## Other
