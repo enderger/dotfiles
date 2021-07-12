@@ -69,7 +69,9 @@ in {
       };
     };
   }
-  # "systems/sputnik/packages"
+  # systems/sputnik/misc
+  documentation.man.generateCaches = true;
+  # systems/sputnik/packages
   environment.systemPackages = with pkgs; [
     wget curl git htop tinycc lynx neovim-nightly
   ];

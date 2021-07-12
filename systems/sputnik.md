@@ -20,6 +20,7 @@ in {
   <<<systems/sputnik/security>>>
   <<<systems/sputnik/kernel>>>
   <<<systems/sputnik/gui>>>
+  <<<systems/sputnik/misc>>>
   <<<systems/sputnik/packages>>>
 }
 ```
@@ -111,10 +112,17 @@ services.xserver = {
 }
 ```
 
+# Miscellaneous
+Here, we have everything which doesn't fit into a category cleanly.
+```nix "systems/sputnik/misc"
+# systems/sputnik/misc
+documentation.man.generateCaches = true;
+```
+
 # Packages
 The set of packages to include with the system, most user utilities should be in the user configurations.
 ```nix "systems/sputnik/packages"
-# "systems/sputnik/packages"
+# systems/sputnik/packages
 environment.systemPackages = with pkgs; [
   wget curl git htop tinycc lynx neovim-nightly
 ];

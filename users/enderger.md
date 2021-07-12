@@ -403,6 +403,8 @@ require('editor')
 require('keys')
 require('editing')
 require('extensions')
+require('ui')
+require('misc')
 ```
 
 ##### Library Functions
@@ -460,6 +462,10 @@ Here, we set up my keybindings (primarily using `which-key`)
 -- users/enderger/neovim/config/keys
 local map = require('lib').map
 
+-- leaders
+vim.g.leader = ' '
+vim.g.localleader = ','
+
 -- which-key setup
 local wk = require('which-key')
 wk.setup {}
@@ -468,7 +474,22 @@ wk.setup {}
 map('jk', '<Cmd>stopinsert<CR>', mode='i')
 map('<C-Leader>', '<C-o><Leader>', mode='i')
 
-
+-- applications
+local application_keys = {
+  name = 'apps/',
+  g = { 
+    function() require('neogit').open { kind = "split" } end, 
+    "git" 
+  },
+  f = {
+    function() require('telescope.builtin').file_browser {} end,
+    "files",
+  },
+  m = {
+    function() require('telescope.builtin').man_pages {} end,
+    "man"
+  }
+}
 ```
 
 ##### Editing
