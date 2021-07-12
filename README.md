@@ -41,6 +41,7 @@ The first input we need is the main repo for Nix, called **Nixpkgs**. The differ
 # flake/inputs.nixpkgs
 stable.url = "github:nixos/nixpkgs/nixos-21.05";
 unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
+master.url = "github:nixos/nixpkgs/master;"
 fallback.url = "github:nixos/nixpkgs/nixos-unstable";
 nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
 ```
@@ -136,6 +137,18 @@ This channel is used when bleeding-edge is preferred. I use this more than stabl
 # flake/outputs/channels/cumulative.unstable
 unstable = {
   input = inputs.unstable;
+  overlaysBuilder = channels: [
+    (final: prev: { inherit (channels.master) vimPlugins.feline-nvim vimPlugins.lsp-rooter-nvim; })
+  ];
+};
+```
+
+#### Master
+This channel is used primarily to provide some packages which don't have CI builds yet.
+```nix "flake/outputs/channels/cumulative" +=
+# flake/outputs/channels/cumulative.master
+unstable = {
+  input = inputs.master;
 };
 ```
 

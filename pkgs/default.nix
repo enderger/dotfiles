@@ -5,5 +5,4 @@ This Source Code Form is subject to the terms of the Mozilla Public
   */
 final: prev:
 {
-  lsp-rooter-nvim = final.callPackage ./lsp-rooter-nvim.nix {};  
 }

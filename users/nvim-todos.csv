@@ -23,6 +23,6 @@ glow-nvim,extension,done
 neogit,extension,done
 nvim-toggleterm-lua,extension,done
 vim-test,extension,done
-galaxyline-nvim,ui,todo
-nvim-base16,ui,todo
+feline-nvim,ui,todo
+nvim-base16,ui,done
 nvim-web-devicons,ui,todo

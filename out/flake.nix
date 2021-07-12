@@ -10,6 +10,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
     # flake/inputs.nixpkgs
     stable.url = "github:nixos/nixpkgs/nixos-21.05";
     unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    master.url = "github:nixos/nixpkgs/master;"
     fallback.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
     # flake/inputs.core
@@ -51,6 +52,13 @@ This Source Code Form is subject to the terms of the Mozilla Public
         # flake/outputs/channels/cumulative.unstable
         unstable = {
           input = inputs.unstable;
+          overlaysBuilder = channels: [
+            (final: prev: { inherit (channels.master) vimPlugins.feline-nvim vimPlugins.lsp-rooter-nvim; })
+          ];
+        };
+        # flake/outputs/channels/cumulative.master
+        unstable = {
+          input = inputs.master;
         };
         # flake/outputs/channels/cumulative.fallback
         fallback = {

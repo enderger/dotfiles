@@ -11,6 +11,7 @@ let
   theme = [
     <<<users/enderger/colors>>>
   ];
+  theme-color = builtins.elemAt theme;
   font = "FiraCode Nerd Font";
 in {
   users.users.enderger = {
@@ -180,7 +181,7 @@ programs.alacritty = {
     };
 
     colors = let
-      mkColor = id: "0x${builtins.elemAt colors id}";
+      mkColor = id: "0x${theme-color id}";
     in {
       primary.background = mkColor 0;
       primary.foreground = mkColor 5;
@@ -347,7 +348,7 @@ These provide the building blocks of my editor user interface.
 
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.ui
-galaxyline-nvim
+feline-nvim
 nvim-base16
 nvim-web-devicons nvim-nonicons
 ```
@@ -602,8 +603,178 @@ Here, we have plugins which add UI improvements to Neovim.
 ```lua "users/enderger/neovim/config/ui"
 -- users/enderger/neovim/config/ui
 -- colours
+local b16 = require('base16-colorscheme')
+local colours = {
+  base00 = '#${theme-color 0}',
+  base01 = '#${theme-color 1}',
+  base02 = '#${theme-color 2}',
+  base03 = '#${theme-color 3}',
+  base04 = '#${theme-color 4}',
+  base05 = '#${theme-color 5}',
+  base06 = '#${theme-color 6}',
+  base07 = '#${theme-color 7}',
+  base08 = '#${theme-color 8}',
+  base09 = '#${theme-color 9}',
+  base0A = '#${theme-color 10}',
+  base0B = '#${theme-color 11}',
+  base0C = '#${theme-color 12}',
+  base0D = '#${theme-color 13}',
+  base0E = '#${theme-color 14}',
+  base0F = '#${theme-color 15}',
+}
+b16.setup(colours)
 
 -- statusline
+local feline = require('feline')
+local feline_lsp = require('feline.providers.lsp')
+local feline_config = {
+  components = {
+    left = {
+      active = {
+        -- mode
+        {
+          provider = 'vi_mode',
+
+          hl = function()
+            return { 
+              name = require('feline.providers.vi_mode').get_mode_highlight_name()
+              fg = require('feline.providers.vi_mode').get_mode_color()
+              style = 'bold'
+            }
+          end,
+
+          right_sep = ' ',
+          icon = '',
+        },
+
+        -- file info
+        {
+          provider = 'file_info',
+
+          hl = {
+            fg = 'base05',
+            bg = 'base02',
+            style = 'bold',
+          },
+
+          left_sep = ' ',
+          right_sep = ' ',
+        },
+        {
+          provider = 'position',
+
+          left_sep = '(',
+          right_sep = ')',
+        },
+      }, 
+      inactive = {
+        { provider = 'file_info' },
+      },
+    },
+    mid = {
+      active = {
+        -- git info
+        {
+          provider = 'git_branch',
+
+          hl = { 
+            fg = 'base0c',
+            style = 'bold',
+          },
+
+          right_sep = ' ',
+        },
+        {
+          provider = 'git_diff_added',
+
+          hl = { 
+            fg = 'base0b',
+            style = 'bold',
+          },
+
+          right_sep = ' ',
+        },
+        {
+          provider = 'git_diff_changed',
+
+          hl = { 
+            fg = 'base09',
+            style = 'bold',
+          },
+
+          right_sep = ' ',
+        },
+        {
+          provider = 'git_diff_removed',
+
+          hl = { 
+            fg = 'base08',
+            style = 'bold',
+          },
+
+          right_sep = ' ',
+        },
+      }, 
+      inactive = {},
+    },
+    right = {
+      active = {
+        -- LSP info
+        {
+          provider = 'diagnostic_errors',
+          enabled = function() return feline_lsp.diagnostics_exist('Error') end,
+          hl = { fg = 'base08' },
+        },
+        {
+          provider = 'diagnostic_warnings',
+          enabled = function() return feline_lsp.diagnostics_exist('Warning') end,
+          hl = { fg = 'base0a' },
+        },
+        {
+          provider = 'diagnostic_hints',
+          enabled = function() return feline_lsp.diagnostics_exist('Hint') end,
+          hl = { fg = 'base0c' },
+        },
+        {
+          provider = 'diagnostic_info',
+          enabled = function() return feline_lsp.diagnostics_exist('Information') end,
+          hl = { fg = 'base0d' },
+        },
+      },
+      inactive = {},
+    },
+  },
+  properties = {
+    force_inactive.buftypes = {
+      'terminal'
+    },
+  },
+  mode_colours = {
+    NORMAL = 'base0b',
+    OP = 'base0b',
+    INSERT = 'base08',
+    VISUAL = 'base0d',
+    BLOCK = 'base0d',
+    REPLACE = 'base0e',
+    ['V-REPLACE'] = 'base0e',
+    ENTER = 'base0c',
+    MORE = 'base0c',
+    SELECT = 'base0f',
+    COMMAND = 'base0b',
+    SHELL = 'base0b',
+    TERM = 'base0b',
+    NONE = 'base0a',
+  },
+}
+
+feline.setup {
+  default_bg = 'base01',
+  default_fg = 'base04',
+  colors = colours,
+  components = feline_config.components,
+  properties = feline_config.properties,
+  vi_mode_colors = feline_config.mode_colours,
+}
 
 -- icons
 ```
