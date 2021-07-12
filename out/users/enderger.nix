@@ -270,6 +270,11 @@ in {
             vim.cmd(string.format("autocmd %s %s %s", event, filter, action))
           end
 
+          function lib.map(from, to, mode='n', opts={})
+            local defaults = { noremap = true, silent = true }
+            vim.api.nvim_set_keymap(mode, from, to, vim.tbl_deep_extend("force", defaults, opts))
+          end
+
           return lib
         '';
         editor = ''
@@ -302,7 +307,17 @@ in {
         '';
         keys = ''
           -- users/enderger/neovim/config/keys
-          error('Not yet implemented!')
+          local map = require('lib').map
+
+          -- which-key setup
+          local wk = require('which-key')
+          wk.setup {}
+
+          -- insert mappings
+          map('jk', '<Cmd>stopinsert<CR>', mode='i')
+          map('<C-Leader>', '<C-o><Leader>', mode='i')
+
+
         '';
 
         editing = ''
