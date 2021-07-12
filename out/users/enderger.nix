@@ -310,6 +310,7 @@ in {
         keys = ''
           -- users/enderger/neovim/config/keys
           local map = require('lib').map
+          local ts = require('telescope.builtin')
 
           -- leaders
           vim.g.leader = ' '
@@ -326,18 +327,47 @@ in {
           -- applications
           local application_keys = {
             name = 'apps/',
+            d = {
+              function() ts.lsp_workspace_diagnostics {} end,
+              "diagnostics",
+            },
+            f = {
+              function() ts.file_browser {} end,
+              "files",
+            },
             g = { 
               function() require('neogit').open { kind = "split" } end, 
               "git" 
             },
-            f = {
-              function() require('telescope.builtin').file_browser {} end,
-              "files",
+            m = {
+              "<Cmd>MinimapToggle<CR>",
+              "minimap"
+            },
+            p = {
+              "<Cmd>Glow<CR>",
+              "markdown-preview"
+            },
+            s = {
+              "<Cmd>ToggleTerm<CR>",
+              "shell"
+            },
+            t = {
+              "<Cmd>TestSuite<CR>",
+              "tests"
+            },
+          }
+
+          -- help
+          local help_keys = {
+            name = 'help',
+            t = {
+              function() ts.help_tags {} end,
+              "help-tags"
             },
             m = {
-              function() require('telescope.builtin').man_pages {} end,
-              "man"
-            }
+              function() ts.man_pages {} end,
+              "man-pages"
+            },
           }
         '';
 
