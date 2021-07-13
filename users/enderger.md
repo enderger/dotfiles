@@ -33,8 +33,7 @@ in {
     <<<users/enderger/git>>>
 
     # GUI Setup
-    <<<users/enderger/xmonad>>>
-    <<<users/enderger/xmobar>>>
+    <<<users/enderger/qtile>>>
     <<<users/enderger/rofi>>>
     <<<users/enderger/qutebrowser>>>
 
@@ -890,14 +889,35 @@ programs.git = {
 Here, we enable all window managers this user has configs for. This is done here, since I want to use multiple window managers per user, when convenient.
 ```nix "users/enderger/windowManagers"
 # users/enderger/windowManagers
-xmonad.enable = true;
-xmonad.enableContribAndExtras = true;
+qtile.enable = true;
 ```
 
-### XMonad
+### Qtile
+Now, we'll be configuring Qtile. While I don't particularly like Python, I find that the Glasgow Haskell Compiler is a bit of a heavy dependency to have for a lightweight WM.
+```nix "users/enderger/qtile"
+config = ''
+  <<<users/enderger/qtile/config>>>
+'';
 
-## Bars
-### Xmobar
+groups = ''
+  <<<users/enderger/qtile/groups>>>
+'';
+hooks = ''
+  <<<users/enderger/qtile/hooks>>>
+'';
+keys = ''
+  <<<users/enderger/qtile/keys>>>
+'';
+screens = ''
+  <<<users/enderger/qtile/screens>>>
+'';
+```
+
+#### Config
+Here, we have the primary configuration. In additon to including the other sections, we configure anything not large enough to warrent a file.
+```python "users/enderger/qtile/config"
+
+```
 
 ## Apps
 ### Qutebrowser

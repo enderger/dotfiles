@@ -53,7 +53,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
         unstable = {
           input = inputs.unstable;
           overlaysBuilder = channels: [
-            (final: prev: { inherit (channels.master) vimPlugins.feline-nvim vimPlugins.lsp-rooter-nvim; })
+            (final: prev: { inherit (channels.master.vimPlugins) feline-nvim lsp-rooter-nvim; })
           ];
         };
         # flake/outputs/channels/cumulative.master
@@ -95,6 +95,8 @@ This Source Code Form is subject to the terms of the Mozilla Public
           ./hardware/modules/pipewire.nix
           # users/modules.neovim
           ./users/modules/neovim.nix
+          # users/modules.qtile
+          ./users/modules/qtile.nix
         ];
       in (inputs.fup.lib.modulesFromList moduleList) // {
         system.imports = [
@@ -115,6 +117,8 @@ This Source Code Form is subject to the terms of the Mozilla Public
         user.imports = [
           # users/modules.neovim
           ./users/modules/neovim.nix
+          # users/modules.qtile
+          ./users/modules/qtile.nix
         ];
       };
       overlay = import ./pkgs;

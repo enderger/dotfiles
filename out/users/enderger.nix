@@ -39,8 +39,7 @@ in {
 
   services.xserver.windowManager = {
     # users/enderger/windowManagers
-    xmonad.enable = true;
-    xmonad.enableContribAndExtras = true;
+    qtile.enable = true;
   };
 
   home-manager.users.enderger = { config, ... }: {
@@ -727,8 +726,22 @@ in {
     };
 
     # GUI Setup
-    <<<users/enderger/xmonad>>>
-    <<<users/enderger/xmobar>>>
+    config = ''
+
+    '';
+
+    groups = ''
+  <<<users/enderger/qtile/groups>>>
+    '';
+    hooks = ''
+  <<<users/enderger/qtile/hooks>>>
+    '';
+    keys = ''
+  <<<users/enderger/qtile/keys>>>
+    '';
+    screens = ''
+  <<<users/enderger/qtile/screens>>>
+    '';
     <<<users/enderger/rofi>>>
     <<<users/enderger/qutebrowser>>>
 
