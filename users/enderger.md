@@ -37,6 +37,7 @@ in {
     # GUI Setup
     <<<users/enderger/qtile>>>
     <<<users/enderger/rofi>>>
+    <<<users/enderger/feh>>>
     <<<users/enderger/qutebrowser>>>
 
     # Packages
@@ -910,6 +911,9 @@ hooks = ''
 keys = ''
   <<<users/enderger/qtile/keys>>>
 '';
+layouts = ''
+  <<<users/enderger/qtile/layouts>>>
+'';
 screens = ''
   <<<users/enderger/qtile/screens>>>
 '';
@@ -918,13 +922,35 @@ screens = ''
 #### Config
 Here, we have the primary configuration. In additon to including the other sections, we configure anything not large enough to warrent a file.
 ```python "users/enderger/qtile/config"
+from keys import keys
 
+# settings
+leader = 'mod1'
+defaults = {
+  'font': '${font}',
+  'fontsize': 10,
+  'padding': 3,
+}
+
+# top-level options
+extension_defaults = defaults.copy()
+follow_mouse_focus = False
+widget_defaults = defaults.copy()
 ```
 
 ## Apps
 ### Qutebrowser
 
 ### Rofi
+
+### Feh
+Feh is an image viewer and wallpaper setter.
+```nix "users/enderger/feh"
+# users/enderger/git
+programs.feh = {
+  enable = true;
+};
+```
 
 # User Configuration
 ## Metadata

@@ -727,7 +727,20 @@ in {
 
     # GUI Setup
     config = ''
+      from keys import keys
 
+      # settings
+      leader = 'mod1'
+      defaults = {
+        'font': '${font}',
+        'fontsize': 10,
+        'padding': 3,
+      }
+
+      # top-level options
+      extension_defaults = defaults.copy()
+      follow_mouse_focus = False
+      widget_defaults = defaults.copy()
     '';
 
     groups = ''
@@ -739,10 +752,17 @@ in {
     keys = ''
   <<<users/enderger/qtile/keys>>>
     '';
+    layouts = ''
+  <<<users/enderger/qtile/layouts>>>
+    '';
     screens = ''
   <<<users/enderger/qtile/screens>>>
     '';
     <<<users/enderger/rofi>>>
+    # users/enderger/git
+    programs.feh = {
+      enable = true;
+    };
     <<<users/enderger/qutebrowser>>>
 
     # Packages
