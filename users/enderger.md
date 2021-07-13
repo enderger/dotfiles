@@ -4,7 +4,9 @@ title: Users :: Enderger
 This is my primary user, not much more to say.
 
 ```nix users/enderger.nix
+/*
 <<<license>>>
+*/
 { pkgs, inputs, ... }:
 let 
   secrets = import ./enderger.secret.nix;

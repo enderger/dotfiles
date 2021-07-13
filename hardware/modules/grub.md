@@ -5,7 +5,9 @@ This module tweaks GRUB's defaults to prefer UEFI over BIOS, among other things.
 
 # Implementation
 ```nix hardware/modules/grub.nix
+/*
 <<<license>>>
+*/
 { lib, ... }:
 {
   boot.loader = {

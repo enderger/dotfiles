@@ -13,7 +13,9 @@ While this repo only requires the [Nix Package Manager](https://nixos.org) to bu
 # The Flake
 The remainder of this document will be used to define the **Flake**, which is the upcoming way to define Nix repositories. I've broken this into sections, which will be defined below.
 ```nix flake.nix
+/*
 <<<license>>>
+*/
 {
   description = "My literate dotfiles in Nix";
 
@@ -222,10 +224,8 @@ devShellBuilder = { stable, ... }:
 
 # License
 This project is licensed under the Mozilla Public License 2.0 (see <./LICENSE>).
-```nix "license"
-/*
+```txt "license"
 This Source Code Form is subject to the terms of the Mozilla Public
-  License, v. 2.0. If a copy of the MPL was not distributed with this
-  file, You can obtain one at http://mozilla.org/MPL/2.0/.
-  */
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at http://mozilla.org/MPL/2.0/.
 ```

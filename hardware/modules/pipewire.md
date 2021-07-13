@@ -5,7 +5,9 @@ This module auto-enables a few of Pipewire's submodules automatically, if they a
 
 # Implementation
 ```nix hardware/modules/pipewire.nix
+/*
 <<<license>>>
+*/
 { config, lib, ... }:
 
 let cfg = config.services.pipewire;

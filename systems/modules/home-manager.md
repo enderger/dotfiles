@@ -5,7 +5,9 @@ This module simply provides a default configuration for [home-manager](https://g
 
 # Implementation
 ```nix systems/modules/home-manager.nix
+/*
 <<<license>>>
+*/
 { inputs, lib, ... }:
 {
   imports = with inputs; [

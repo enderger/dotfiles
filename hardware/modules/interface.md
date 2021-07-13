@@ -11,7 +11,9 @@ This module defines the interface used to define what exactly the hardware suppo
 - `printing` : Whether there is printing support
 
 ```nix hardware/modules/interface.nix
+/*
 <<<license>>>
+*/
 { lib, ... }:
 {
   options.interface.hardware = lib.genAttrs 

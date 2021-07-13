@@ -5,7 +5,9 @@ This module adds in support for configuring Qtile in `home-manager`.
 
 # Implementation
 ```nix users/modules/qtile.nix
+/*
 <<<license>>>
+*/
 { config, lib, ... }:
 let 
   cfg = config.xsession.windowManager.qtile;

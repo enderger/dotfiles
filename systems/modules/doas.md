@@ -5,7 +5,9 @@ I personally prefer using Doas over Sudo. However, I also like to create an alia
 
 # Implementation
 ```nix systems/modules/doas.nix
+/*
 <<<license>>>
+*/
 { config, lib, pkgs, ... }:
 
 let cfg = config.security.doas;

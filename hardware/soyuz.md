@@ -11,7 +11,9 @@ This is the hardware configuration for my main development PC. It may sound a bi
 
 # Implementation
 ```nix hardware/soyuz.nix
+/*
 <<<license>>>
+*/
 { config, pkgs, lib, inputs, ... }:
 let secrets = import ./soyuz.secret.nix;
 in {

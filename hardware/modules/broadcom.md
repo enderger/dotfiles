@@ -5,7 +5,9 @@ This module provides support for the Broadcom STA driver, which is needed for so
 
 # Implementation
 ```nix hardware/modules/broadcom.nix
+/*
 <<<license>>>
+*/
 { config, lib, ... }:
 
 let cfg = config.networking;

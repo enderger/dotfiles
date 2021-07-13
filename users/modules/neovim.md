@@ -5,7 +5,9 @@ Extensions to the Neovim module, primarily to better support Lua.
 
 # Implementation
 ```nix users/modules/neovim.nix
+/*
 <<<license>>>
+*/
 { config, lib, pkgs, ... }:
 let 
   cfg = config.programs.neovim;

@@ -4,7 +4,9 @@ title: Systems :: Sputnik
 This is the system configuration for my primary development PC.
 
 ```nix systems/sputnik.nix
+/*
 <<<license>>>
+*/
 { config, pkgs, lib, ... }:
 
 let secrets = import ./sputnik.secret.nix;
