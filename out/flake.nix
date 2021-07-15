@@ -57,7 +57,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           ];
         };
         # flake/outputs/channels/cumulative.master
-        unstable = {
+        master = {
           input = inputs.master;
         };
         # flake/outputs/channels/cumulative.fallback

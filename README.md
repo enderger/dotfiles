@@ -149,7 +149,7 @@ unstable = {
 This channel is used primarily to provide some packages which don't have CI builds yet.
 ```nix "flake/outputs/channels/cumulative" +=
 # flake/outputs/channels/cumulative.master
-unstable = {
+master = {
   input = inputs.master;
 };
 ```

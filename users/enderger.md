@@ -15,6 +15,10 @@ let
   ];
   theme-color = builtins.elemAt theme;
   font = "FiraCode Nerd Font";
+  term = "alacritty";
+  browser = "qutebrowser";
+  # TODO: Set up Neovide
+  editor = "${term} -e nvim";
 in {
   users.users.enderger = {
     <<<users/enderger/userOptions>>>
@@ -36,9 +40,9 @@ in {
 
     # GUI Setup
     <<<users/enderger/qtile>>>
-    <<<users/enderger/rofi>>>
     <<<users/enderger/feh>>>
     <<<users/enderger/qutebrowser>>>
+    <<<users/enderger/picom>>>
 
     # Packages
     home.packages = [
@@ -922,10 +926,12 @@ screens = ''
 #### Config
 Here, we have the primary configuration. In additon to including the other sections, we configure anything not large enough to warrent a file.
 ```python "users/enderger/qtile/config"
-from keys import keys
+# users/enderger/qtile/config
+from groups import *
+from hooks import *
+from keys import *
 
 # settings
-leader = 'mod1'
 defaults = {
   'font': '${font}',
   'fontsize': 10,
@@ -938,10 +944,109 @@ follow_mouse_focus = False
 widget_defaults = defaults.copy()
 ```
 
+#### Groups
+This section sets up groups, Qtile's equivilent to workspaces.
+```python "users/enderger/qtile/groups"
+# users/enderger/qtile/groups
+from libqtile.config import Group, Match
+from libqtile.dgroups import simple_key_binder
+from keys import leader
+
+# groups
+groups: list[Group] = [
+  Group("primary"),
+  Group("web"),
+  Group("gaming", matches=[Match(wm_class=["Steam"])]),
+  Group("aux1"),
+  Group("aux2"),
+  Group("aux3"),
+]
+
+# group key
+dgroups_key_binder = simple_key_binder(leader)
+```
+
+#### Hooks
+This section sets up a number of hooks used to run code when certain events occur.
+```python "users/enderger/qtile/hooks"
+# users/enderger/qtile/hooks
+from libqtile import hook
+from libqtile.hook import subscribe
+from pathlib import Path
+import subprocess
+
+def start_service(service: str, user: bool = False) -> None:
+  """A helper to start a systemd service"""
+  scope = "--user" if user else "--system"
+  subprocess.run(['systemctl', scope, 'start', service])
+
+def start_background(command: list[str]) -> None:
+  """A helper to spawn a background process"""
+  subprocess.Popen(command)
+
+@subscribe.startup_once
+def init() -> None:
+  # TODO: Make wallpaper deterministic
+  wallpaper = Path('~/wallpapers/wallpaper.jpg').expanduser()
+  start_background(['feh', '--bg-scale', wallpaper])
+
+  start_service('picom', user = True)
+  start_service('xidlehook', user = True)
+  start_background(['lxqt-policykit'])
+```
+
+#### Keys
+Here, we configure all of my keybinds.
+```python "users/enderger/qtile/keys"
+# users/enderger/qtile/keys
+from libqtile.config import Key, KeyChord, Click, Drag
+from libqtile.command import lazy
+leader = 'mod4'
+
+keys = [
+  # Launch applications
+  KeyChord([leader], 'r', [
+    Key([], 't', lazy.spawn('${term}')),
+    Key([], 'b', lazy.spawn('${browser}')),
+    Key([], 'e', lazy.spawn('${editor}')),
+    Key([], 'Return', lazy.spawncmd())
+  ]),
+
+  # Layout
+  KeyChord([leader], 'l', [
+    Key([], 'Tab', lazy.next_layout()),
+    Key(['shift'], 'Tab', lazy.prev_layout()),
+
+    Key([], 'n', lazy.next_group()),
+    Key([], 'p', lazy.prev_group()),
+
+    Key([], 'w', lazy.next_window()),
+    Key(['shift'], 'w', lazy.prev_window()),
+
+    Key([], 'f', lazy.window.toggle_fullscreen()),
+    Key(['shift'], 'f', lazy.window.toggle_floating()),
+
+    Key([], 'u', lazy.toggle_group())
+  ], mode='layout'),
+  Key([leader, 'shift'], 'c', lazy.window.kill()),
+
+  # Exiting
+  KeyChord([leader, 'shift'], 'q', [
+    Key([], 'r', lazy.restart()),
+    Key([], 'q', lazy.shutdown()),
+    Key([], 's', lazy.spawn('systemctl suspend')),
+  ])
+]
+
+mouse = [
+  Drag([leader], "Button1", lazy.window.set_position_floating(), start=lazy.window.get_position()),
+  Drag([leader], "Button3", lazy.window.set_size_floating(), start=lazy.window.get_size(),
+  Click([leader], "Button2", lazy.window.bring_to_front())
+]
+```
+
 ## Apps
 ### Qutebrowser
-
-### Rofi
 
 ### Feh
 Feh is an image viewer and wallpaper setter.
@@ -951,6 +1056,10 @@ programs.feh = {
   enable = true;
 };
 ```
+
+## Services
+### Compositer
+I personally use Picom for compositing.
 
 # User Configuration
 ## Metadata
@@ -988,3 +1097,7 @@ This section is used to define the Base16 version of my preferred color scheme, 
 
 ## Packages
 The packages to install for this user. 
+```nix "users/enderger/packages"
+# users/enderger/packages
+lxqt.lxqt-policykit
+```
