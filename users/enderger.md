@@ -927,14 +927,23 @@ luaModules = {
     <<<users/enderger/awesome/rc>>>
   '';
 
+  errors = ''
+    <<<users/enderger/awesome/errors>>>
+  '';
   init = ''
     <<<users/enderger/awesome/init>>>
   '';
   keys = ''
     <<<users/enderger/awesome/keys>>>
   '';
+  layout = ''
+    <<<users/enderger/awesome/layout>>>
+  '';
   rules = ''
     <<<users/enderger/awesome/rules>>>
+  '';
+  tags = ''
+    <<<users/enderger/awesome/tags>>>
   '';
   theme = ''
     <<<users/enderger/awesome/theme>>>
@@ -949,6 +958,53 @@ luaModules = {
 This file is what is loaded directly by Awesome.
 ```lua "users/enderger/awesome/rc"
 -- users/enderger/awesome/rc
+local awesome = require('awesome')
+
+require('errors').setup()
+```
+
+#### Error Handling
+Here, we will set up error handling for Awesome. This is based heavily on the default config.
+```lua "users/enderger/awesome/errors"
+-- users/enderger/awesome/errors
+local M = {}
+
+local awesome = require('awesome')
+local naughty = require('naughty')
+
+local function display_error(title, trace)
+  naughty.notify {
+    preset = naughty.config.presets.critical,
+    title = title,
+    text = trace,
+  }
+end
+
+local in_error = false
+local function handle_runtime_error(err)
+  if in_error then return end
+  in_error = true
+
+  display_error("Runtime Error!", tostring(err))
+
+  in_error = false
+end
+
+function M.setup()
+  if awesome.startup_errors then
+    display_error("Startup Error!", awesome.startup_errors)
+  end
+  awesome.connect_signal("debug::error", handle_runtime_error)
+end
+
+return M
+```
+
+#### Init
+This file sets up everything which needs to be automatically started.
+```lua "users/enderger/awesome/init"
+-- users/enderger/awesome/init
+local M = {}
 
 ```
 

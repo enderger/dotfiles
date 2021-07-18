@@ -753,17 +753,61 @@ in {
     luaModules = {
       rc = ''
         -- users/enderger/awesome/rc
+        local awesome = require('awesome')
 
+        require('errors').setup()
       '';
 
+      errors = ''
+        -- users/enderger/awesome/errors
+        local M = {}
+
+        local awesome = require('awesome')
+        local naughty = require('naughty')
+
+        local function display_error(title, trace)
+          naughty.notify {
+            preset = naughty.config.presets.critical,
+            title = title,
+            text = trace,
+          }
+        end
+
+        local in_error = false
+        local function handle_runtime_error(err)
+          if in_error then return end
+          in_error = true
+
+          display_error("Runtime Error!", tostring(err))
+
+          in_error = false
+        end
+
+        function M.setup()
+          if awesome.startup_errors then
+            display_error("Startup Error!", awesome.startup_errors)
+          end
+          awesome.connect_signal("debug::error", handle_runtime_error)
+        end
+
+        return M
+      '';
       init = ''
-    <<<users/enderger/awesome/init>>>
+        -- users/enderger/awesome/init
+        local M = {}
+
       '';
       keys = ''
     <<<users/enderger/awesome/keys>>>
       '';
+      layout = ''
+    <<<users/enderger/awesome/layout>>>
+      '';
       rules = ''
     <<<users/enderger/awesome/rules>>>
+      '';
+      tags = ''
+    <<<users/enderger/awesome/tags>>>
       '';
       theme = ''
     <<<users/enderger/awesome/theme>>>
