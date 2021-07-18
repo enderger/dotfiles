@@ -43,7 +43,7 @@ in {
 
   services.xserver.windowManager = {
     # users/enderger/windowManagers
-    qtile.enable = true;
+    awesome.enable = true;
   };
 
   home-manager.users.enderger = { config, ... }: {
@@ -749,133 +749,34 @@ in {
     };
 
     # GUI Setup
-    config = ''
-      # users/enderger/qtile/config
-      from groups import *
-      from hooks import *
-      from keys import *
+    # users/enderger/awesome
+    luaModules = {
+      rc = ''
+        -- users/enderger/awesome/rc
 
-      # settings
-      defaults = {
-        'font': '${font}',
-        'fontsize': 10,
-        'padding': 3,
-      }
+      '';
 
-      # top-level options
-      extension_defaults = defaults.copy()
-      follow_mouse_focus = False
-      widget_defaults = defaults.copy()
-      auto_minimize = False
-    '';
-
-    groups = ''
-      # users/enderger/qtile/groups
-      from libqtile.config import Group, Match
-      from libqtile.dgroups import simple_key_binder
-      from keys import leader
-
-      # groups
-      groups: list[Group] = [
-        Group("main"),
-        Group("web"),
-        Group("dev"),
-        Group("aux1"),
-        Group("aux2"),
-        Group("aux3"),
-      ]
-
-      # group key
-      dgroups_key_binder = simple_key_binder(leader)
-    '';
-    hooks = ''
-      # users/enderger/qtile/hooks
-      from libqtile import hook
-      from libqtile.hook import subscribe
-      from pathlib import Path
-      import subprocess
-
-      def start_service(service: str, user: bool = False) -> None:
-        """A helper to start a systemd service"""
-        scope = "--user" if user else "--system"
-        subprocess.run(['systemctl', scope, 'start', service])
-
-      def start_background(command: list[str]) -> None:
-        """A helper to spawn a background process"""
-        subprocess.Popen(command)
-
-      @subscribe.startup_once
-      def init() -> None:
-        # TODO: Make wallpaper deterministic
-        wallpaper = Path('~/wallpapers/wallpaper.jpg').expanduser()
-        start_background(['feh', '--bg-scale', wallpaper])
-
-        start_service('picom', user = True)
-        start_service('xidlehook', user = True)
-        start_background(['lxqt-policykit'])
-    '';
-    keys = ''
-      # users/enderger/qtile/keys
-      from libqtile.config import Key, KeyChord, Click, Drag
-      from libqtile.command import lazy
-      leader = 'mod4'
-
-      keys = [
-        # Launch applications
-        KeyChord([leader], 'r', [
-          Key([], 't', lazy.spawn('${term}')),
-          Key([], 'b', lazy.spawn('${browser}')),
-          Key([], 'e', lazy.spawn('${editor}')),
-          Key([], 'Return', lazy.spawncmd())
-        ]),
-
-        # Layout
-        KeyChord([leader], 'l', [
-          Key([], 'Tab', lazy.next_layout()),
-          Key(['shift'], 'Tab', lazy.prev_layout()),
-
-          Key([], 'n', lazy.next_group()),
-          Key([], 'p', lazy.prev_group()),
-
-          Key([], 'w', lazy.next_window()),
-          Key(['shift'], 'w', lazy.prev_window()),
-
-          Key([], 'j', lazy.window.shuffle_down()),
-          Key([], 'k', lazy.window.shuffle_up()),
-
-
-          Key([], 'f', lazy.window.toggle_fullscreen()),
-          Key(['shift'], 'f', lazy.window.toggle_floating()),
-
-          Key([], 'u', lazy.toggle_group())
-        ], mode='layout'),
-        Key([leader, 'shift'], 'c', lazy.window.kill()),
-
-        # Exiting
-        KeyChord([leader, 'shift'], 'q', [
-          Key([], 'r', lazy.restart()),
-          Key([], 'q', lazy.shutdown()),
-          Key([], 's', lazy.spawn('systemctl suspend')),
-        ])
-      ]
-
-      mouse = [
-        Drag([leader], "Button1", lazy.window.set_position_floating(), start=lazy.window.get_position()),
-        Drag([leader], "Button3", lazy.window.set_size_floating(), start=lazy.window.get_size(),
-        Click([leader], "Button2", lazy.window.bring_to_front())
-      ]
-    '';
-    layouts = ''
-  <<<users/enderger/qtile/layouts>>>
-    '';
-    screens = ''
-  <<<users/enderger/qtile/screens>>>
-    '';
+      init = ''
+    <<<users/enderger/awesome/init>>>
+      '';
+      keys = ''
+    <<<users/enderger/awesome/keys>>>
+      '';
+      rules = ''
+    <<<users/enderger/awesome/rules>>>
+      '';
+      theme = ''
+    <<<users/enderger/awesome/theme>>>
+      '';
+      widgets = ''
+    <<<users/enderger/awesome/widgets>>>
+      '';
+    };
     # users/enderger/git
     programs.feh = {
       enable = true;
     };
-    <<<users/enderger/qutebrowser>>>
+    <<<users/enderger/luakit>>>
     <<<users/enderger/picom>>>
 
     # Packages

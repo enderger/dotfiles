@@ -70,7 +70,7 @@ interface.hardware.networking = true;
 ```
 
 ## GUI
-This section configures OpenGL and Vulkan.
+This section configures OpenGL and Vulkan, as well as the screen layout.
 ```nix "hardware/soyuz/gui"
 # hardware/soyuz/gui
 hardware.opengl = {
@@ -83,6 +83,14 @@ hardware.opengl = {
   extraPackages32 = with pkgs; [ amdvlk ];
 };
 services.xserver.videoDrivers = [ "amdgpu" ];
+
+services.xserver.xrandrHeads = [
+  {
+    output = "HDMI-A-0";
+    primary = true;
+  }  
+  "DVI-D-0"
+];
 
 interface.hardware.gui = true;
 ```

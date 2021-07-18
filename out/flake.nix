@@ -93,6 +93,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           ./hardware/modules/interface.nix
           # hardware/modules.pipewire
           ./hardware/modules/pipewire.nix
+          # users/modules.awesome
+          ./users/modules/awesome.nix
           # users/modules.neovim
           ./users/modules/neovim.nix
           # users/modules.qtile
@@ -115,6 +117,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           ./hardware/modules/pipewire.nix
         ];
         user.imports = [
+          # users/modules.awesome
+          ./users/modules/awesome.nix
           # users/modules.neovim
           ./users/modules/neovim.nix
           # users/modules.qtile

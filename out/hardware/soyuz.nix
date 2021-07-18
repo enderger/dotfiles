@@ -44,6 +44,14 @@ in {
   };
   services.xserver.videoDrivers = [ "amdgpu" ];
 
+  services.xserver.xrandrHeads = [
+    {
+      output = "HDMI-A-0";
+      primary = true;
+    }  
+    "DVI-D-0"
+  ];
+
   interface.hardware.gui = true;
   # hardware/soyuz/audio
   services.pipewire.enable = true;

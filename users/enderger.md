@@ -39,9 +39,9 @@ in {
     <<<users/enderger/git>>>
 
     # GUI Setup
-    <<<users/enderger/qtile>>>
+    <<<users/enderger/awesome>>>
     <<<users/enderger/feh>>>
-    <<<users/enderger/qutebrowser>>>
+    <<<users/enderger/luakit>>>
     <<<users/enderger/picom>>>
 
     # Packages
@@ -915,9 +915,44 @@ programs.git = {
 Here, we enable all window managers this user has configs for. This is done here, since I want to use multiple window managers per user, when convenient.
 ```nix "users/enderger/windowManagers"
 # users/enderger/windowManagers
-qtile.enable = true;
+awesome.enable = true;
 ```
 
+### Awesome
+Here, we'll be configuring the Awesome window manager. I would use XMonad, were GHC lighter and this repo not already mostly using Lua.
+```nix "users/enderger/awesome"
+# users/enderger/awesome
+luaModules = {
+  rc = ''
+    <<<users/enderger/awesome/rc>>>
+  '';
+
+  init = ''
+    <<<users/enderger/awesome/init>>>
+  '';
+  keys = ''
+    <<<users/enderger/awesome/keys>>>
+  '';
+  rules = ''
+    <<<users/enderger/awesome/rules>>>
+  '';
+  theme = ''
+    <<<users/enderger/awesome/theme>>>
+  '';
+  widgets = ''
+    <<<users/enderger/awesome/widgets>>>
+  '';
+};
+```
+
+#### RC
+This file is what is loaded directly by Awesome.
+```lua "users/enderger/awesome/rc"
+-- users/enderger/awesome/rc
+
+```
+
+<!--
 ### Qtile
 Now, we'll be configuring Qtile. While I don't particularly like Python, I find that the Glasgow Haskell Compiler is a bit of a heavy dependency to have for a lightweight WM.
 ```nix "users/enderger/qtile"
@@ -1071,9 +1106,10 @@ mouse = [
 
 #### Layouts
 Here, we configure the layouts that I use.
+-->
 
 ## Apps
-### Qutebrowser
+### Luakit
 
 ### Feh
 Feh is an image viewer and wallpaper setter.
