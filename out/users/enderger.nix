@@ -248,11 +248,11 @@ in {
 
       extraPackages = with pkgs; [
         # users/enderger/neovim/plugins/packages
+        deno nodePackages.vscode-html-languageserver-bin nodePackages.vscode-css-languageserver-bin
         rnix-lsp
         (with fenix; combine [
           default.rustfmt-preview default.clippy rust-analyzer
         ])
-        zig zls
       ];
       
       luaInit = "init";
@@ -429,19 +429,38 @@ in {
           -- LSP
           local lsp = require('lspconfig')
 
+          --- Capabilities
+          local capabilities = vim.lsp.protocol.make_client_capabilities()
+          capabilities.textDocument.completion.completionitem.snippetSupport = true
+
+          --- Deno
+          lsp.denols.setup {
+            capabilities = capabilities,
+          }
+
+          --- HTML
+          lsp.html.setup {
+            capabilities = capabilities,
+          }
+
+          --- CSS
+          lsp.cssls.setup {
+            capabilities = capabilities,
+          }
+
           --- Nix
-          lsp.rnix.setup {}
+          lsp.rnix.setup {
+            capabilities = capabilities,
+          }
 
           --- Rust
           lsp.rust_analyzer.setup {
+            capabilities = capabilities,
             settings['rust-analyzer'] = {
               -- use Clippy
               checkOnSave.command = 'clippy',
             },
           }
-
-          --- Zig
-          lsp.zls.setup {}
 
           -- Completion
           lib.autocmd('BufEnter', 'lua require(\'completion\').on_attach()')
@@ -747,6 +766,7 @@ in {
       extension_defaults = defaults.copy()
       follow_mouse_focus = False
       widget_defaults = defaults.copy()
+      auto_minimize = False
     '';
 
     groups = ''
@@ -757,9 +777,9 @@ in {
 
       # groups
       groups: list[Group] = [
-        Group("primary"),
+        Group("main"),
         Group("web"),
-        Group("gaming", matches=[Match(wm_class=["Steam"])]),
+        Group("dev"),
         Group("aux1"),
         Group("aux2"),
         Group("aux3"),
@@ -819,6 +839,10 @@ in {
 
           Key([], 'w', lazy.next_window()),
           Key(['shift'], 'w', lazy.prev_window()),
+
+          Key([], 'j', lazy.window.shuffle_down()),
+          Key([], 'k', lazy.window.shuffle_up()),
+
 
           Key([], 'f', lazy.window.toggle_fullscreen()),
           Key(['shift'], 'f', lazy.window.toggle_floating()),

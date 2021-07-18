@@ -120,6 +120,22 @@
         "type": "github"
       }
     },
+    "master": {
+      "locked": {
+        "lastModified": 1626358897,
+        "narHash": "sha256-tl9JFXpu7fiJdfbgq0JgLBWiQRzkJmkVPURYPUmuqoc=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "67ccd996cef53bc9a766944c51521398bec7c5be",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "master",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "naersk": {
       "inputs": {
         "nixpkgs": [
@@ -250,6 +266,7 @@
         "fenix": "fenix",
         "fup": "fup",
         "hm": "hm",
+        "master": "master",
         "neovim": "neovim",
         "nixpkgs": "nixpkgs_3",
         "nur": "nur",

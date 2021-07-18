@@ -363,11 +363,11 @@ nvim-web-devicons nvim-nonicons
 Here, we'll set up the environment within which Neovim operates. This includes things such as LSP servers.
 ```nix "users/enderger/neovim/plugins/packages"
 # users/enderger/neovim/plugins/packages
+deno nodePackages.vscode-html-languageserver-bin nodePackages.vscode-css-languageserver-bin
 rnix-lsp
 (with fenix; combine [
   default.rustfmt-preview default.clippy rust-analyzer
 ])
-zig zls
 ```
 
 #### Config
@@ -585,19 +585,38 @@ local g = vim.g
 -- LSP
 local lsp = require('lspconfig')
 
+--- Capabilities
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities.textDocument.completion.completionitem.snippetSupport = true
+
+--- Deno
+lsp.denols.setup {
+  capabilities = capabilities,
+}
+
+--- HTML
+lsp.html.setup {
+  capabilities = capabilities,
+}
+
+--- CSS
+lsp.cssls.setup {
+  capabilities = capabilities,
+}
+
 --- Nix
-lsp.rnix.setup {}
+lsp.rnix.setup {
+  capabilities = capabilities,
+}
 
 --- Rust
 lsp.rust_analyzer.setup {
+  capabilities = capabilities,
   settings['rust-analyzer'] = {
     -- use Clippy
     checkOnSave.command = 'clippy',
   },
 }
-
---- Zig
-lsp.zls.setup {}
 
 -- Completion
 lib.autocmd('BufEnter', 'lua require(\'completion\').on_attach()')
@@ -942,6 +961,7 @@ defaults = {
 extension_defaults = defaults.copy()
 follow_mouse_focus = False
 widget_defaults = defaults.copy()
+auto_minimize = False
 ```
 
 #### Groups
@@ -954,9 +974,9 @@ from keys import leader
 
 # groups
 groups: list[Group] = [
-  Group("primary"),
+  Group("main"),
   Group("web"),
-  Group("gaming", matches=[Match(wm_class=["Steam"])]),
+  Group("dev"),
   Group("aux1"),
   Group("aux2"),
   Group("aux3"),
@@ -1023,6 +1043,10 @@ keys = [
     Key([], 'w', lazy.next_window()),
     Key(['shift'], 'w', lazy.prev_window()),
 
+    Key([], 'j', lazy.window.shuffle_down()),
+    Key([], 'k', lazy.window.shuffle_up()),
+
+
     Key([], 'f', lazy.window.toggle_fullscreen()),
     Key(['shift'], 'f', lazy.window.toggle_floating()),
 
@@ -1044,6 +1068,9 @@ mouse = [
   Click([leader], "Button2", lazy.window.bring_to_front())
 ]
 ```
+
+#### Layouts
+Here, we configure the layouts that I use.
 
 ## Apps
 ### Qutebrowser
