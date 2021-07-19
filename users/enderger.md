@@ -961,6 +961,7 @@ This file is what is loaded directly by Awesome.
 local awesome = require('awesome')
 
 require('errors').setup()
+require('init').setup()
 ```
 
 #### Error Handling
@@ -1005,7 +1006,20 @@ This file sets up everything which needs to be automatically started.
 ```lua "users/enderger/awesome/init"
 -- users/enderger/awesome/init
 local M = {}
+local spawn = require('awful.spawn').with_shell
 
+local function start_service(name)
+  spawn('systemctl --user start'..name..'.service')
+end
+
+function M.setup()
+  start_service('picom')
+  start_service('xidlehook')
+  -- TODO: Make background reproducable
+  spawn('feh --bg_scale ~/wallpapers/wallpaper.jpg')
+end
+
+return M
 ```
 
 <!--
