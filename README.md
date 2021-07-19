@@ -45,7 +45,7 @@ stable.url = "github:nixos/nixpkgs/nixos-21.05";
 unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
 master.url = "github:nixos/nixpkgs/master";
 fallback.url = "github:nixos/nixpkgs/nixos-unstable";
-nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
+nixpkgs.follows = "unstable";
 ```
 
 ### Core Tools
@@ -62,12 +62,14 @@ fup.url = "github:gytis-ivaskevicius/flake-utils-plus";
 ### Package Sources
 Next, let's add those inputs which are intended to extend Nixpkgs.
 - `nur` : The NUR (Nix User Repositories) extend the Nixpkgs ecosystem with a set of user-maintained package sets.
+- `my-nur` : My own NUR repo
 - `fenix` : Fenix provides strong integration of the Rust toolchains into Nix.
 - `neovim` : The Neovim nightly builds, packaged for Nix.
 
 ```nix "flake/inputs" +=
 # flake/inputs.packages
 nur.url = "github:nix-community/NUR";
+my-nur.url = "git+https://git.sr.ht/~hutzdog/NUR";
 fenix = {
   url = "github:nix-community/fenix";
   inputs.nixpkgs.follows = "nixpkgs";
@@ -120,6 +122,7 @@ Before we define our channels, we need to define the `flake/outputs/channels/ove
 # flake/outputs/channels/overlays
 self.overlay
 nur.overlay
+my-nur.overlays.awesome
 neovim.overlay
 fenix.overlay
 ```

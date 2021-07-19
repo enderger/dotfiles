@@ -12,12 +12,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
     master.url = "github:nixos/nixpkgs/master";
     fallback.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    nixpkgs.follows = "unstable";
     # flake/inputs.core
     hm.url = "github:nix-community/home-manager";
     fup.url = "github:gytis-ivaskevicius/flake-utils-plus";
     # flake/inputs.packages
     nur.url = "github:nix-community/NUR";
+    my-nur.url = "git+https://git.sr.ht/~hutzdog/NUR";
     fenix = {
       url = "github:nix-community/fenix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -40,6 +41,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         # flake/outputs/channels/overlays
         self.overlay
         nur.overlay
+        my-nur.overlays.awesome
         neovim.overlay
         fenix.overlay
       ];
