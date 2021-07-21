@@ -933,9 +933,6 @@ luaModules = {
   keys = ''
     <<<users/enderger/awesome/keys>>>
   '';
-  layout = ''
-    <<<users/enderger/awesome/layout>>>
-  '';
   rules = ''
     <<<users/enderger/awesome/rules>>>
   '';
@@ -968,6 +965,8 @@ naughty.connect_signal("request::display_error", function(message, startup)
   }
 end)
 
+require('menubar').terminal = '${term}'
+
 require('init').setup()
 ```
 
@@ -983,6 +982,122 @@ function M.setup()
   spawn('feh --bg-scale ~/wallpapers/wallpaper.jpg')
   spawn('lxqt-policykit')
 end
+
+return M
+```
+
+#### Keys
+Here, we set up all of my keybindings.
+```lua "users/enderger/awesome/keys"
+-- users/enderger/awesome/keys
+local M = {}
+
+local awesome = require('awesome')
+local awful = require('awful')
+local widgets = require('widgets')
+
+-- modifiers
+M.leader = 'mod4'
+M.modifier = 'Shift'
+M.alternate = 'Control'
+
+-- tables
+local global_keys = {
+  awful.key {
+    key = 'q',
+    modifiers = { M.leader, M.modifier }
+    
+    on_press = function()
+      awful.popup {
+        widget = widgets.logout_menu,
+        border_width = 1,
+        placement = awful.placement.,
+        visible = true,
+      } 
+    end, 
+
+    description = "Exit Awesome",
+    group = "core",
+  },
+}
+
+function M.setup()
+      
+end
+
+return M
+```
+
+#### Widgets
+Here, we define all of my widgets.
+```lua "users/enderger/awesome/widgets"
+-- users/enderger/awesome/widgets
+local M = {}
+
+local awesome = require('awesome')
+local awful = require('awful')
+local beautiful = require('beautiful')
+local wibox = require('wibox')
+
+-- components
+function M.button(text, action)
+  -- base widget
+  local w = wibox.widget {
+    {
+      markup = text,
+
+      align = 'center',
+      valign = 'center',
+
+      widget = wibox.widget.textbox,
+    },
+
+    buttons = {
+      awful.button {
+        modifiers = {},
+        button = awful.button.names.LEFT,
+        on_press = action,
+      },
+    },
+
+    border_width = 1,
+    widget = wibox.container.background
+  }
+  
+  -- signals
+  w:connect_signal("mouse::enter", function(w) w:set_bg(beautiful.bg_focus) end)
+  w:connect_signal("mouse::leave", function(w) w:set_bg(beautiful.bg_normal) end)
+
+  return w
+end
+
+function M.title(text)
+  return wibox.widget {
+    markup = '<big>'..text..'</big>',
+
+    align = 'center',
+    valign = 'center',
+
+    widget = wibox.widget.textbox
+  }
+end
+
+-- popups
+M.logout_menu = wibox.widget {
+  M.title('Logout'),
+
+  {
+    M.button('reload', awesome.restart),
+    M.button('logout', awesome.quit),
+    M.button('suspend', function() awful.spawn('systemctl suspend') end),
+    M.button('shutdown', function() awful.spawn('systemctl poweroff') end),
+    M.button('reboot', function() awful.spawn('systemctl reboot') end),
+
+    layout = wibox.layout.flex.horizontal
+  },
+  
+  widget = wibox.layout.fixed.vertical
+}
 
 return M
 ```
