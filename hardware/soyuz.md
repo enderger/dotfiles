@@ -6,7 +6,7 @@ This is the hardware configuration for my main development PC. It may sound a bi
 # Specs
 - Model : HP Pavilion Power Desktop 580-1xx (modified)
 - CPU : AMD Ryzen 7 1700 (8 core 16 thread)
-- GPU : AMD ATI Radeon 550/550x
+- GPU : NVIDIA GeForce GT 1030
 - Network Card : BCM4360 (added after-the-fact)
 
 # Implementation
@@ -78,11 +78,8 @@ hardware.opengl = {
 
   driSupport = true;
   driSupport32Bit = true;
-
-  extraPackages = with pkgs; [ amdvlk ];
-  extraPackages32 = with pkgs; [ amdvlk ];
 };
-services.xserver.videoDrivers = [ "amdgpu" ];
+services.xserver.videoDrivers = [ "nvidia" ];
 
 services.xserver.xrandrHeads = [
   {

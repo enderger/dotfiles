@@ -85,46 +85,42 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       # flake/outputs/modules
       nixosModules = let
         moduleList = [
-          # systems/modules.doas
-          ./systems/modules/doas.nix
           # systems/modules.home-manager
           ./systems/modules/home-manager.nix
+          # systems/modules.doas
+          ./systems/modules/doas.nix
           # hardware/modules.grub
           ./hardware/modules/grub.nix
-          # hardware/modules.interface
-          ./hardware/modules/interface.nix
-          # hardware/modules.pipewire
-          ./hardware/modules/pipewire.nix
-          # users/modules.awesome
-          ./users/modules/awesome.nix
-          # users/modules.neovim
-          ./users/modules/neovim.nix
+          # hardware/modules.broadcom
+          ./hardware/modules/broadcom.nix
           # users/modules.qtile
           ./users/modules/qtile.nix
+          # users/modules.neovim
+          ./users/modules/neovim.nix
+          # users/modules.awesome
+          ./users/modules/awesome.nix
         ];
       in (inputs.fup.lib.modulesFromList moduleList) // {
         system.imports = [
           inputs.fup.nixosModules.saneFlakeDefaults
-          # systems/modules.doas
-          ./systems/modules/doas.nix
           # systems/modules.home-manager
           ./systems/modules/home-manager.nix
+          # systems/modules.doas
+          ./systems/modules/doas.nix
         ];
         hardware.imports = [
           # hardware/modules.grub
           ./hardware/modules/grub.nix
-          # hardware/modules.interface
-          ./hardware/modules/interface.nix
-          # hardware/modules.pipewire
-          ./hardware/modules/pipewire.nix
+          # hardware/modules.broadcom
+          ./hardware/modules/broadcom.nix
         ];
         user.imports = [
-          # users/modules.awesome
-          ./users/modules/awesome.nix
-          # users/modules.neovim
-          ./users/modules/neovim.nix
           # users/modules.qtile
           ./users/modules/qtile.nix
+          # users/modules.neovim
+          ./users/modules/neovim.nix
+          # users/modules.awesome
+          ./users/modules/awesome.nix
         ];
       };
       overlay = import ./pkgs;

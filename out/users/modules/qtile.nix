@@ -20,16 +20,16 @@ in {
 
   config = lib.mkMerge [
     # users/modules/qtile/config
-    (lib.mkIf (cfg.pythonModules != {}) {
+    (lib.mkIf (cfg.luaModules != {}) {
       assertions = [
-        { assertion = builtins.hasAttr "config" cfg.pytonModules;
-          message = "No config module provided! This would leave Qtile unconfigured, and is likely a mistake.";
+        { assertion = builtins.hasAttr "rc" cfg.luaModules;
+          message = "No rc module provided! This would leave Awesome unconfigured, and is likely a mistake.";
         }
       ];
 
       xdg.configFile = lib.mapAttrs'
-        (module: text: lib.nameValuePair "qtile/${module}.py" { inherit text; })
-        cfg.pythonModules;
+        (module: text: lib.nameValuePair "awesome/${module}.lua" { inherit text; })
+        cfg.luaModules;
     })
   ];
 }

@@ -38,11 +38,8 @@ in {
 
     driSupport = true;
     driSupport32Bit = true;
-
-    extraPackages = with pkgs; [ amdvlk ];
-    extraPackages32 = with pkgs; [ amdvlk ];
   };
-  services.xserver.videoDrivers = [ "amdgpu" ];
+  services.xserver.videoDrivers = [ "nvidia" ];
 
   services.xserver.xrandrHeads = [
     {
