@@ -41,7 +41,7 @@ in {
     # GUI Setup
     <<<users/enderger/awesome>>>
     <<<users/enderger/feh>>>
-    <<<users/enderger/luakit>>>
+    <<<users/enderger/qutebrowser>>>
     <<<users/enderger/picom>>>
 
     # Packages
@@ -968,6 +968,7 @@ end)
 require('menubar').terminal = '${term}'
 
 require('init').setup()
+require('keys').setup()
 ```
 
 #### Init
@@ -998,31 +999,293 @@ local widgets = require('widgets')
 
 -- modifiers
 M.leader = 'mod4'
+M.client = 'mod1'
 M.modifier = 'Shift'
 M.alternate = 'Control'
 
+-- groups
+awful.key.keygroups.vimkeys = {
+  {'h', 'left'},
+  {'j', 'right'},
+  {'k', 'up'},
+  {'l', 'down'},
+}
+
+awful.key.keygroups.vimcycle = {
+  {'n', 1},
+  {'p', -1},
+}
+
+-- helpers
+local function const(f, ...)
+  return function()
+    f(...)
+  end
+end
+
 -- tables
-local global_keys = {
+M.groups = {
+  wm = 'window management',
+  launchers = 'launchers',
+  client = 'client',
+}
+
+M.global_keys = {
+  -- window management
   awful.key {
+    modifiers = { M.leader, M.alternate },
     key = 'q',
-    modifiers = { M.leader, M.modifier }
     
     on_press = function()
       awful.popup {
         widget = widgets.logout_menu,
         border_width = 1,
-        placement = awful.placement.,
+        placement = awful.placement.centered,
         visible = true,
       } 
     end, 
 
-    description = "Exit Awesome",
-    group = "core",
+    description = 'Exit Awesome',
+    group = M.groups.wm,
+  },
+
+  awful.key {
+    modifiers = { M.leader, M.alternate },
+    key = 'm',
+
+    on_press = function()
+      local c = awful.client.restore()
+
+      if c then
+        c:activate { raise = true, context = 'key.unminimize' }
+      end
+    end,
+
+    description = 'Unminimize',
+    group = M.groups.wm,
+  },
+
+  --- clients
+  awful.key {
+    modifiers = { M.leader },
+    keygroup = 'vimkeys',
+    
+    on_press = awful.client.focus.global_bydirection,
+
+    description = 'Focus client',
+    group = M.groups.wm,
+  },
+
+  awful.key {
+    modifiers = { M.leader, M.client },
+    keygroup = 'vimkeys',
+
+    on_press = awful.client.swap.global_bydirection,
+
+    description = 'Move client',
+    group = M.groups.client,
+  },
+
+  --- screens
+  awful.key {
+    modifiers = { M.leader },
+    keygroup = 'vimcycle',
+    
+    on_press = awful.screen.focus_relative,
+
+    description = 'Focus screen',
+    group = M.groups.wm,
+  },
+
+  awful.key {
+    modifiers = { M.leader, M.client },
+    keygroup = 'vimcycle',
+    
+    on_press = function(direction)
+      local c = awful.client.focused
+      c:move_to_screen(c.screen.index + direction),
+    end,
+
+    description = 'Move to screen',
+    group = M.groups.client,
+  },
+
+  --- tags
+  awful.key {
+    modifiers = { M.leader, M.modifier },
+    keygroup = 'vimcycle',
+    
+    on_press = awful.tag.viewidx,
+
+    description = 'Cycle tags',
+    group = M.groups.wm,
+  },
+
+  awful.key {
+    modifiers = { M.leader },
+    keygroup = 'numrow',
+
+    on_press = function (idx)
+      local tag = awful.screen.focused().tags[idx]
+      if tag then
+        tag:view_only()
+      end
+    end,
+
+    description = 'Focus tag',
+    group = M.groups.wm,
+  },
+
+  awful.key {
+    modifiers = { M.leader, M.client },
+    keygroup = 'numrow',
+
+    on_press = function (idx)
+      local c = awful.client.foucs
+      
+      if c and c.screen.tags[idx] then
+        c:move_to_tag(c.screen.tags[idx])
+      end
+    end,
+
+    description = 'Move to tag',
+    group = M.groups.wm,
+  },
+
+  --- layout
+  awful.key {
+    modifiers = { M.leader },
+    key = 'Tab',
+
+    on_press = function()
+      local s = awful.screen.focused {}
+      awful.layout.inc(1, s)
+    end,
+
+    description = 'Next layout',
+    group = M.groups.wm,
+  },
+
+  awful.key {
+    modifiers = { M.leader, M.modifier },
+    key = 'Tab',
+
+    on_press = function()
+      local s = awful.screen.focused {}
+      awful.layout.inc(-1, s)
+    end,
+
+    description = 'Previous layout',
+    group = M.groups.wm,
+  },
+
+  -- app launchers
+  awful.key {
+    modifiers = { M.leader },
+    key = 'p',
+
+    on_press = require('menubar').show
+
+    description = 'Application menu',
+    group = M.groups.launchers,
+  },
+
+  awful.key {
+    modifiers = { M.leader },
+    key = 'Return',
+
+    on_press = const(awful.spawn, '${term}'),
+
+    description = 'Launch terminal',
+    group = M.groups.launchers,
+  },
+
+  awful.key {
+    modifiers = { M.leader },
+    key = 'b',
+
+    on_press = const(awful.spawn, '${browser}'),
+
+    description = 'Launch web browser',
+    group = M.groups.launchers,
+  },
+
+  awful.key {
+    modifiers = { M.leader },
+    key = 'e',
+
+    on_press = const(awful.spawn, '${editor}'),
+
+    description = 'Launch text editor',
+    group = M.groups.launchers,
+  },
+}
+
+M.client_keys = {
+  awful.key {
+    modifiers = { M.leader, M.client },
+    key = 'c',
+
+    on_press = function(c) 
+      c:kill()
+    end,
+
+    description = 'Close program',
+    group = M.groups.client,
+  },
+
+  -- properties
+  awful.key {
+    modifiers = { M.leader, M.client },
+    key = 'f',
+
+    on_press = function(c)
+      c.floating = not c.floating
+    end,
+
+    description = 'Toggle floating',
+    group = M.groups.client,
+  },
+
+  awful.key {
+    modifiers = { M.leader, M.client },
+    key = 'f',
+
+    on_press = function(c)
+      c.maximized = not c.maximized
+      c:raise()
+    end,
+
+    description = 'Toggle maximized',
+    group = M.groups.client,
+  },
+
+  -- movement
+  awful.key {
+    modifiers = { M.leader, M.client },
+    key = 'm',
+
+    on_press = awful.client.setmaster,
+
+    description = 'Set master',
+    group = M.groups.client,
+  },
+
+  awful.key {
+    modifiers = { M.leader, M.client, M.modifier },
+    key = 'm',
+
+    on_press = awful.client.setslave,
+
+    description = 'Set slave',
+    group = M.groups.client,
   },
 }
 
 function M.setup()
-      
+  local kb = awful.keyboard
+  kb.append_global_keybindings(M.global_keys)
+  kb.append_client_keybindings(M.client_keys)
 end
 
 return M
@@ -1259,7 +1522,7 @@ Here, we configure the layouts that I use.
 -->
 
 ## Apps
-### Luakit
+### Qutebrowser
 
 ### Feh
 Feh is an image viewer and wallpaper setter.
