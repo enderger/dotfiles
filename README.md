@@ -182,7 +182,24 @@ hostDefaults = {
 };
 
 hosts = with inputs; {
-#  <<<flake/outputs/hosts/cumulative>>>
+  <<<flake/outputs/hosts/cumulative>>>
+};
+```
+
+#### Main Desktop
+- Hardware :: <./hardware/soyuz.md>
+- System :: <./systems/sputnik.md>
+- Users:
+  + <./users/enderger.md>
+
+```nix "flake/outputs/hosts/cumulative" +=
+# flake/outputs/hosts/cumulative.main
+primary-desktop = {
+  modules = [
+    ./hardware/soyuz.nix
+    ./systems/sputnik.nix
+    ./users/enderger.nix
+  ];
 };
 ```
 

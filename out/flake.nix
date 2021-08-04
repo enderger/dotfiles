@@ -80,7 +80,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       };
 
       hosts = with inputs; {
-      #  <<<flake/outputs/hosts/cumulative>>>
+        # flake/outputs/hosts/cumulative.main
+        primary-desktop = {
+          modules = [
+            ./hardware/soyuz.nix
+            ./systems/sputnik.nix
+            ./users/enderger.nix
+          ];
+        };
       };
       # flake/outputs/modules
       nixosModules = let
