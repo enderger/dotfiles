@@ -3,7 +3,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
-{ pkgs, inputs, ... }:
+{ pkgs, inputs, lib, ... }:
 let 
   secrets = import ./enderger.secret.nix;
   theme = [
@@ -1511,11 +1511,68 @@ in {
         '';
       };
     };
-    # users/enderger/git
+    # users/enderger/feh
     programs.feh = {
       enable = true;
     };
-    <<<users/enderger/qutebrowser>>>
+    # users/enderger/qutebrowser
+    programs.qutebrowser = {
+      enable = true;
+
+      # users/enderger/qutebrowser/keys
+      keyBindings = {
+        normal = {
+          ",m" = "spawn mpv {url}";
+        };
+      };
+      # users/enderger/qutebrowser/quickmarks
+      quickmarks = let
+        nix-manual = project: branch: "https://nixos.org/manual/${project}/${branch}/";
+      in {
+        # general sites
+        github = "https://github.com";
+        sourcehut = "https://sr.ht/";
+
+        # Nix sites
+        nixos = nix-manual "nixos" "unstable";
+        nixos-stable = nix-manual "nixos" "stable";
+
+        nixpkgs = nix-manual "nixpkgs" "unstable";
+        nixpkgs-stable = nix-manual "nixpkgs" "stable";
+
+        nix = nix-manual "nix" "unstable";
+        nix-stable = nix-manual "nix" "stable";
+      };
+      # users/enderger/qutebrowser/searchEngines
+      searchEngines = let
+        nix-search = type: "https://search.nixos.org/${type}?channel=unstable&from=0&size=30&sort=relevance&query={}";
+      in {
+        e = "https://ecosia.org/search?q={}";
+        gh = "https://github.com/search?q={}";
+        np = nix-search "packages";
+        no = nix-search "options";
+      };
+
+      settings = {
+        # users/enderger/qutebrowser/behaviour
+        auto_save.session = true;
+        changelog_after_upgrade = "never";
+        confirm_quit = "always";
+
+        content = {
+          cookies.accept = "no-3rdparty";
+          default_encoding = "utf-8";
+          headers.do_not_track = true;
+          javascript.can_access_clipboard = true;
+          pdfjs = true;
+          plugins = true;
+        };
+
+        editor.command = lib.splitString " " editor;
+    <<<users/enderger/qutebrowser/features>>>
+    <<<users/enderger/qutebrowser/theming>>>
+      };
+    };
     <<<users/enderger/picom>>>
 
     # Packages

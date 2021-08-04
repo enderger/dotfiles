@@ -7,7 +7,7 @@ This is my primary user, not much more to say.
 /*
 <<<license>>>
 */
-{ pkgs, inputs, ... }:
+{ pkgs, inputs, lib, ... }:
 let 
   secrets = import ./enderger.secret.nix;
   theme = [
@@ -1730,11 +1730,97 @@ return M
 
 ## Apps
 ### Qutebrowser
+Qutebrowser is a web browser written and configured in Python. It's well-integrated into `home-manager`, so I've elected to use it over Luakit.
+```nix "users/enderger/qutebrowser"
+# users/enderger/qutebrowser
+programs.qutebrowser = {
+  enable = true;
+
+  <<<users/enderger/qutebrowser/keys>>>
+  <<<users/enderger/qutebrowser/quickmarks>>>
+  <<<users/enderger/qutebrowser/searchEngines>>>
+
+  settings = {
+    <<<users/enderger/qutebrowser/behaviour>>> 
+    <<<users/enderger/qutebrowser/features>>>
+    <<<users/enderger/qutebrowser/theming>>>
+  };
+};
+```
+
+#### Keys
+Here, we define all of my custom keybinds for the browser.
+```nix "users/enderger/qutebrowser/keys"
+# users/enderger/qutebrowser/keys
+keyBindings = {
+  normal = {
+    ",m" = "spawn mpv {url}";
+  };
+};
+```
+
+#### Quickmarks
+Here, we define all of my quickmarks.
+```nix "users/enderger/qutebrowser/quickmarks"
+# users/enderger/qutebrowser/quickmarks
+quickmarks = let
+  nix-manual = project: branch: "https://nixos.org/manual/${project}/${branch}/";
+in {
+  # general sites
+  github = "https://github.com";
+  sourcehut = "https://sr.ht/";
+
+  # Nix sites
+  nixos = nix-manual "nixos" "unstable";
+  nixos-stable = nix-manual "nixos" "stable";
+
+  nixpkgs = nix-manual "nixpkgs" "unstable";
+  nixpkgs-stable = nix-manual "nixpkgs" "stable";
+
+  nix = nix-manual "nix" "unstable";
+  nix-stable = nix-manual "nix" "stable";
+};
+```
+
+#### Search Engines
+Here, we define all the search engines that I use.
+```nix "users/enderger/qutebrowser/searchEngines"
+# users/enderger/qutebrowser/searchEngines
+searchEngines = let
+  nix-search = type: "https://search.nixos.org/${type}?channel=unstable&from=0&size=30&sort=relevance&query={}";
+in {
+  e = "https://ecosia.org/search?q={}";
+  gh = "https://github.com/search?q={}";
+  np = nix-search "packages";
+  no = nix-search "options";
+};
+```
+
+#### Behaviour
+This section defines the behaviour of how exactly Qutebrowser should act.
+```nix "users/enderger/qutebrowser/behaviour"
+# users/enderger/qutebrowser/behaviour
+auto_save.session = true;
+changelog_after_upgrade = "never";
+confirm_quit = "always";
+
+content = {
+  cookies.accept = "no-3rdparty";
+  default_encoding = "utf-8";
+  headers.do_not_track = true;
+  javascript.can_access_clipboard = true;
+  pdfjs = true;
+  plugins = true;
+};
+
+editor.command = lib.splitString " " editor;
+```
+
 
 ### Feh
 Feh is an image viewer and wallpaper setter.
 ```nix "users/enderger/feh"
-# users/enderger/git
+# users/enderger/feh
 programs.feh = {
   enable = true;
 };
