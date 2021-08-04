@@ -11,9 +11,9 @@ This is my primary user, not much more to say.
 let 
   secrets = import ./enderger.secret.nix;
   theme = [
-    <<<users/enderger/colors>>>
+    <<<users/enderger/colours>>>
   ];
-  theme-color = builtins.elemAt theme;
+  theme-colour = builtins.elemAt theme;
   font = "FiraCode Nerd Font";
   term = "alacritty";
   browser = "qutebrowser";
@@ -187,7 +187,7 @@ programs.alacritty = {
     };
 
     colors = let
-      mkColor = id: "0x${theme-color id}";
+      mkColor = id: "0x${theme-colour id}";
     in {
       primary.background = mkColor 0;
       primary.foreground = mkColor 5;
@@ -349,7 +349,7 @@ vim-test
 ##### UI Plugins
 These provide the building blocks of my editor user interface.
 - `galaxyline-nvim` provides the building blocks used for my statusline.
-- `nvim-base16` provides strong support for Base16 colorschemes in Neovim.
+- `nvim-base16` provides strong support for Base16 colourschemes in Neovim.
 - `nvim-web-devicons` / `nvim-nonicons` give Neovim icons.
 
 ```nix "users/enderger/neovim/plugins" +=
@@ -396,9 +396,11 @@ extensions = ''
 ui = ''
   <<<users/enderger/neovim/config/ui>>>
 '';
+/* Will uncomment when needed
 misc = ''
   <<<users/enderger/neovim/config/misc>>>
 '';
+*/
 ```
 
 ##### Init
@@ -410,7 +412,7 @@ require('keys')
 require('editing')
 require('extensions')
 require('ui')
-require('misc')
+-- require('misc')
 ```
 
 ##### Library Functions
@@ -727,22 +729,22 @@ Here, we have plugins which add UI improvements to Neovim.
 -- colours
 local b16 = require('base16-colorscheme')
 local colours = {
-  base00 = '#${theme-color 0}',
-  base01 = '#${theme-color 1}',
-  base02 = '#${theme-color 2}',
-  base03 = '#${theme-color 3}',
-  base04 = '#${theme-color 4}',
-  base05 = '#${theme-color 5}',
-  base06 = '#${theme-color 6}',
-  base07 = '#${theme-color 7}',
-  base08 = '#${theme-color 8}',
-  base09 = '#${theme-color 9}',
-  base0A = '#${theme-color 10}',
-  base0B = '#${theme-color 11}',
-  base0C = '#${theme-color 12}',
-  base0D = '#${theme-color 13}',
-  base0E = '#${theme-color 14}',
-  base0F = '#${theme-color 15}',
+  base00 = '#${theme-colour 0}',
+  base01 = '#${theme-colour 1}',
+  base02 = '#${theme-colour 2}',
+  base03 = '#${theme-colour 3}',
+  base04 = '#${theme-colour 4}',
+  base05 = '#${theme-colour 5}',
+  base06 = '#${theme-colour 6}',
+  base07 = '#${theme-colour 7}',
+  base08 = '#${theme-colour 8}',
+  base09 = '#${theme-colour 9}',
+  base0A = '#${theme-colour 10}',
+  base0B = '#${theme-colour 11}',
+  base0C = '#${theme-colour 12}',
+  base0D = '#${theme-colour 13}',
+  base0E = '#${theme-colour 14}',
+  base0F = '#${theme-colour 15}',
 }
 b16.setup(colours)
 
@@ -766,7 +768,7 @@ local feline_config = {
           end,
 
           right_sep = ' ',
-          icon = '',
+          icon = "",
         },
 
         -- file info
@@ -922,29 +924,31 @@ awesome.enable = true;
 Here, we'll be configuring the Awesome window manager. I would use XMonad, were GHC lighter and this repo not already mostly using Lua.
 ```nix "users/enderger/awesome"
 # users/enderger/awesome
-luaModules = {
-  rc = ''
-    <<<users/enderger/awesome/rc>>>
-  '';
+xsession.windowManager.awesome = {
+  luaModules = {
+    rc = ''
+      <<<users/enderger/awesome/rc>>>
+    '';
+    widgets = ''
+      <<<users/enderger/awesome/widgets>>>
+    '';
 
-  init = ''
-    <<<users/enderger/awesome/init>>>
-  '';
-  keys = ''
-    <<<users/enderger/awesome/keys>>>
-  '';
-  rules = ''
-    <<<users/enderger/awesome/rules>>>
-  '';
-  screens = ''
-    <<<users/enderger/awesome/screens>>>
-  '';
-  theme = ''
-    <<<users/enderger/awesome/theme>>>
-  '';
-  widgets = ''
-    <<<users/enderger/awesome/widgets>>>
-  '';
+    init = ''
+      <<<users/enderger/awesome/init>>>
+    '';
+    keys = ''
+      <<<users/enderger/awesome/keys>>>
+    '';
+    rules = ''
+      <<<users/enderger/awesome/rules>>>
+    '';
+    screens = ''
+      <<<users/enderger/awesome/screens>>>
+    '';
+    theme = ''
+      <<<users/enderger/awesome/theme>>>
+    '';
+  };
 };
 ```
 
@@ -965,6 +969,7 @@ naughty.connect_signal("request::display_error", function(message, startup)
   }
 end)
 
+require('theme').setup()
 require('menubar').terminal = '${term}'
 
 require('init').setup()
@@ -982,7 +987,7 @@ local spawn = require('awful.spawn').once
 
 function M.setup()
   spawn('systemctl --user start picom xidlehook')
-  spawn('feh --bg-scale ~/wallpapers/wallpaper.jpg')
+  spawn('feh --bg-scale '..(require('beautiful').wallpaper))
   spawn('lxqt-policykit')
 end
 
@@ -1303,18 +1308,37 @@ Here, we define all window manager rules to set.
 -- users/enderger/awesome/rules
 local M = {}
 
+local awful = require('awful')
+local widgets = require('widgets')
+
+-- declarative
 M.rules = {
   {
+    id = 'floating',
     rule_any = {
       class = {'Steam'},
       type = {'dialog', 'utility', 'splash'}
     },
-    properties.floating = true
+    properties = { floating = true },
+  },
+  {
+    id = 'titlebars',
+    rule_any = {
+      type = {'normal', 'dialog'},
+    },
+    properties = { titlebars_enabled = true }
   },
 }
 
+-- signals
+function M.on_titlebar_request(c)
+  awful.titlebar(c).widget = widgets.titlebar(c)
+end
+  
+
 function M.setup()
   require('ruled.client').append_rules(M.rules)
+  client.connect_signal("request::titlebars", M.on_titlebar_request)
 end
 
 return M
@@ -1358,6 +1382,163 @@ end
 return M
 ```
 
+#### Theme
+Here, we set up the look and feel of the system.
+```lua "users/enderger/awesome/theme"
+-- users/enderger/awesome/theme
+local M = {}
+
+local beautiful = require('beautiful')
+local assets = beautiful.theme_assets
+local xresources = beautiful.xresources
+
+-- helpers
+local function parse_colour(hex)
+  local colour = require('gears.color')
+  return colour.parse_color('#'..hex)
+end
+
+local function get_default(path)
+  local theme_dir = require("gears.filesystem").get_themes_dir()
+  return theme_dir..'default/'..path
+end
+
+local function collection(path, ext)
+  return function(name)
+    return get_default(path..'/'..name..ext)
+  end
+end
+
+local titlebar_icon = collection('titlebars', '.png')
+local layout_icon = collection('layouts', 'w.png')
+
+-- variables
+M.font = '${font} 11'
+M.tl_square_size = xresources.apply_dpi(4)
+M.menu_height = xresources.apply_dpi(15)
+
+-- colours
+M.colours = {
+  base00 = parse_colour('${theme-colour 0}'),
+  base01 = parse_colour('${theme-colour 1}'),
+  base02 = parse_colour('${theme-colour 2}'),
+  base03 = parse_colour('${theme-colour 3}'),
+  base04 = parse_colour('${theme-colour 4}'),
+  base05 = parse_colour('${theme-colour 5}'),
+  base06 = parse_colour('${theme-colour 6}'),
+  base07 = parse_colour('${theme-colour 7}'),
+  base08 = parse_colour('${theme-colour 8}'),
+  base09 = parse_colour('${theme-colour 9}'),
+  base0A = parse_colour('${theme-colour 10}'),
+  base0B = parse_colour('${theme-colour 11}'),
+  base0C = parse_colour('${theme-colour 12}'),
+  base0D = parse_colour('${theme-colour 13}'),
+  base0E = parse_colour('${theme-colour 14}'),
+  base0F = parse_colour('${theme-colour 15}'),
+}
+
+function M.setup()
+  local c = M.colours
+
+  beautiful.init {
+    font = M.font,
+    wallpaper = '~/wallpapers/wallpaper.jpg',
+    
+    -- backgrounds
+    bg_normal = c.base00,
+    bg_focus = c.base02,
+    bg_urgent = c.base00,
+    bg_minimize = c.base00,
+    bg_systray = c.base02,
+    prompt_bg = c.base02,
+    
+    -- foregrounds
+    fg_normal = c.base05,
+    fg_focus = c.base05,
+    fg_urgent = c.base0A,
+    fg_minimize = c.base03,
+
+    -- borders
+    useless_gap = xresources.apply_dpi(2),
+    border_width = xresources.apply_dpi(1),
+    border_color_normal = c.base03,
+    border_color_active = c.base04,
+    border_color_marked = c.base05,
+
+    -- taglist
+    taglist_squares_sel = assets.taglist_squares_sel(
+      tl_square_size, c.base05
+    ),
+    taglist_squares_unsel = assets.taglist_squares_unsel(
+      tl_square_size, c.base05
+    ),
+
+    -- menu
+    menu_submenu_icon = get_default('submenu.png'),
+    menu_height = M.menu_height,
+    menu_width = xresources.apply_dpi(100),
+
+    -- titlebars
+    titlebar_close_button_normal = titlebar_icon('close_normal'),
+    titlebar_close_button_focus = titlebar_icon('close_focus'),
+
+    titlebar_minimize_button_normal = titlebar_icon('minimize_normal'),
+    titlebar_minimize_button_focus = titlebar_icon('minimize_focus'),
+
+    titlebar_ontop_button_normal_inactive = titlebar_icon('ontop_normal_inactive'),
+    titlebar_ontop_button_focus_inactive = titlebar_icon('ontop_focus_inactive'),
+    titlebar_ontop_button_normal_active = titlebar_icon('ontop_normal_active'),
+    titlebar_ontop_button_focus_active = titlebar_icon('ontop_focus_active'),
+
+    titlebar_sticky_button_normal_inactive = titlebar_icon('sticky_normal_inactive'),
+    titlebar_sticky_button_focus_inactive = titlebar_icon('sticky_focus_inactive'),
+    titlebar_sticky_button_normal_active = titlebar_icon('sticky_normal_active'),
+    titlebar_sticky_button_focus_active = titlebar_icon('sticky_focus_active'),
+
+    titlebar_floating_button_normal_inactive = titlebar_icon('floating_normal_inactive'),
+    titlebar_floating_button_focus_inactive = titlebar_icon('floating_focus_inactive'),
+    titlebar_floating_button_normal_active = titlebar_icon('floating_normal_active'),
+    titlebar_floating_button_focus_active = titlebar_icon('floating_focus_active'),
+
+    titlebar_maximized_button_normal_inactive = titlebar_icon('maximized_normal_inactive'),
+    titlebar_maximized_button_focus_inactive = titlebar_icon('maximized_focus_inactive'),
+    titlebar_maximized_button_normal_active = titlebar_icon('maximized_normal_active'),
+    titlebar_maximized_button_focus_active = titlebar_icon('maximized_focus_active'),
+
+    -- layout icons
+    layout_fairh = layout_icon('fairh'),
+    layout_fairv = layout_icon('fairv'),
+    layout_floating = layout_icon('floating'),
+    layout_magnifier = layout_icon('magnifier'),
+    layout_max = layout_icon('max'),
+    layout_fullscreen = layout_icon('fullscreen'),
+    layout_tilebottom = layout_icon('tilebottom'),
+    layout_tileleft = layout_icon('tileleft'),
+    layout_tile = layout_icon('tile'),
+    layout_tiletop = layout_icon('tiletop'),
+    layout_spiral = layout_icon('spiral'),
+    layout_dwindle = layout_icon('dwindle'),
+    layout_cornernw = layout_icon('cornernw'),
+    layout_cornerne = layout_icon('cornerne'),
+    layout_cornersw = layout_icon('cornersw'),
+    layout_cornerse = layout_icon('cornerse'),
+
+    -- awesome icon
+    awesome_icon = assets.awesome_icon(
+      M.menu_height, c.base02, c.base05
+    )
+  }
+
+  require('ruled.notification').append_rule {
+    rule = { urgency = 'critical' },
+    properties = { bg = c.base02, fg = c.base05 }
+  }
+end
+
+return M
+```
+
+
 #### Widgets
 Here, we define all of my widgets.
 ```lua "users/enderger/awesome/widgets"
@@ -1367,6 +1548,7 @@ local M = {}
 local awesome = require('awesome')
 local awful = require('awful')
 local beautiful = require('beautiful')
+local layout = awful.layout
 local wibox = require('wibox')
 
 -- components
@@ -1423,14 +1605,47 @@ M.logout_menu = wibox.widget {
     M.button('shutdown', function() awful.spawn('systemctl poweroff') end),
     M.button('reboot', function() awful.spawn('systemctl reboot') end),
 
-    layout = wibox.layout.flex.horizontal
+    layout = layout.flex.horizontal
   },
   
-  widget = wibox.layout.fixed.vertical
+  widget = layout.fixed.vertical
 }
 
 -- popups
 M.keyboard_layout = awful.widget.keyboardlayout()
+
+-- titlebars
+function M.titlebar(c)
+  local tb = awful.titlebar
+
+  local buttons = {
+    awful.button({ }, 1, function() c:activate { context = "titlebar", action = "mouse_move" } end),
+    awful.button({ }, 3, function() c:activate { context = "titlebar", action = "mouse_resize"} end),
+  }
+
+  return {
+    {
+      tb.widget.iconwidget(c),
+      buttons = buttons,
+      layout = layout.fixed.horizontal,
+    },
+    {
+      {
+        align = "center",
+        widget = tb.widget.titlewidget(c),
+      },
+      buttons = buttons,
+      layout = layout.flex.horizontal,
+    },
+    {
+      tb.widget.closebutton(c),
+      tb.widget.floatingbutton(c),
+      tb.widget.maximizedbutton(c),
+      layout = layout.fixed.horizontal,
+    },
+    layout = layout.align.horizontal,
+  }
+end
 
 -- wibar
 --- widgets
@@ -1494,16 +1709,16 @@ function M.wibar(s)
   }
 
   s.wibar.widget = {
-    layout = wibox.layout.align.horizontal,
+    layout = layout.align.horizontal,
     {
-      layout = wibox.layout.fixed.horizontal,
+      layout = layout.fixed.horizontal,
       M.main_menu,
       s.wibar_widgets.prompt_box,
       s.wibar_widgets.tag_list,
     },
     s.wibar_widgets.task_list,
     {
-      layout = wibox.layout.fixed.horizontal,
+      layout = layout.fixed.horizontal,
       M.keyboard_layout,
       wibox.widget.systray(),
     },
@@ -1512,162 +1727,6 @@ end
 
 return M
 ```
-
-<!--
-### Qtile
-Now, we'll be configuring Qtile. While I don't particularly like Python, I find that the Glasgow Haskell Compiler is a bit of a heavy dependency to have for a lightweight WM.
-```nix "users/enderger/qtile"
-config = ''
-  <<<users/enderger/qtile/config>>>
-'';
-
-groups = ''
-  <<<users/enderger/qtile/groups>>>
-'';
-hooks = ''
-  <<<users/enderger/qtile/hooks>>>
-'';
-keys = ''
-  <<<users/enderger/qtile/keys>>>
-'';
-layouts = ''
-  <<<users/enderger/qtile/layouts>>>
-'';
-screens = ''
-  <<<users/enderger/qtile/screens>>>
-'';
-```
-
-#### Config
-Here, we have the primary configuration. In additon to including the other sections, we configure anything not large enough to warrent a file.
-```python "users/enderger/qtile/config"
-# users/enderger/qtile/config
-from groups import *
-from hooks import *
-from keys import *
-
-# settings
-defaults = {
-  'font': '${font}',
-  'fontsize': 10,
-  'padding': 3,
-}
-
-# top-level options
-extension_defaults = defaults.copy()
-follow_mouse_focus = False
-widget_defaults = defaults.copy()
-auto_minimize = False
-```
-
-#### Groups
-This section sets up groups, Qtile's equivilent to workspaces.
-```python "users/enderger/qtile/groups"
-# users/enderger/qtile/groups
-from libqtile.config import Group, Match
-from libqtile.dgroups import simple_key_binder
-from keys import leader
-
-# groups
-groups: list[Group] = [
-  Group("main"),
-  Group("web"),
-  Group("dev"),
-  Group("aux1"),
-  Group("aux2"),
-  Group("aux3"),
-]
-
-# group key
-dgroups_key_binder = simple_key_binder(leader)
-```
-
-#### Hooks
-This section sets up a number of hooks used to run code when certain events occur.
-```python "users/enderger/qtile/hooks"
-# users/enderger/qtile/hooks
-from libqtile import hook
-from libqtile.hook import subscribe
-from pathlib import Path
-import subprocess
-
-def start_service(service: str, user: bool = False) -> None:
-  """A helper to start a systemd service"""
-  scope = "--user" if user else "--system"
-  subprocess.run(['systemctl', scope, 'start', service])
-
-def start_background(command: list[str]) -> None:
-  """A helper to spawn a background process"""
-  subprocess.Popen(command)
-
-@subscribe.startup_once
-def init() -> None:
-  # TODO: Make wallpaper deterministic
-  wallpaper = Path('~/wallpapers/wallpaper.jpg').expanduser()
-  start_background(['feh', '--bg-scale', wallpaper])
-
-  start_service('picom', user = True)
-  start_service('xidlehook', user = True)
-  start_background(['lxqt-policykit'])
-```
-
-#### Keys
-Here, we configure all of my keybinds.
-```python "users/enderger/qtile/keys"
-# users/enderger/qtile/keys
-from libqtile.config import Key, KeyChord, Click, Drag
-from libqtile.command import lazy
-leader = 'mod4'
-
-keys = [
-  # Launch applications
-  KeyChord([leader], 'r', [
-    Key([], 't', lazy.spawn('${term}')),
-    Key([], 'b', lazy.spawn('${browser}')),
-    Key([], 'e', lazy.spawn('${editor}')),
-    Key([], 'Return', lazy.spawncmd())
-  ]),
-
-  # Layout
-  KeyChord([leader], 'l', [
-    Key([], 'Tab', lazy.next_layout()),
-    Key(['shift'], 'Tab', lazy.prev_layout()),
-
-    Key([], 'n', lazy.next_group()),
-    Key([], 'p', lazy.prev_group()),
-
-    Key([], 'w', lazy.next_window()),
-    Key(['shift'], 'w', lazy.prev_window()),
-
-    Key([], 'j', lazy.window.shuffle_down()),
-    Key([], 'k', lazy.window.shuffle_up()),
-
-
-    Key([], 'f', lazy.window.toggle_fullscreen()),
-    Key(['shift'], 'f', lazy.window.toggle_floating()),
-
-    Key([], 'u', lazy.toggle_group())
-  ], mode='layout'),
-  Key([leader, 'shift'], 'c', lazy.window.kill()),
-
-  # Exiting
-  KeyChord([leader, 'shift'], 'q', [
-    Key([], 'r', lazy.restart()),
-    Key([], 'q', lazy.shutdown()),
-    Key([], 's', lazy.spawn('systemctl suspend')),
-  ])
-]
-
-mouse = [
-  Drag([leader], "Button1", lazy.window.set_position_floating(), start=lazy.window.get_position()),
-  Drag([leader], "Button3", lazy.window.set_size_floating(), start=lazy.window.get_size(),
-  Click([leader], "Button2", lazy.window.bring_to_front())
-]
-```
-
-#### Layouts
-Here, we configure the layouts that I use.
--->
 
 ## Apps
 ### Qutebrowser
@@ -1698,9 +1757,9 @@ inherit (secrets) hashedPassword;
 ```
 
 ## Colors
-This section is used to define the Base16 version of my preferred color scheme, [Nord](https://nordtheme.com). The version I use is available [here](https://github.com/ada-lovecraft/base16-nord-scheme/blob/6e83e1d56216762b4f250443af277a000f9d3c0b/nord.yaml).
-```nix "users/enderger/colors"
-# users/enderger/colors
+This section is used to define the Base16 version of my preferred colour scheme, [Nord](https://nordtheme.com). The version I use is available [here](https://github.com/ada-lovecraft/base16-nord-scheme/blob/6e83e1d56216762b4f250443af277a000f9d3c0b/nord.yaml).
+```nix "users/enderger/colours"
+# users/enderger/colours
 "2E3440" # base00
 "3B4252" # base01
 "434C5E" # base02

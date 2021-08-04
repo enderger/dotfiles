@@ -7,7 +7,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 let 
   secrets = import ./enderger.secret.nix;
   theme = [
-    # users/enderger/colors
+    # users/enderger/colours
     "2E3440" # base00
     "3B4252" # base01
     "434C5E" # base02
@@ -25,7 +25,7 @@ let
     "B48EAD" # base0E
     "5E81AC" # base0F
   ];
-  theme-color = builtins.elemAt theme;
+  theme-colour = builtins.elemAt theme;
   font = "FiraCode Nerd Font";
   term = "alacritty";
   browser = "qutebrowser";
@@ -163,7 +163,7 @@ in {
         };
 
         colors = let
-          mkColor = id: "0x${theme-color id}";
+          mkColor = id: "0x${theme-colour id}";
         in {
           primary.background = mkColor 0;
           primary.foreground = mkColor 5;
@@ -265,7 +265,7 @@ in {
           require('editing')
           require('extensions')
           require('ui')
-          require('misc')
+          -- require('misc')
         '';
         lib = ''
           -- users/enderger/neovim/config/lib
@@ -565,22 +565,22 @@ in {
           -- colours
           local b16 = require('base16-colorscheme')
           local colours = {
-            base00 = '#${theme-color 0}',
-            base01 = '#${theme-color 1}',
-            base02 = '#${theme-color 2}',
-            base03 = '#${theme-color 3}',
-            base04 = '#${theme-color 4}',
-            base05 = '#${theme-color 5}',
-            base06 = '#${theme-color 6}',
-            base07 = '#${theme-color 7}',
-            base08 = '#${theme-color 8}',
-            base09 = '#${theme-color 9}',
-            base0A = '#${theme-color 10}',
-            base0B = '#${theme-color 11}',
-            base0C = '#${theme-color 12}',
-            base0D = '#${theme-color 13}',
-            base0E = '#${theme-color 14}',
-            base0F = '#${theme-color 15}',
+            base00 = '#${theme-colour 0}',
+            base01 = '#${theme-colour 1}',
+            base02 = '#${theme-colour 2}',
+            base03 = '#${theme-colour 3}',
+            base04 = '#${theme-colour 4}',
+            base05 = '#${theme-colour 5}',
+            base06 = '#${theme-colour 6}',
+            base07 = '#${theme-colour 7}',
+            base08 = '#${theme-colour 8}',
+            base09 = '#${theme-colour 9}',
+            base0A = '#${theme-colour 10}',
+            base0B = '#${theme-colour 11}',
+            base0C = '#${theme-colour 12}',
+            base0D = '#${theme-colour 13}',
+            base0E = '#${theme-colour 14}',
+            base0F = '#${theme-colour 15}',
           }
           b16.setup(colours)
 
@@ -604,7 +604,7 @@ in {
                     end,
 
                     right_sep = ' ',
-                    icon = '',
+                    icon = "",
                   },
 
                   -- file info
@@ -736,9 +736,11 @@ in {
             vi_mode_colors = feline_config.mode_colours,
           }
         '';
+        /* Will uncomment when needed
         misc = ''
   <<<users/enderger/neovim/config/misc>>>
         '';
+        */
       };
     };
     # users/enderger/git
@@ -750,558 +752,764 @@ in {
 
     # GUI Setup
     # users/enderger/awesome
-    luaModules = {
-      rc = ''
-        -- users/enderger/awesome/rc
-        local awesome = require('awesome')
-        local naughty = require('naughty')
-
-        -- error handling
-        naughty.connect_signal("request::display_error", function(message, startup)
-          error_type = startup and "Startup" or "Runtime"
-          naughty.notification {
-            urgency = "critical",
-            title = error_type.." error!",
-            message = message,
-          }
-        end)
-
-        require('menubar').terminal = '${term}'
-
-        require('init').setup()
-        require('keys').setup()
-        require('rules').setup()
-        require('screens').setup()
-      '';
-
-      init = ''
-        -- users/enderger/awesome/init
-        local M = {}
-        local spawn = require('awful.spawn').once
-
-        function M.setup()
-          spawn('systemctl --user start picom xidlehook')
-          spawn('feh --bg-scale ~/wallpapers/wallpaper.jpg')
-          spawn('lxqt-policykit')
-        end
-
-        return M
-      '';
-      keys = ''
-        -- users/enderger/awesome/keys
-        local M = {}
-
-        local awesome = require('awesome')
-        local awful = require('awful')
-        local widgets = require('widgets')
-
-        -- modifiers
-        M.leader = 'mod4'
-        M.client = 'mod1'
-        M.modifier = 'Shift'
-        M.alternate = 'Control'
-
-        -- groups
-        M.keygroups = require('gears.table').join(awful.key.keygroups, {
-          vimkeys = {
-            {'h', 'left'},
-            {'j', 'right'},
-            {'k', 'up'},
-            {'l', 'down'},
-          },
-
-          vimcycle = {
-            {'n', 1},
-            {'p', -1},
-          },
-        })
-
-        -- helpers
-        local function const(f, ...)
-          return function()
-            f(...)
-          end
-        end
-
-        -- tables
-        M.groups = {
-          wm = 'window management',
-          launchers = 'launchers',
-          client = 'client',
-        }
-
-        M.global_keys = {
-          -- window management
-          awful.key {
-            modifiers = { M.leader, M.alternate },
-            key = 'q',
-            
-            on_press = function()
-              awful.popup {
-                widget = widgets.logout_menu,
-                border_width = 1,
-                placement = awful.placement.centered,
-                visible = true,
-              } 
-            end, 
-
-            description = 'Exit Awesome',
-            group = M.groups.wm,
-          },
-
-          awful.key {
-            modifiers = { M.leader, M.alternate },
-            key = 'm',
-
-            on_press = function()
-              local c = awful.client.restore()
-
-              if c then
-                c:activate { raise = true, context = 'key.unminimize' }
-              end
-            end,
-
-            description = 'Unminimize',
-            group = M.groups.wm,
-          },
-
-          --- clients
-          awful.key {
-            modifiers = { M.leader },
-            keygroup = 'vimkeys',
-            
-            on_press = awful.client.focus.global_bydirection,
-
-            description = 'Focus client',
-            group = M.groups.wm,
-          },
-
-          awful.key {
-            modifiers = { M.leader, M.client },
-            keygroup = 'vimkeys',
-
-            on_press = awful.client.swap.global_bydirection,
-
-            description = 'Move client',
-            group = M.groups.client,
-          },
-
-          --- screens
-          awful.key {
-            modifiers = { M.leader },
-            keygroup = 'vimcycle',
-            
-            on_press = awful.screen.focus_relative,
-
-            description = 'Focus screen',
-            group = M.groups.wm,
-          },
-
-          awful.key {
-            modifiers = { M.leader, M.client },
-            keygroup = 'vimcycle',
-            
-            on_press = function(direction)
-              local c = awful.client.focused
-              c:move_to_screen(c.screen.index + direction),
-            end,
-
-            description = 'Move to screen',
-            group = M.groups.client,
-          },
-
-          --- tags
-          awful.key {
-            modifiers = { M.leader, M.modifier },
-            keygroup = 'vimcycle',
-            
-            on_press = awful.tag.viewidx,
-
-            description = 'Cycle tags',
-            group = M.groups.wm,
-          },
-
-          awful.key {
-            modifiers = { M.leader },
-            keygroup = 'numrow',
-
-            on_press = function (idx)
-              local tag = awful.screen.focused().tags[idx]
-              if tag then
-                tag:view_only()
-              end
-            end,
-
-            description = 'Focus tag',
-            group = M.groups.wm,
-          },
-
-          awful.key {
-            modifiers = { M.leader, M.client },
-            keygroup = 'numrow',
-
-            on_press = function (idx)
-              local c = awful.client.foucs
-              
-              if c and c.screen.tags[idx] then
-                c:move_to_tag(c.screen.tags[idx])
-              end
-            end,
-
-            description = 'Move to tag',
-            group = M.groups.wm,
-          },
-
-          --- layout
-          awful.key {
-            modifiers = { M.leader },
-            key = 'Tab',
-
-            on_press = function()
-              local s = awful.screen.focused {}
-              awful.layout.inc(1, s)
-            end,
-
-            description = 'Next layout',
-            group = M.groups.wm,
-          },
-
-          awful.key {
-            modifiers = { M.leader, M.modifier },
-            key = 'Tab',
-
-            on_press = function()
-              local s = awful.screen.focused {}
-              awful.layout.inc(-1, s)
-            end,
-
-            description = 'Previous layout',
-            group = M.groups.wm,
-          },
-
-          -- app launchers
-          awful.key {
-            modifiers = { M.leader },
-            key = 'p',
-
-            on_press = require('menubar').show
-
-            description = 'Application menu',
-            group = M.groups.launchers,
-          },
-
-          awful.key {
-            modifiers = { M.leader },
-            key = 'Return',
-
-            on_press = const(awful.spawn, '${term}'),
-
-            description = 'Launch terminal',
-            group = M.groups.launchers,
-          },
-
-          awful.key {
-            modifiers = { M.leader },
-            key = 'b',
-
-            on_press = const(awful.spawn, '${browser}'),
-
-            description = 'Launch web browser',
-            group = M.groups.launchers,
-          },
-
-          awful.key {
-            modifiers = { M.leader },
-            key = 'e',
-
-            on_press = const(awful.spawn, '${editor}'),
-
-            description = 'Launch text editor',
-            group = M.groups.launchers,
-          },
-        }
-
-        M.client_keys = {
-          awful.key {
-            modifiers = { M.leader, M.client },
-            key = 'c',
-
-            on_press = function(c) 
-              c:kill()
-            end,
-
-            description = 'Close program',
-            group = M.groups.client,
-          },
-
-          -- properties
-          awful.key {
-            modifiers = { M.leader, M.client },
-            key = 'f',
-
-            on_press = function(c)
-              c.floating = not c.floating
-            end,
-
-            description = 'Toggle floating',
-            group = M.groups.client,
-          },
-
-          awful.key {
-            modifiers = { M.leader, M.client },
-            key = 'f',
-
-            on_press = function(c)
-              c.maximized = not c.maximized
-              c:raise()
-            end,
-
-            description = 'Toggle maximized',
-            group = M.groups.client,
-          },
-
-          -- movement
-          awful.key {
-            modifiers = { M.leader, M.client },
-            key = 'm',
-
-            on_press = awful.client.setmaster,
-
-            description = 'Set master',
-            group = M.groups.client,
-          },
-
-          awful.key {
-            modifiers = { M.leader, M.client, M.modifier },
-            key = 'm',
-
-            on_press = awful.client.setslave,
-
-            description = 'Set slave',
-            group = M.groups.client,
-          },
-        }
-
-        function M.setup()
-          local kb = awful.keyboard
-          
-          awful.key.keygroups = M.keygroups
-          kb.append_global_keybindings(M.global_keys)
-          kb.append_client_keybindings(M.client_keys)
-        end
-
-        return M
-      '';
-      rules = ''
-        -- users/enderger/awesome/rules
-        local M = {}
-
-        M.rules = {
-          {
-            rule_any = {
-              class = {'Steam'},
-              type = {'dialog', 'utility', 'splash'}
-            },
-            properties.floating = true
-          },
-        }
-
-        function M.setup()
-          require('ruled.client').append_rules(M.rules)
-        end
-
-        return M
-      '';
-      screens = ''
-        -- users/enderger/awesome/screens
-        local M = {}
-
-        local awful = require('awful')
-        local screen = require('screen')
-        local widgets = require('widgets')
-
-        -- layout
-        local l = awful.layout.suit
-        M.layouts = { 
-          l.tile.left,
-          l.tile.bottom,
-          l.max,
-          l.fair,
-          l.floating,
-        }
-
-        -- tags
-        M.tags = { 'α', 'β', 'θ', 'λ', 'μ', 'ω' }
-        local function set_tags(s)
-          awful.tag(M.tags, s, awful.layout.layouts[1])
-        end
-
-        function M.setup()
-          awful.layout.layouts = M.layouts
-          
-          awful.screen.connect_for_each_screen(function(s)
-            set_tags(s)
-            widgets.wibar(s)
+    xsession.windowManager.awesome = {
+      luaModules = {
+        rc = ''
+          -- users/enderger/awesome/rc
+          local awesome = require('awesome')
+          local naughty = require('naughty')
+
+          -- error handling
+          naughty.connect_signal("request::display_error", function(message, startup)
+            error_type = startup and "Startup" or "Runtime"
+            naughty.notification {
+              urgency = "critical",
+              title = error_type.." error!",
+              message = message,
+            }
           end)
-        end
 
-        return M
-      '';
-      theme = ''
-    <<<users/enderger/awesome/theme>>>
-      '';
-      widgets = ''
-        -- users/enderger/awesome/widgets
-        local M = {}
+          require('theme').setup()
+          require('menubar').terminal = '${term}'
 
-        local awesome = require('awesome')
-        local awful = require('awful')
-        local beautiful = require('beautiful')
-        local wibox = require('wibox')
+          require('init').setup()
+          require('keys').setup()
+          require('rules').setup()
+          require('screens').setup()
+        '';
+        widgets = ''
+          -- users/enderger/awesome/widgets
+          local M = {}
 
-        -- components
-        function M.button(text, action)
-          -- base widget
-          local w = wibox.widget {
-            {
-              markup = text,
+          local awesome = require('awesome')
+          local awful = require('awful')
+          local beautiful = require('beautiful')
+          local layout = awful.layout
+          local wibox = require('wibox')
+
+          -- components
+          function M.button(text, action)
+            -- base widget
+            local w = wibox.widget {
+              {
+                markup = text,
+
+                align = 'center',
+                valign = 'center',
+
+                widget = wibox.widget.textbox,
+              },
+
+              buttons = {
+                awful.button {
+                  modifiers = {},
+                  button = 1,
+                  on_press = action,
+                },
+              },
+
+              border_width = 1,
+              widget = wibox.container.background
+            }
+            
+            -- signals
+            w:connect_signal("mouse::enter", function(w) w:set_bg(beautiful.bg_focus) end)
+            w:connect_signal("mouse::leave", function(w) w:set_bg(beautiful.bg_normal) end)
+
+            return w
+          end
+
+          function M.title(text)
+            return wibox.widget {
+              markup = '<big>'..text..'</big>',
 
               align = 'center',
               valign = 'center',
 
-              widget = wibox.widget.textbox,
-            },
+              widget = wibox.widget.textbox
+            }
+          end
 
-            buttons = {
-              awful.button {
-                modifiers = {},
-                button = 1,
-                on_press = action,
+          -- menus
+          M.logout_menu = wibox.widget {
+            M.title('Logout'),
+
+            {
+              M.button('reload', awesome.restart),
+              M.button('logout', awesome.quit),
+              M.button('suspend', function() awful.spawn('systemctl suspend') end),
+              M.button('shutdown', function() awful.spawn('systemctl poweroff') end),
+              M.button('reboot', function() awful.spawn('systemctl reboot') end),
+
+              layout = layout.flex.horizontal
+            },
+            
+            widget = layout.fixed.vertical
+          }
+
+          -- popups
+          M.keyboard_layout = awful.widget.keyboardlayout()
+
+          -- titlebars
+          function M.titlebar(c)
+            local tb = awful.titlebar
+
+            local buttons = {
+              awful.button({ }, 1, function() c:activate { context = "titlebar", action = "mouse_move" } end),
+              awful.button({ }, 3, function() c:activate { context = "titlebar", action = "mouse_resize"} end),
+            }
+
+            return {
+              {
+                tb.widget.iconwidget(c),
+                buttons = buttons,
+                layout = layout.fixed.horizontal,
               },
-            },
+              {
+                {
+                  align = "center",
+                  widget = tb.widget.titlewidget(c),
+                },
+                buttons = buttons,
+                layout = layout.flex.horizontal,
+              },
+              {
+                tb.widget.closebutton(c),
+                tb.widget.floatingbutton(c),
+                tb.widget.maximizedbutton(c),
+                layout = layout.fixed.horizontal,
+              },
+              layout = layout.align.horizontal,
+            }
+          end
 
-            border_width = 1,
-            widget = wibox.container.background
+          -- wibar
+          --- widgets
+          M.main_menu = awful.widget.button {
+            image = beautiful.awesome_icon,
+            buttons = {
+              awful.button({}, 1, nil, require('menubar').show),
+              awful.button({}, 3, nil, function()
+                awful.popup {
+                  widget = M.logout_menu,
+                  border_width = 1,
+                  visible = true,
+                }
+              end)
+            }
           }
-          
-          -- signals
-          w:connect_signal("mouse::enter", function(w) w:set_bg(beautiful.bg_focus) end)
-          w:connect_signal("mouse::leave", function(w) w:set_bg(beautiful.bg_normal) end)
 
-          return w
-        end
+          function M.prompt_box(s)
+            local pb = awful.widget.prompt
 
-        function M.title(text)
-          return wibox.widget {
-            markup = '<big>'..text..'</big>',
+            return pb { prompt = '$ ' }
+          end
 
-            align = 'center',
-            valign = 'center',
+          function M.tag_list(s)
+            local tl = awful.widget.taglist
 
-            widget = wibox.widget.textbox
-          }
-        end
-
-        -- menus
-        M.logout_menu = wibox.widget {
-          M.title('Logout'),
-
-          {
-            M.button('reload', awesome.restart),
-            M.button('logout', awesome.quit),
-            M.button('suspend', function() awful.spawn('systemctl suspend') end),
-            M.button('shutdown', function() awful.spawn('systemctl poweroff') end),
-            M.button('reboot', function() awful.spawn('systemctl reboot') end),
-
-            layout = wibox.layout.flex.horizontal
-          },
-          
-          widget = wibox.layout.fixed.vertical
-        }
-
-        -- popups
-        M.keyboard_layout = awful.widget.keyboardlayout()
-
-        -- wibar
-        --- widgets
-        M.main_menu = awful.widget.button {
-          image = beautiful.awesome_icon,
-          buttons = {
-            awful.button({}, 1, nil, require('menubar').show),
-            awful.button({}, 3, nil, function()
-              awful.popup {
-                widget = M.logout_menu,
-                border_width = 1,
-                visible = true,
+            return tl {
+              screen = s,
+              filter = tl.filter.all,
+              buttons = {
+                awful.button({ }, 1, function(t) t:view_only() end),
+                awful.button({ }, 4, function(t) awful.tag.viewprev(t.screen) end),
+                awful.button({ }, 5, function(t) awful.tag.viewnext(t.screen) end),
               }
+            }
+          end
+
+          function M.task_list(s)
+            local tl = awful.widget.tasklist
+
+            return tl {
+              screen = s,
+              filter = tl.filter.currenttags,
+              buttons = {
+                awful.button({ }, 1, function(c) c:activate { context = "tasklist", action = "toggle_minimization" } end),
+                awful.button({ }, 4, function() awful.client.focus.byidx(-1) end),
+                awful.button({ }, 5, function() awful.client.focus.byidx(1) end),
+              }
+            }
+          end
+
+          --- bar
+          function M.wibar(s)
+            s.wibar = awful.wibar({ position = "top", screen = s })
+
+            -- widgets
+            s.wibar_widgets = {
+              prompt_box = M.prompt_box(s),
+              tag_list = M.tag_list(s),
+              task_list = M.task_list(s),
+            }
+
+            s.wibar.widget = {
+              layout = layout.align.horizontal,
+              {
+                layout = layout.fixed.horizontal,
+                M.main_menu,
+                s.wibar_widgets.prompt_box,
+                s.wibar_widgets.tag_list,
+              },
+              s.wibar_widgets.task_list,
+              {
+                layout = layout.fixed.horizontal,
+                M.keyboard_layout,
+                wibox.widget.systray(),
+              },
+            }
+          end
+
+          return M
+        '';
+
+        init = ''
+          -- users/enderger/awesome/init
+          local M = {}
+          local spawn = require('awful.spawn').once
+
+          function M.setup()
+            spawn('systemctl --user start picom xidlehook')
+            spawn('feh --bg-scale '..(require('beautiful').wallpaper))
+            spawn('lxqt-policykit')
+          end
+
+          return M
+        '';
+        keys = ''
+          -- users/enderger/awesome/keys
+          local M = {}
+
+          local awesome = require('awesome')
+          local awful = require('awful')
+          local widgets = require('widgets')
+
+          -- modifiers
+          M.leader = 'mod4'
+          M.client = 'mod1'
+          M.modifier = 'Shift'
+          M.alternate = 'Control'
+
+          -- groups
+          M.keygroups = require('gears.table').join(awful.key.keygroups, {
+            vimkeys = {
+              {'h', 'left'},
+              {'j', 'right'},
+              {'k', 'up'},
+              {'l', 'down'},
+            },
+
+            vimcycle = {
+              {'n', 1},
+              {'p', -1},
+            },
+          })
+
+          -- helpers
+          local function const(f, ...)
+            return function()
+              f(...)
+            end
+          end
+
+          -- tables
+          M.groups = {
+            wm = 'window management',
+            launchers = 'launchers',
+            client = 'client',
+          }
+
+          M.global_keys = {
+            -- window management
+            awful.key {
+              modifiers = { M.leader, M.alternate },
+              key = 'q',
+              
+              on_press = function()
+                awful.popup {
+                  widget = widgets.logout_menu,
+                  border_width = 1,
+                  placement = awful.placement.centered,
+                  visible = true,
+                } 
+              end, 
+
+              description = 'Exit Awesome',
+              group = M.groups.wm,
+            },
+
+            awful.key {
+              modifiers = { M.leader, M.alternate },
+              key = 'm',
+
+              on_press = function()
+                local c = awful.client.restore()
+
+                if c then
+                  c:activate { raise = true, context = 'key.unminimize' }
+                end
+              end,
+
+              description = 'Unminimize',
+              group = M.groups.wm,
+            },
+
+            --- clients
+            awful.key {
+              modifiers = { M.leader },
+              keygroup = 'vimkeys',
+              
+              on_press = awful.client.focus.global_bydirection,
+
+              description = 'Focus client',
+              group = M.groups.wm,
+            },
+
+            awful.key {
+              modifiers = { M.leader, M.client },
+              keygroup = 'vimkeys',
+
+              on_press = awful.client.swap.global_bydirection,
+
+              description = 'Move client',
+              group = M.groups.client,
+            },
+
+            --- screens
+            awful.key {
+              modifiers = { M.leader },
+              keygroup = 'vimcycle',
+              
+              on_press = awful.screen.focus_relative,
+
+              description = 'Focus screen',
+              group = M.groups.wm,
+            },
+
+            awful.key {
+              modifiers = { M.leader, M.client },
+              keygroup = 'vimcycle',
+              
+              on_press = function(direction)
+                local c = awful.client.focused
+                c:move_to_screen(c.screen.index + direction),
+              end,
+
+              description = 'Move to screen',
+              group = M.groups.client,
+            },
+
+            --- tags
+            awful.key {
+              modifiers = { M.leader, M.modifier },
+              keygroup = 'vimcycle',
+              
+              on_press = awful.tag.viewidx,
+
+              description = 'Cycle tags',
+              group = M.groups.wm,
+            },
+
+            awful.key {
+              modifiers = { M.leader },
+              keygroup = 'numrow',
+
+              on_press = function (idx)
+                local tag = awful.screen.focused().tags[idx]
+                if tag then
+                  tag:view_only()
+                end
+              end,
+
+              description = 'Focus tag',
+              group = M.groups.wm,
+            },
+
+            awful.key {
+              modifiers = { M.leader, M.client },
+              keygroup = 'numrow',
+
+              on_press = function (idx)
+                local c = awful.client.foucs
+                
+                if c and c.screen.tags[idx] then
+                  c:move_to_tag(c.screen.tags[idx])
+                end
+              end,
+
+              description = 'Move to tag',
+              group = M.groups.wm,
+            },
+
+            --- layout
+            awful.key {
+              modifiers = { M.leader },
+              key = 'Tab',
+
+              on_press = function()
+                local s = awful.screen.focused {}
+                awful.layout.inc(1, s)
+              end,
+
+              description = 'Next layout',
+              group = M.groups.wm,
+            },
+
+            awful.key {
+              modifiers = { M.leader, M.modifier },
+              key = 'Tab',
+
+              on_press = function()
+                local s = awful.screen.focused {}
+                awful.layout.inc(-1, s)
+              end,
+
+              description = 'Previous layout',
+              group = M.groups.wm,
+            },
+
+            -- app launchers
+            awful.key {
+              modifiers = { M.leader },
+              key = 'p',
+
+              on_press = require('menubar').show
+
+              description = 'Application menu',
+              group = M.groups.launchers,
+            },
+
+            awful.key {
+              modifiers = { M.leader },
+              key = 'Return',
+
+              on_press = const(awful.spawn, '${term}'),
+
+              description = 'Launch terminal',
+              group = M.groups.launchers,
+            },
+
+            awful.key {
+              modifiers = { M.leader },
+              key = 'b',
+
+              on_press = const(awful.spawn, '${browser}'),
+
+              description = 'Launch web browser',
+              group = M.groups.launchers,
+            },
+
+            awful.key {
+              modifiers = { M.leader },
+              key = 'e',
+
+              on_press = const(awful.spawn, '${editor}'),
+
+              description = 'Launch text editor',
+              group = M.groups.launchers,
+            },
+          }
+
+          M.client_keys = {
+            awful.key {
+              modifiers = { M.leader, M.client },
+              key = 'c',
+
+              on_press = function(c) 
+                c:kill()
+              end,
+
+              description = 'Close program',
+              group = M.groups.client,
+            },
+
+            -- properties
+            awful.key {
+              modifiers = { M.leader, M.client },
+              key = 'f',
+
+              on_press = function(c)
+                c.floating = not c.floating
+              end,
+
+              description = 'Toggle floating',
+              group = M.groups.client,
+            },
+
+            awful.key {
+              modifiers = { M.leader, M.client },
+              key = 'f',
+
+              on_press = function(c)
+                c.maximized = not c.maximized
+                c:raise()
+              end,
+
+              description = 'Toggle maximized',
+              group = M.groups.client,
+            },
+
+            -- movement
+            awful.key {
+              modifiers = { M.leader, M.client },
+              key = 'm',
+
+              on_press = awful.client.setmaster,
+
+              description = 'Set master',
+              group = M.groups.client,
+            },
+
+            awful.key {
+              modifiers = { M.leader, M.client, M.modifier },
+              key = 'm',
+
+              on_press = awful.client.setslave,
+
+              description = 'Set slave',
+              group = M.groups.client,
+            },
+          }
+
+          function M.setup()
+            local kb = awful.keyboard
+            
+            awful.key.keygroups = M.keygroups
+            kb.append_global_keybindings(M.global_keys)
+            kb.append_client_keybindings(M.client_keys)
+          end
+
+          return M
+        '';
+        rules = ''
+          -- users/enderger/awesome/rules
+          local M = {}
+
+          local awful = require('awful')
+          local widgets = require('widgets')
+
+          -- declarative
+          M.rules = {
+            {
+              id = 'floating',
+              rule_any = {
+                class = {'Steam'},
+                type = {'dialog', 'utility', 'splash'}
+              },
+              properties = { floating = true },
+            },
+            {
+              id = 'titlebars',
+              rule_any = {
+                type = {'normal', 'dialog'},
+              },
+              properties = { titlebars_enabled = true }
+            },
+          }
+
+          -- signals
+          function M.on_titlebar_request(c)
+            awful.titlebar(c).widget = widgets.titlebar(c)
+          end
+            
+
+          function M.setup()
+            require('ruled.client').append_rules(M.rules)
+            client.connect_signal("request::titlebars", M.on_titlebar_request)
+          end
+
+          return M
+        '';
+        screens = ''
+          -- users/enderger/awesome/screens
+          local M = {}
+
+          local awful = require('awful')
+          local screen = require('screen')
+          local widgets = require('widgets')
+
+          -- layout
+          local l = awful.layout.suit
+          M.layouts = { 
+            l.tile.left,
+            l.tile.bottom,
+            l.max,
+            l.fair,
+            l.floating,
+          }
+
+          -- tags
+          M.tags = { 'α', 'β', 'θ', 'λ', 'μ', 'ω' }
+          local function set_tags(s)
+            awful.tag(M.tags, s, awful.layout.layouts[1])
+          end
+
+          function M.setup()
+            awful.layout.layouts = M.layouts
+            
+            awful.screen.connect_for_each_screen(function(s)
+              set_tags(s)
+              widgets.wibar(s)
             end)
+          end
+
+          return M
+        '';
+        theme = ''
+          -- users/enderger/awesome/theme
+          local M = {}
+
+          local beautiful = require('beautiful')
+          local assets = beautiful.theme_assets
+          local xresources = beautiful.xresources
+
+          -- helpers
+          local function parse_colour(hex)
+            local colour = require('gears.color')
+            return colour.parse_color('#'..hex)
+          end
+
+          local function get_default(path)
+            local theme_dir = require("gears.filesystem").get_themes_dir()
+            return theme_dir..'default/'..path
+          end
+
+          local function collection(path, ext)
+            return function(name)
+              return get_default(path..'/'..name..ext)
+            end
+          end
+
+          local titlebar_icon = collection('titlebars', '.png')
+          local layout_icon = collection('layouts', 'w.png')
+
+          -- variables
+          M.font = '${font} 11'
+          M.tl_square_size = xresources.apply_dpi(4)
+          M.menu_height = xresources.apply_dpi(15)
+
+          -- colours
+          M.colours = {
+            base00 = parse_colour('${theme-colour 0}'),
+            base01 = parse_colour('${theme-colour 1}'),
+            base02 = parse_colour('${theme-colour 2}'),
+            base03 = parse_colour('${theme-colour 3}'),
+            base04 = parse_colour('${theme-colour 4}'),
+            base05 = parse_colour('${theme-colour 5}'),
+            base06 = parse_colour('${theme-colour 6}'),
+            base07 = parse_colour('${theme-colour 7}'),
+            base08 = parse_colour('${theme-colour 8}'),
+            base09 = parse_colour('${theme-colour 9}'),
+            base0A = parse_colour('${theme-colour 10}'),
+            base0B = parse_colour('${theme-colour 11}'),
+            base0C = parse_colour('${theme-colour 12}'),
+            base0D = parse_colour('${theme-colour 13}'),
+            base0E = parse_colour('${theme-colour 14}'),
+            base0F = parse_colour('${theme-colour 15}'),
           }
-        }
 
-        function M.prompt_box(s)
-          local pb = awful.widget.prompt
+          function M.setup()
+            local c = M.colours
 
-          return pb { prompt = '$ ' }
-        end
+            beautiful.init {
+              font = M.font,
+              wallpaper = '~/wallpapers/wallpaper.jpg',
+              
+              -- backgrounds
+              bg_normal = c.base00,
+              bg_focus = c.base02,
+              bg_urgent = c.base00,
+              bg_minimize = c.base00,
+              bg_systray = c.base02,
+              prompt_bg = c.base02,
+              
+              -- foregrounds
+              fg_normal = c.base05,
+              fg_focus = c.base05,
+              fg_urgent = c.base0A,
+              fg_minimize = c.base03,
 
-        function M.tag_list(s)
-          local tl = awful.widget.taglist
+              -- borders
+              useless_gap = xresources.apply_dpi(2),
+              border_width = xresources.apply_dpi(1),
+              border_color_normal = c.base03,
+              border_color_active = c.base04,
+              border_color_marked = c.base05,
 
-          return tl {
-            screen = s,
-            filter = tl.filter.all,
-            buttons = {
-              awful.button({ }, 1, function(t) t:view_only() end),
-              awful.button({ }, 4, function(t) awful.tag.viewprev(t.screen) end),
-              awful.button({ }, 5, function(t) awful.tag.viewnext(t.screen) end),
+              -- taglist
+              taglist_squares_sel = assets.taglist_squares_sel(
+                tl_square_size, c.base05
+              ),
+              taglist_squares_unsel = assets.taglist_squares_unsel(
+                tl_square_size, c.base05
+              ),
+
+              -- menu
+              menu_submenu_icon = get_default('submenu.png'),
+              menu_height = M.menu_height,
+              menu_width = xresources.apply_dpi(100),
+
+              -- titlebars
+              titlebar_close_button_normal = titlebar_icon('close_normal'),
+              titlebar_close_button_focus = titlebar_icon('close_focus'),
+
+              titlebar_minimize_button_normal = titlebar_icon('minimize_normal'),
+              titlebar_minimize_button_focus = titlebar_icon('minimize_focus'),
+
+              titlebar_ontop_button_normal_inactive = titlebar_icon('ontop_normal_inactive'),
+              titlebar_ontop_button_focus_inactive = titlebar_icon('ontop_focus_inactive'),
+              titlebar_ontop_button_normal_active = titlebar_icon('ontop_normal_active'),
+              titlebar_ontop_button_focus_active = titlebar_icon('ontop_focus_active'),
+
+              titlebar_sticky_button_normal_inactive = titlebar_icon('sticky_normal_inactive'),
+              titlebar_sticky_button_focus_inactive = titlebar_icon('sticky_focus_inactive'),
+              titlebar_sticky_button_normal_active = titlebar_icon('sticky_normal_active'),
+              titlebar_sticky_button_focus_active = titlebar_icon('sticky_focus_active'),
+
+              titlebar_floating_button_normal_inactive = titlebar_icon('floating_normal_inactive'),
+              titlebar_floating_button_focus_inactive = titlebar_icon('floating_focus_inactive'),
+              titlebar_floating_button_normal_active = titlebar_icon('floating_normal_active'),
+              titlebar_floating_button_focus_active = titlebar_icon('floating_focus_active'),
+
+              titlebar_maximized_button_normal_inactive = titlebar_icon('maximized_normal_inactive'),
+              titlebar_maximized_button_focus_inactive = titlebar_icon('maximized_focus_inactive'),
+              titlebar_maximized_button_normal_active = titlebar_icon('maximized_normal_active'),
+              titlebar_maximized_button_focus_active = titlebar_icon('maximized_focus_active'),
+
+              -- layout icons
+              layout_fairh = layout_icon('fairh'),
+              layout_fairv = layout_icon('fairv'),
+              layout_floating = layout_icon('floating'),
+              layout_magnifier = layout_icon('magnifier'),
+              layout_max = layout_icon('max'),
+              layout_fullscreen = layout_icon('fullscreen'),
+              layout_tilebottom = layout_icon('tilebottom'),
+              layout_tileleft = layout_icon('tileleft'),
+              layout_tile = layout_icon('tile'),
+              layout_tiletop = layout_icon('tiletop'),
+              layout_spiral = layout_icon('spiral'),
+              layout_dwindle = layout_icon('dwindle'),
+              layout_cornernw = layout_icon('cornernw'),
+              layout_cornerne = layout_icon('cornerne'),
+              layout_cornersw = layout_icon('cornersw'),
+              layout_cornerse = layout_icon('cornerse'),
+
+              -- awesome icon
+              awesome_icon = assets.awesome_icon(
+                M.menu_height, c.base02, c.base05
+              )
             }
-          }
-        end
 
-        function M.task_list(s)
-          local tl = awful.widget.tasklist
-
-          return tl {
-            screen = s,
-            filter = tl.filter.currenttags,
-            buttons = {
-              awful.button({ }, 1, function(c) c:activate { context = "tasklist", action = "toggle_minimization" } end),
-              awful.button({ }, 4, function() awful.client.focus.byidx(-1) end),
-              awful.button({ }, 5, function() awful.client.focus.byidx(1) end),
+            require('ruled.notification').append_rule {
+              rule = { urgency = 'critical' },
+              properties = { bg = c.base02, fg = c.base05 }
             }
-          }
-        end
+          end
 
-        --- bar
-        function M.wibar(s)
-          s.wibar = awful.wibar({ position = "top", screen = s })
-
-          -- widgets
-          s.wibar_widgets = {
-            prompt_box = M.prompt_box(s),
-            tag_list = M.tag_list(s),
-            task_list = M.task_list(s),
-          }
-
-          s.wibar.widget = {
-            layout = wibox.layout.align.horizontal,
-            {
-              layout = wibox.layout.fixed.horizontal,
-              M.main_menu,
-              s.wibar_widgets.prompt_box,
-              s.wibar_widgets.tag_list,
-            },
-            s.wibar_widgets.task_list,
-            {
-              layout = wibox.layout.fixed.horizontal,
-              M.keyboard_layout,
-              wibox.widget.systray(),
-            },
-          }
-        end
-
-        return M
-      '';
+          return M
+        '';
+      };
     };
     # users/enderger/git
     programs.feh = {
