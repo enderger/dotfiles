@@ -1818,12 +1818,13 @@ scrolling.smooth = true;
 
 #### Theming
 The look and feel of the browser is defined here. Colouring is based on [base16-qutebrowser](https://github.com/theova/base16-qutebrowser).
-```nix "users/enderger/qutebrowser/theme"
-# users/enderger/qutebrowser/theme
+```nix "users/enderger/qutebrowser/theming"
+# users/enderger/qutebrowser/theming
 colors = let
   colour = id: "#${theme-colour id}";
 
   border = colour: { top = colour; bottom = colour; };
+  simpleColour = fg: bg: { fg = colour fg; bg = colour bg; };
 in {
   completion = {
     fg = colour 5;
@@ -1847,28 +1848,115 @@ in {
       };
     };
 
-    scrollbar = {
-      fg = colour 5;
-      bg = colour 0;
-    };
+    scrollbar = simpleColour 5 0;
   };
 
   contextmenu = {
-    disabled = {
-      bg = colour 1;
-      fg = colour 4;
+    disabled = simpleColour 4 1;
+    menu = simpleColour 5 0; 
+    selected = simpleColour 5 2
+  };
+
+  downloads = {
+    start = simpleColour 0 13;
+    stop = simpleColour 0 12;
+    error.fg = colour 8;
+  };
+
+  hints = {
+    fg = colour 0;
+    bg = colour 10;
+    match.fg = colour 5;
+  };
+
+  keyhint = {
+    fg = colour 5;
+    suffix.fg = colour 5;
+    bg = colour 0;
+  };
+
+  messages = let
+    msgType = fg: bg: border: (simpleColour fg bg) // { border = colour border; };
+  in {
+    error = simpleColour 0 8 8;
+    warning = msgType 0 14 14;
+    info = msgType 5 0 0;
+  };
+
+  prompts = {
+    fg = colour 5;
+    bg = colour 0;
+    border = colour 0;
+    
+    selected = simpleColour 2 5;
+  };
+
+  statusbar = {
+    normal = simpleColour 11 0;
+    insert = simpleColour 0 14;
+    passthrough = simpleColour 0 13;
+    private = simpleColour 5 0;
+
+    caret = {
+      fg = colour 0;
+      bg = colour 14;
+      selection = simpleColour 0 13;
     };
 
-    menu = {
-      bg = colour 0;
+    progress.bg = colour 13;
+
+    url = {
       fg = colour 5;
-    };
-    
-    selected = {
-      bg = colour 2;
-      fg = colour 5;
+
+      error.fg = colour 8;
+      hover.fg = colour 5;
+
+      success = {
+        http.fg = colour 12;
+        https.fg = colour 11;
+      };
+
+      warn.fg = colour 15;
     };
   };
+
+  tabs = let
+    selectedColours = simpleColour 5 2;
+  in {
+    bar.bg = colour 0;
+
+    indicator = {
+      start = colour 13;
+      stop = colour 12;
+      error = colour 8;
+    };
+
+    odd = simpleColour 5 1;
+    even = simpleColour 5 0;
+
+    pinned = {
+      odd = simpleColour 7 11;
+      even = colour 7 12;
+
+      selected = {
+        odd = selectedColours;
+        even = selectedColours;
+      };
+   };
+
+  selected = {
+    odd = selectedColours;
+    even = selectedColours;
+  };
+
+  webpage.bg = colour 0;
+};
+
+downloads.position = "bottom";
+
+fonts = {
+  default_family = font;
+  default_size = "11pt";
 };
 ```
 
