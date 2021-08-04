@@ -21,7 +21,7 @@ in {
     inputs.nixpkgs.nixosModules.notDetected
   ];
 
-  time = { inherit (secrets) timeZone };
+  time = { inherit (secrets) timeZone; };
   <<<hardware/soyuz/kernel>>>
   <<<hardware/soyuz/bootloader>>>
   <<<hardware/soyuz/networking>>>

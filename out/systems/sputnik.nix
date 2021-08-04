@@ -68,7 +68,7 @@ in {
         };
       };
     };
-  }
+  };
   # systems/sputnik/misc
   documentation.man.generateCaches = true;
   # systems/sputnik/packages

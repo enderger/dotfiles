@@ -111,7 +111,7 @@ services.xserver = {
       };
     };
   };
-}
+};
 ```
 
 # Miscellaneous
