@@ -23,7 +23,7 @@ This module tweaks GRUB's defaults to prefer UEFI over BIOS, among other things.
 ```
 
 # Module List
-```nix "hardware/modules"
+```nix "hardware/modules" +=
 # hardware/modules.grub
 ./hardware/modules/grub.nix
 ```

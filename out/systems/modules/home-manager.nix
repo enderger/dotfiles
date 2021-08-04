@@ -12,6 +12,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
   home-manager = {
     useGlobalPkgs = lib.mkDefault true;
     useUserPackages = lib.mkDefault true;
-    sharedModules = inputs.self.nixosModules.user;
+    sharedModules = inputs.self.moduleSets.user;
   };
 }

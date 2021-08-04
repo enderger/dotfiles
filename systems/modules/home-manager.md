@@ -17,7 +17,7 @@ This module simply provides a default configuration for [home-manager](https://g
   home-manager = {
     useGlobalPkgs = lib.mkDefault true;
     useUserPackages = lib.mkDefault true;
-    sharedModules = inputs.self.nixosModules.user;
+    sharedModules = inputs.self.moduleSets.user;
   };
 }
 ```

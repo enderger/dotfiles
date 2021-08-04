@@ -7,7 +7,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 let 
   cfg = config.programs.neovim;
 in {
-  options = {
+  options.programs.neovim = {
     # users/modules/neovim/options
     luaModules = lib.mkOption {
       type = with lib.types; attrsOf lines;

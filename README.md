@@ -176,7 +176,7 @@ Now, we get to use our inputs to make a set of system configurations.
 # flake/outputs/hosts
 hostDefaults = {
   system = "x86_64-linux";
-  modules = self.nixosModules.system // self.nixosModules.hardware;
+  modules = with self.moduleSets; system ++ hardware;
   channelName = "unstable";
   specialArgs = { inherit inputs; };
 };
@@ -214,15 +214,17 @@ nixosModules = let
     <<<hardware/modules>>>
     <<<users/modules>>>
   ];
-in (inputs.fup.lib.modulesFromList moduleList) // {
-  system.imports = [
+in inputs.fup.lib.modulesFromList moduleList;
+
+moduleSets = {
+  system = [
     inputs.fup.nixosModules.saneFlakeDefaults
     <<<systems/modules>>>
   ];
-  hardware.imports = [
+  hardware = [
     <<<hardware/modules>>>
   ];
-  user.imports = [
+  user = [
     <<<users/modules>>>
   ];
 };

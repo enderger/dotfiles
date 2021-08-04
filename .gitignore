@@ -1,2 +1,4 @@
 # Secrets
 result*
+*.fd
+*.qcow2

@@ -367,7 +367,7 @@ Here, we'll set up the environment within which Neovim operates. This includes t
 deno nodePackages.vscode-html-languageserver-bin nodePackages.vscode-css-languageserver-bin
 rnix-lsp
 (with fenix; combine [
-  default.rustfmt-preview default.clippy rust-analyzer
+  default.rustfmt-preview default.clippy-preview rust-analyzer
 ])
 ```
 
@@ -926,7 +926,7 @@ Here, we'll be configuring the Awesome window manager. I would use XMonad, were 
 ```nix "users/enderger/awesome"
 # users/enderger/awesome
 xsession.windowManager.awesome = {
-  luaModules = {
+  luaConfig = {
     rc = ''
       <<<users/enderger/awesome/rc>>>
     '';
@@ -1879,7 +1879,7 @@ in {
   messages = let
     msgType = fg: bg: border: (simpleColour fg bg) // { border = colour border; };
   in {
-    error = simpleColour 0 8 8;
+    error = msgType 0 8 8;
     warning = msgType 0 14 14;
     info = msgType 5 0 0;
   };
@@ -1921,9 +1921,7 @@ in {
     };
   };
 
-  tabs = let
-    selectedColours = simpleColour 5 2;
-  in {
+  tabs = {
     bar.bg = colour 0;
 
     indicator = {
@@ -1937,18 +1935,18 @@ in {
 
     pinned = {
       odd = simpleColour 7 11;
-      even = colour 7 12;
+      even = simpleColour 7 12;
 
       selected = {
-        odd = selectedColours;
-        even = selectedColours;
+        odd = simpleColour 5 2;
+        even = simpleColour 5 2;
       };
     };
   };
 
   selected = {
-    odd = selectedColours;
-    even = selectedColours;
+    odd = simpleColour 5 2;
+    even = simpleColour 5 2;
   };
 
   webpage.bg = colour 0;

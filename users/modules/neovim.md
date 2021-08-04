@@ -12,7 +12,7 @@ Extensions to the Neovim module, primarily to better support Lua.
 let 
   cfg = config.programs.neovim;
 in {
-  options = {
+  options.programs.neovim = {
     <<<users/modules/neovim/options>>>
   };
 

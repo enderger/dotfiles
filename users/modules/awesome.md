@@ -12,7 +12,7 @@ This module adds in support for adding config files for Awesome.
 let 
   cfg = config.xsession.windowManager.awesome;
 in {
-  options = {
+  options.xsession.windowManager.awesome = {
     <<<users/modules/awesome/options>>>
   };
 
@@ -23,11 +23,11 @@ in {
 ```
 
 ## Options
-- `luaModules` is a set of Lua modules to add in `~/.config/awesome`
+- `luaConfig` is a set of Lua modules to add in `~/.config/awesome`
 
-```nix "users/modules/awesome/options"
+```nix "users/modules/awesome/options" +=
 # users/modules/awesome/options
-luaModules = lib.mkOption {
+luaConfig = lib.mkOption {
   type = with lib.types; attrsOf lines;
   default = {};
   description = ''
@@ -37,18 +37,18 @@ luaModules = lib.mkOption {
 ```
 
 ## Config
-```nix "users/modules/qtile/config"
+```nix "users/modules/awesome/config"
 # users/modules/qtile/config
 (lib.mkIf (cfg.luaModules != {}) {
   assertions = [
-    { assertion = builtins.hasAttr "rc" cfg.luaModules;
+    { assertion = builtins.hasAttr "rc" cfg.luaConfig;
       message = "No rc module provided! This would leave Awesome unconfigured, and is likely a mistake.";
     }
   ];
 
   xdg.configFile = lib.mapAttrs'
     (module: text: lib.nameValuePair "awesome/${module}.lua" { inherit text; })
-    cfg.luaModules;
+    cfg.luaConfig;
 })
 ```
 

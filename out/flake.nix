@@ -74,7 +74,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       # flake/outputs/hosts
       hostDefaults = {
         system = "x86_64-linux";
-        modules = self.nixosModules.system // self.nixosModules.hardware;
+        modules = with self.moduleSets; system ++ hardware;
         channelName = "unstable";
         specialArgs = { inherit inputs; };
       };
@@ -98,32 +98,42 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           ./systems/modules/doas.nix
           # hardware/modules.grub
           ./hardware/modules/grub.nix
+          # hardware/modules.pipewire
+          ./hardware/modules/pipewire.nix
+          # hardware/modules.interface
+          ./hardware/modules/interface.nix
           # hardware/modules.broadcom
           ./hardware/modules/broadcom.nix
-          # users/modules.neovim
-          ./users/modules/neovim.nix
           # users/modules.awesome
           ./users/modules/awesome.nix
+          # users/modules.neovim
+          ./users/modules/neovim.nix
         ];
-      in (inputs.fup.lib.modulesFromList moduleList) // {
-        system.imports = [
+      in inputs.fup.lib.modulesFromList moduleList;
+
+      moduleSets = {
+        system = [
           inputs.fup.nixosModules.saneFlakeDefaults
           # systems/modules.home-manager
           ./systems/modules/home-manager.nix
           # systems/modules.doas
           ./systems/modules/doas.nix
         ];
-        hardware.imports = [
+        hardware = [
           # hardware/modules.grub
           ./hardware/modules/grub.nix
+          # hardware/modules.pipewire
+          ./hardware/modules/pipewire.nix
+          # hardware/modules.interface
+          ./hardware/modules/interface.nix
           # hardware/modules.broadcom
           ./hardware/modules/broadcom.nix
         ];
-        user.imports = [
-          # users/modules.neovim
-          ./users/modules/neovim.nix
+        user = [
           # users/modules.awesome
           ./users/modules/awesome.nix
+          # users/modules.neovim
+          ./users/modules/neovim.nix
         ];
       };
       overlay = import ./pkgs;

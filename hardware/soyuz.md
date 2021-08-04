@@ -17,7 +17,7 @@ This is the hardware configuration for my main development PC. It may sound a bi
 { config, pkgs, lib, inputs, ... }:
 let secrets = import ./soyuz.secret.nix;
 in {
-  imports = [
+  imports = inputs.self.moduleSets.hardware ++ [
     inputs.nixpkgs.nixosModules.notDetected
   ];
 
