@@ -1742,7 +1742,6 @@ programs.qutebrowser = {
 
   settings = {
     <<<users/enderger/qutebrowser/behaviour>>> 
-    <<<users/enderger/qutebrowser/features>>>
     <<<users/enderger/qutebrowser/theming>>>
   };
 };
@@ -1814,6 +1813,63 @@ content = {
 };
 
 editor.command = lib.splitString " " editor;
+scrolling.smooth = true;
+```
+
+#### Theming
+The look and feel of the browser is defined here. Colouring is based on [base16-qutebrowser](https://github.com/theova/base16-qutebrowser).
+```nix "users/enderger/qutebrowser/theme"
+# users/enderger/qutebrowser/theme
+colors = let
+  colour = id: "#${theme-colour id}";
+
+  border = colour: { top = colour; bottom = colour; };
+in {
+  completion = {
+    fg = colour 5;
+    odd.bg = colour 1;
+    even.bg = colour 0;
+
+    category = {
+      fg = colour 10;
+      bg = colour 0;
+      border = border (colour 0);
+    };
+
+    item = {
+      match.fg = colour 11;
+
+      selected = {
+        fg = colour 5;
+        bg = colour 2;
+        border = border (colour 2);
+        match.fg = colour 11;
+      };
+    };
+
+    scrollbar = {
+      fg = colour 5;
+      bg = colour 0;
+    };
+  };
+
+  contextmenu = {
+    disabled = {
+      bg = colour 1;
+      fg = colour 4;
+    };
+
+    menu = {
+      bg = colour 0;
+      fg = colour 5;
+    };
+    
+    selected = {
+      bg = colour 2;
+      fg = colour 5;
+    };
+  };
+};
 ```
 
 

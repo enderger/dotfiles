@@ -93,8 +93,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           ./hardware/modules/grub.nix
           # hardware/modules.broadcom
           ./hardware/modules/broadcom.nix
-          # users/modules.qtile
-          ./users/modules/qtile.nix
           # users/modules.neovim
           ./users/modules/neovim.nix
           # users/modules.awesome
@@ -115,8 +113,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           ./hardware/modules/broadcom.nix
         ];
         user.imports = [
-          # users/modules.qtile
-          ./users/modules/qtile.nix
           # users/modules.neovim
           ./users/modules/neovim.nix
           # users/modules.awesome

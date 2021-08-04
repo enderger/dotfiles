@@ -1569,7 +1569,7 @@ in {
         };
 
         editor.command = lib.splitString " " editor;
-    <<<users/enderger/qutebrowser/features>>>
+        scrolling.smooth = true;
     <<<users/enderger/qutebrowser/theming>>>
       };
     };
