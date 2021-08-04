@@ -936,8 +936,8 @@ luaModules = {
   rules = ''
     <<<users/enderger/awesome/rules>>>
   '';
-  tags = ''
-    <<<users/enderger/awesome/tags>>>
+  screens = ''
+    <<<users/enderger/awesome/screens>>>
   '';
   theme = ''
     <<<users/enderger/awesome/theme>>>
@@ -969,6 +969,8 @@ require('menubar').terminal = '${term}'
 
 require('init').setup()
 require('keys').setup()
+require('rules').setup()
+require('screens').setup()
 ```
 
 #### Init
@@ -1004,17 +1006,19 @@ M.modifier = 'Shift'
 M.alternate = 'Control'
 
 -- groups
-awful.key.keygroups.vimkeys = {
-  {'h', 'left'},
-  {'j', 'right'},
-  {'k', 'up'},
-  {'l', 'down'},
-}
+M.keygroups = require('gears.table').join(awful.key.keygroups, {
+  vimkeys = {
+    {'h', 'left'},
+    {'j', 'right'},
+    {'k', 'up'},
+    {'l', 'down'},
+  },
 
-awful.key.keygroups.vimcycle = {
-  {'n', 1},
-  {'p', -1},
-}
+  vimcycle = {
+    {'n', 1},
+    {'p', -1},
+  },
+})
 
 -- helpers
 local function const(f, ...)
@@ -1284,8 +1288,71 @@ M.client_keys = {
 
 function M.setup()
   local kb = awful.keyboard
+  
+  awful.key.keygroups = M.keygroups
   kb.append_global_keybindings(M.global_keys)
   kb.append_client_keybindings(M.client_keys)
+end
+
+return M
+```
+
+#### Rules
+Here, we define all window manager rules to set.
+```lua "users/enderger/awesome/rules"
+-- users/enderger/awesome/rules
+local M = {}
+
+M.rules = {
+  {
+    rule_any = {
+      class = {'Steam'},
+      type = {'dialog', 'utility', 'splash'}
+    },
+    properties.floating = true
+  },
+}
+
+function M.setup()
+  require('ruled.client').append_rules(M.rules)
+end
+
+return M
+```
+
+#### Screens
+Here, we define the per-screen setup for things such as tags and layouts.
+```lua "users/enderger/awesome/screens"
+-- users/enderger/awesome/screens
+local M = {}
+
+local awful = require('awful')
+local screen = require('screen')
+local widgets = require('widgets')
+
+-- layout
+local l = awful.layout.suit
+M.layouts = { 
+  l.tile.left,
+  l.tile.bottom,
+  l.max,
+  l.fair,
+  l.floating,
+}
+
+-- tags
+M.tags = { 'α', 'β', 'θ', 'λ', 'μ', 'ω' }
+local function set_tags(s)
+  awful.tag(M.tags, s, awful.layout.layouts[1])
+end
+
+function M.setup()
+  awful.layout.layouts = M.layouts
+  
+  awful.screen.connect_for_each_screen(function(s)
+    set_tags(s)
+    widgets.wibar(s)
+  end)
 end
 
 return M
@@ -1318,7 +1385,7 @@ function M.button(text, action)
     buttons = {
       awful.button {
         modifiers = {},
-        button = awful.button.names.LEFT,
+        button = 1,
         on_press = action,
       },
     },
@@ -1345,7 +1412,7 @@ function M.title(text)
   }
 end
 
--- popups
+-- menus
 M.logout_menu = wibox.widget {
   M.title('Logout'),
 
@@ -1361,6 +1428,87 @@ M.logout_menu = wibox.widget {
   
   widget = wibox.layout.fixed.vertical
 }
+
+-- popups
+M.keyboard_layout = awful.widget.keyboardlayout()
+
+-- wibar
+--- widgets
+M.main_menu = awful.widget.button {
+  image = beautiful.awesome_icon,
+  buttons = {
+    awful.button({}, 1, nil, require('menubar').show),
+    awful.button({}, 3, nil, function()
+      awful.popup {
+        widget = M.logout_menu,
+        border_width = 1,
+        visible = true,
+      }
+    end)
+  }
+}
+
+function M.prompt_box(s)
+  local pb = awful.widget.prompt
+
+  return pb { prompt = '$ ' }
+end
+
+function M.tag_list(s)
+  local tl = awful.widget.taglist
+
+  return tl {
+    screen = s,
+    filter = tl.filter.all,
+    buttons = {
+      awful.button({ }, 1, function(t) t:view_only() end),
+      awful.button({ }, 4, function(t) awful.tag.viewprev(t.screen) end),
+      awful.button({ }, 5, function(t) awful.tag.viewnext(t.screen) end),
+    }
+  }
+end
+
+function M.task_list(s)
+  local tl = awful.widget.tasklist
+
+  return tl {
+    screen = s,
+    filter = tl.filter.currenttags,
+    buttons = {
+      awful.button({ }, 1, function(c) c:activate { context = "tasklist", action = "toggle_minimization" } end),
+      awful.button({ }, 4, function() awful.client.focus.byidx(-1) end),
+      awful.button({ }, 5, function() awful.client.focus.byidx(1) end),
+    }
+  }
+end
+
+--- bar
+function M.wibar(s)
+  s.wibar = awful.wibar({ position = "top", screen = s })
+
+  -- widgets
+  s.wibar_widgets = {
+    prompt_box = M.prompt_box(s),
+    tag_list = M.tag_list(s),
+    task_list = M.task_list(s),
+  }
+
+  s.wibar.widget = {
+    layout = wibox.layout.align.horizontal,
+    {
+      layout = wibox.layout.fixed.horizontal,
+      M.main_menu,
+      s.wibar_widgets.prompt_box,
+      s.wibar_widgets.tag_list,
+    },
+    s.wibar_widgets.task_list,
+    {
+      layout = wibox.layout.fixed.horizontal,
+      M.keyboard_layout,
+      wibox.widget.systray(),
+    },
+  }
+end
 
 return M
 ```
