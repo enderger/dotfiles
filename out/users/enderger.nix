@@ -1605,7 +1605,7 @@ in {
           contextmenu = {
             disabled = simpleColour 4 1;
             menu = simpleColour 5 0; 
-            selected = simpleColour 5 2
+            selected = simpleColour 5 2;
           };
 
           downloads = {
@@ -1693,7 +1693,8 @@ in {
                 odd = selectedColours;
                 even = selectedColours;
               };
-           };
+            };
+          };
 
           selected = {
             odd = selectedColours;
@@ -1711,10 +1712,36 @@ in {
         };
       };
     };
-    <<<users/enderger/picom>>>
+    # users/enderger/picom
+    services.picom = {
+      enable = true;
+
+      backend = "xrender";
+      blur = true;
+      inactiveOpacity = "0.8";
+
+      extraOptions = ''
+        unredir-if-possible = false;
+        vsync = true;
+      '';
+    };
+    # users/enderger/xidlehook
+    services.xidlehook = {
+      enable = true;
+      timers = [
+        {
+          delay = 300;
+          command = "${pkgs.i3lock}/bin/i3lock -n -c ${theme-colour 0}";
+        }
+        {
+          delay = 3600;
+          command = "systemctl suspend";
+        }
+      ];
+    };
 
     # Packages
-    home.packages = [
+    home.packages = with pkgs; [
       # users/enderger/packages
       lxqt.lxqt-policykit
     ];
