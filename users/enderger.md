@@ -20,9 +20,7 @@ let
   # TODO: Set up Neovide
   editor = "${term} -e nvim";
 in {
-  users.users.enderger = {
-    <<<users/enderger/userOptions>>>
-  };
+  <<<users/enderger/userOptions>>>
 
   services.xserver.windowManager = {
     <<<users/enderger/windowManagers>>>
@@ -111,8 +109,7 @@ programs.starship = {
   in {
     format = ''
       \[$username$hostname\]$nix_shell$hg_branch$git_status$git_branch$git_commit$git_state
-      $character 
-    '';
+      $character'';
     add_newline = false;
 
     username = {
@@ -422,13 +419,13 @@ These functions make some things, such as registering autocommands, easier.
 -- users/enderger/neovim/config/lib
 local lib = {};
 
-function lib.autocmd(event, action, filter='*')
-  vim.cmd(string.format("autocmd %s %s %s", event, filter, action))
+function lib.autocmd(event, action, filter)
+  vim.cmd(string.format("autocmd %s %s %s", event, filter or '*', action))
 end
 
-function lib.map(from, to, mode='n', opts={})
+function lib.map(from, to, mode, opts)
   local defaults = { noremap = true, silent = true }
-  vim.api.nvim_set_keymap(mode, from, to, vim.tbl_deep_extend("force", defaults, opts))
+  vim.api.nvim_set_keymap(mode, from, to, vim.tbl_deep_extend("force", defaults, opts or {}))
 end
 
 return lib
@@ -473,16 +470,16 @@ local map = require('lib').map
 local ts = require('telescope.builtin')
 
 -- leaders
-vim.g.leader = ' '
-vim.g.localleader = ','
+vim.g.mapleader = ' '
+vim.g.maplocalleader = ','
 
 -- which-key setup
 local wk = require('which-key')
 wk.setup {}
 
 -- insert mappings
-map('jk', '<Cmd>stopinsert<CR>', mode='i')
-map('<C-Leader>', '<C-o><Leader>', mode='i')
+map('jk', '<Cmd>stopinsert<CR>', 'i')
+map('<C-Leader>', '<C-o><Leader>', 'i')
 
 -- applications
 local application_keys = {
@@ -497,71 +494,74 @@ local application_keys = {
   },
   g = { 
     function() require('neogit').open { kind = "split" } end, 
-    "git" 
+    "git",
   },
   m = {
     "<Cmd>MinimapToggle<CR>",
-    "minimap"
+    "minimap",
   },
   s = {
     "<Cmd>ToggleTerm<CR>",
-    "shell"
+    "shell",
   },
   t = {
     "<Cmd>TestSuite<CR>",
-    "tests"
+    "tests",
   },
 }
+wk.register(application_keys, { mode = "n", prefix = "<leader>a" })
 
 -- goto
 local goto_keys = {
   name = 'goto/',
   b = {
     function() ts.buffers {} end,
-    "buffer"
+    "buffer",
   },
   d = {
     function() ts.lsp_definitions {} end,
-    "definition"
+    "definition",
   },
   f = {
     function() ts.find_files {} end,
-    "file"
+    "file",
   },
   ["<S-f>"] = {
     function() ts.find_files { hidden = true } end,
-    "file (hidden)"
+    "file (hidden)",
   },
   i = {
     function() ts.lsp_implementations {} end,
-    "implementation"
+    "implementation",
   },
   r = {
     function() ts.lsp_references {} end,
-    "reference"
-  }
+    "reference",
+  },
 }
+wk.register(goto_keys, { mode = "n", prefix = "<leader>g" })
 
 -- actions
 local action_keys = {
   name = 'actions/',
   c = {
     function() ts.lsp_code_actions {} end,
-    "code-actions"
+    "code-actions",
   },
   f = {
     "<Cmd>Neoformat<CR>",
-    "format"
+    "format",
   },
   m = {
     "<Cmd>Glow<CR>",
-    "markdown-preview"
+    "markdown-preview",
   },
   r = {
     require("nvim-treesitter-refactor.smart_rename").smart_rename,
-    "rename"
-  }
+    "rename",
+  },
 }
+wk.register(action_keys, { mode = "n", prefix = "<leader>c" })
 
 -- help
 local help_keys = {
@@ -575,6 +575,7 @@ local help_keys = {
     "man-pages"
   },
 }
+wk.register(help_keys, { mode = "n", prefix = "<leader>h" })
 ```
 
 ##### Editing
@@ -590,7 +591,7 @@ local lsp = require('lspconfig')
 
 --- Capabilities
 local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities.textDocument.completion.completionitem.snippetSupport = true
+capabilities.textDocument.completion.completionItem.snippetSupport = true
 
 --- Deno
 lsp.denols.setup {
@@ -615,10 +616,12 @@ lsp.rnix.setup {
 --- Rust
 lsp.rust_analyzer.setup {
   capabilities = capabilities,
-  settings['rust-analyzer'] = {
-    -- use Clippy
-    checkOnSave.command = 'clippy',
-  },
+  settings = {
+    ['rust-analyzer'] = {
+      -- use Clippy
+      checkOnSave = { command = 'clippy' },
+    },
+  }
 }
 
 -- Completion
@@ -630,13 +633,14 @@ g.completion_matching_smart_case = true
 g.completion_enable_snippet = 'vim-vsnip'
 
 -- Treesitter
-local ts = require('nvim-treesitter')
-ts.configs.setup {
-  autopairs.enable = true,
+local ts = require('nvim-treesitter.configs')
+local ts_enabled = { enable = true }
+ts.setup {
+  autopairs = ts_enabled,
 
-  highlight.enable = true,
+  highlight = ts_enabled,
 
-  indent.enable = true,
+  indent = ts_enabled,
 
   rainbow = {
     enable = true,
@@ -644,9 +648,9 @@ ts.configs.setup {
   },
 
   refactor = {
-    highlight_current_scope.enable = true,
-    highlight_definitions.enable = true,
-    smart_rename.enable = true,
+    highlight_current_scope = ts_enabled,
+    highlight_definitions = ts_enabled,
+    smart_rename = ts_enabled,
   },
 }
 require('treesitter-context.config').setup {
@@ -684,12 +688,16 @@ local g = vim.g
 
 -- Telescope
 local tsc = require('telescope')
+local tsc_themes = require('telescope.themes')
+local tsc_actions = require('telescope.actions')
 tsc.setup {
-  defaults = tsc.themes.get_ivy {
-    mappings.i = {
-      ["<Tab>"] = tsc.actions.move_selection_next,
-      ["<S-Tab>"] = tsc.actions.move_selection_previous,
-      ["<Esc>"] = tsc.actions.close,
+  defaults = tsc_themes.get_ivy {
+    mappings = {
+      i = {
+        ['<Tab>'] = tsc_actions.move_selection_next,
+        ['<S-Tab>'] = tsc_actions.move_selection_previous,
+        ['<Esc>'] = tsc_actions.close,
+      },
     },
     
     prompt_prefix = '$ ',
@@ -752,6 +760,7 @@ b16.setup(colours)
 -- statusline
 local feline = require('feline')
 local feline_lsp = require('feline.providers.lsp')
+local feline_vi = require('feline.providers.vi_mode')
 local feline_config = {
   components = {
     left = {
@@ -762,8 +771,8 @@ local feline_config = {
 
           hl = function()
             return { 
-              name = require('feline.providers.vi_mode').get_mode_highlight_name()
-              fg = require('feline.providers.vi_mode').get_mode_color()
+              name = feline_vi.get_mode_highlight_name(),
+              fg = feline_vi.get_mode_color(),
               style = 'bold'
             }
           end,
@@ -870,8 +879,14 @@ local feline_config = {
     },
   },
   properties = {
-    force_inactive.buftypes = {
-      'terminal'
+    force_inactive = {
+      bufnames = {},
+      buftypes = {
+        'terminal',
+      },
+      filetypes = {
+        'NeogitStatus',
+      },
     },
   },
   mode_colours = {
@@ -957,7 +972,6 @@ xsession.windowManager.awesome = {
 This file is what is loaded directly by Awesome.
 ```lua "users/enderger/awesome/rc"
 -- users/enderger/awesome/rc
-local awesome = require('awesome')
 local naughty = require('naughty')
 
 -- error handling
@@ -1001,13 +1015,11 @@ Here, we set up all of my keybindings.
 -- users/enderger/awesome/keys
 local M = {}
 
-local awesome = require('awesome')
 local awful = require('awful')
 local widgets = require('widgets')
 
 -- modifiers
-M.leader = 'mod4'
-M.client = 'mod1'
+M.leader = 'Mod4'
 M.modifier = 'Shift'
 M.alternate = 'Control'
 
@@ -1025,11 +1037,13 @@ M.keygroups = require('gears.table').join(awful.key.keygroups, {
     {'p', -1},
   },
 })
+awful.key.keygroups = M.keygroups
 
 -- helpers
 local function const(f, ...)
+  local args = ...
   return function()
-    f(...)
+    f(args)
   end
 end
 
@@ -1087,7 +1101,7 @@ M.global_keys = {
   },
 
   awful.key {
-    modifiers = { M.leader, M.client },
+    modifiers = { M.leader, M.modifier },
     keygroup = 'vimkeys',
 
     on_press = awful.client.swap.global_bydirection,
@@ -1108,12 +1122,14 @@ M.global_keys = {
   },
 
   awful.key {
-    modifiers = { M.leader, M.client },
+    modifiers = { M.leader, M.modifier },
     keygroup = 'vimcycle',
     
     on_press = function(direction)
       local c = awful.client.focused
-      c:move_to_screen(c.screen.index + direction),
+      if c then
+        c:move_to_screen(c.screen.index + direction)
+      end
     end,
 
     description = 'Move to screen',
@@ -1122,7 +1138,7 @@ M.global_keys = {
 
   --- tags
   awful.key {
-    modifiers = { M.leader, M.modifier },
+    modifiers = { M.leader, M.alternate },
     keygroup = 'vimcycle',
     
     on_press = awful.tag.viewidx,
@@ -1147,7 +1163,7 @@ M.global_keys = {
   },
 
   awful.key {
-    modifiers = { M.leader, M.client },
+    modifiers = { M.leader, M.modifier },
     keygroup = 'numrow',
 
     on_press = function (idx)
@@ -1194,7 +1210,7 @@ M.global_keys = {
     modifiers = { M.leader },
     key = 'p',
 
-    on_press = require('menubar').show
+    on_press = const(require('menubar').show),
 
     description = 'Application menu',
     group = M.groups.launchers,
@@ -1233,7 +1249,7 @@ M.global_keys = {
 
 M.client_keys = {
   awful.key {
-    modifiers = { M.leader, M.client },
+    modifiers = { M.leader, M.modifier },
     key = 'c',
 
     on_press = function(c) 
@@ -1246,19 +1262,7 @@ M.client_keys = {
 
   -- properties
   awful.key {
-    modifiers = { M.leader, M.client },
-    key = 'f',
-
-    on_press = function(c)
-      c.floating = not c.floating
-    end,
-
-    description = 'Toggle floating',
-    group = M.groups.client,
-  },
-
-  awful.key {
-    modifiers = { M.leader, M.client },
+    modifiers = { M.leader },
     key = 'f',
 
     on_press = function(c)
@@ -1270,9 +1274,21 @@ M.client_keys = {
     group = M.groups.client,
   },
 
+  awful.key {
+    modifiers = { M.leader, M.modifier },
+    key = 'f',
+
+    on_press = function(c)
+      c.floating = not c.floating
+    end,
+
+    description = 'Toggle floating',
+    group = M.groups.client,
+  },
+
   -- movement
   awful.key {
-    modifiers = { M.leader, M.client },
+    modifiers = { M.leader },
     key = 'm',
 
     on_press = awful.client.setmaster,
@@ -1282,7 +1298,7 @@ M.client_keys = {
   },
 
   awful.key {
-    modifiers = { M.leader, M.client, M.modifier },
+    modifiers = { M.leader, M.modifier },
     key = 'm',
 
     on_press = awful.client.setslave,
@@ -1295,7 +1311,6 @@ M.client_keys = {
 function M.setup()
   local kb = awful.keyboard
   
-  awful.key.keygroups = M.keygroups
   kb.append_global_keybindings(M.global_keys)
   kb.append_client_keybindings(M.client_keys)
 end
@@ -1327,7 +1342,7 @@ M.rules = {
     rule_any = {
       type = {'normal', 'dialog'},
     },
-    properties = { titlebars_enabled = true }
+    properties = { titlebars_enabled = true },
   },
 }
 
@@ -1352,7 +1367,6 @@ Here, we define the per-screen setup for things such as tags and layouts.
 local M = {}
 
 local awful = require('awful')
-local screen = require('screen')
 local widgets = require('widgets')
 
 -- layout
@@ -1372,7 +1386,7 @@ local function set_tags(s)
 end
 
 function M.setup()
-  awful.layout.layouts = M.layouts
+  awful.layout.append_default_layouts(M.layouts)
   
   awful.screen.connect_for_each_screen(function(s)
     set_tags(s)
@@ -1390,13 +1404,12 @@ Here, we set up the look and feel of the system.
 local M = {}
 
 local beautiful = require('beautiful')
-local assets = beautiful.theme_assets
+local assets = require('beautiful.theme_assets')
 local xresources = beautiful.xresources
 
 -- helpers
 local function parse_colour(hex)
-  local colour = require('gears.color')
-  return colour.parse_color('#'..hex)
+  return '#'..hex
 end
 
 local function get_default(path)
@@ -1410,7 +1423,7 @@ local function collection(path, ext)
   end
 end
 
-local titlebar_icon = collection('titlebars', '.png')
+local titlebar_icon = collection('titlebar', '.png')
 local layout_icon = collection('layouts', 'w.png')
 
 -- variables
@@ -1468,10 +1481,10 @@ function M.setup()
 
     -- taglist
     taglist_squares_sel = assets.taglist_squares_sel(
-      tl_square_size, c.base05
+      M.tl_square_size, c.base05
     ),
     taglist_squares_unsel = assets.taglist_squares_unsel(
-      tl_square_size, c.base05
+      M.tl_square_size, c.base05
     ),
 
     -- menu
@@ -1546,11 +1559,10 @@ Here, we define all of my widgets.
 -- users/enderger/awesome/widgets
 local M = {}
 
-local awesome = require('awesome')
 local awful = require('awful')
 local beautiful = require('beautiful')
-local layout = awful.layout
 local wibox = require('wibox')
+local layout = wibox.layout
 
 -- components
 function M.button(text, action)
@@ -1574,7 +1586,7 @@ function M.button(text, action)
     },
 
     border_width = 1,
-    widget = wibox.container.background
+    widget = wibox.container.background,
   }
   
   -- signals
@@ -1591,7 +1603,7 @@ function M.title(text)
     align = 'center',
     valign = 'center',
 
-    widget = wibox.widget.textbox
+    widget = wibox.widget.textbox,
   }
 end
 
@@ -1653,7 +1665,9 @@ end
 M.main_menu = awful.widget.button {
   image = beautiful.awesome_icon,
   buttons = {
-    awful.button({}, 1, nil, require('menubar').show),
+    awful.button({}, 1, nil, function()
+      require('menubar').show()
+    end),
     awful.button({}, 3, nil, function()
       awful.popup {
         widget = M.logout_menu,
@@ -1802,7 +1816,7 @@ This section defines the behaviour of how exactly Qutebrowser should act.
 # users/enderger/qutebrowser/behaviour
 auto_save.session = true;
 changelog_after_upgrade = "never";
-confirm_quit = "always";
+confirm_quit = [ "always" ];
 
 content = {
   cookies.accept = "no-3rdparty";
@@ -1813,7 +1827,7 @@ content = {
   plugins = true;
 };
 
-editor.command = lib.splitString " " editor;
+editor.command = (lib.splitString " " editor) ++ [ "{file}" ];
 scrolling.smooth = true;
 ```
 
@@ -1839,8 +1853,6 @@ in {
     };
 
     item = {
-      match.fg = colour 11;
-
       selected = {
         fg = colour 5;
         bg = colour 2;
@@ -1848,7 +1860,7 @@ in {
         match.fg = colour 11;
       };
     };
-
+    match.fg = colour 11;
     scrollbar = simpleColour 5 0;
   };
 
@@ -1944,11 +1956,6 @@ in {
     };
   };
 
-  selected = {
-    odd = simpleColour 5 2;
-    even = simpleColour 5 2;
-  };
-
   webpage.bg = colour 0;
 };
 
@@ -2013,11 +2020,14 @@ services.xidlehook = {
 Some basic options for how the user should be seen by the system.
 ```nix "users/enderger/userOptions"
 # users/enderger/userOptions
-isNormalUser = true;
-shell = pkgs.nushell;
-group = "wheel";
-extraGroups = [ "docker" ];
-inherit (secrets) hashedPassword;
+environment.shells = [ pkgs.nushell ];
+users.users.enderger = {
+  isNormalUser = true;
+  shell = pkgs.nushell;
+  group = "wheel";
+  extraGroups = [ "docker" ];
+  inherit (secrets) hashedPassword;
+};
 ```
 
 ## Colors
@@ -2047,5 +2057,7 @@ The packages to install for this user.
 ```nix "users/enderger/packages"
 # users/enderger/packages
 lxqt.lxqt-policykit
+(nerdfonts.override { fonts = [ "FiraCode" ]; })
 pfetch
+transcrypt
 ```
