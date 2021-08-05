@@ -38,7 +38,7 @@ Firstly, we need to configure the kernel modules needed to make the system work.
 ```nix "hardware/soyuz/kernel"
 # hardware/soyuz/kernel
 boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usb_storage" "ums_realtek" "usbhid" "sd_mod" "sr_mod" ];
-boot.kernelModules = [ "kvm-amd" "amdgpu" ];
+boot.kernelModules = [ "kvm-amd" ];
 hardware.cpu.amd.updateMicrocode = true;
 ```
 

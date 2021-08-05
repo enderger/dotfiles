@@ -203,6 +203,19 @@ primary-desktop = {
 };
 ```
 
+#### Testbed
+This entry is used to build a testing VM, and is included here in order to prevent it from being overwritten on rebuild.
+```nix "flake/outputs/hosts/cumulative" +=
+# flake/outputs/hosts/cumulative.testbed
+testbed = {
+  modules = [
+    ./hardware/little-joe.nix
+    ./systems/sputnik.nix
+    ./users/enderger.nix
+  ];
+};
+```
+
 ### Modules
 Here, we'll handle the set of modules to expose via the Flake.
 

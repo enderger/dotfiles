@@ -88,6 +88,14 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             ./users/enderger.nix
           ];
         };
+        # flake/outputs/hosts/cumulative.testbed
+        testbed = {
+          modules = [
+            ./hardware/little-joe.nix
+            ./systems/sputnik.nix
+            ./users/enderger.nix
+          ];
+        };
       };
       # flake/outputs/modules
       nixosModules = let
