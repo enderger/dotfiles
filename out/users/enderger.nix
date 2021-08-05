@@ -1742,6 +1742,7 @@ in {
     home.packages = with pkgs; [
       # users/enderger/packages
       lxqt.lxqt-policykit
+      pfetch
     ];
   };
 }

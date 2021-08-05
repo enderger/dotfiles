@@ -99,7 +99,7 @@ services.xserver = {
 
   displayManager.lightdm = {
     enable = true;
-    greeters.enso = {
+    greeters.gtk = {
       enable = true;
       theme = {
         package = pkgs.nordic;

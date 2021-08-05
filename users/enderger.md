@@ -2047,4 +2047,5 @@ The packages to install for this user.
 ```nix "users/enderger/packages"
 # users/enderger/packages
 lxqt.lxqt-policykit
+pfetch
 ```
