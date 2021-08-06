@@ -825,6 +825,7 @@ in {
               },
 
               border_width = 1,
+              border_color = beautiful.border_color_normal,
               widget = wibox.container.background,
             }
             
@@ -843,6 +844,18 @@ in {
               valign = 'center',
 
               widget = wibox.widget.textbox,
+            }
+          end
+
+          -- containers
+          function M.popup(widget, placement)
+            return awful.popup {
+              widget = widget,
+              placement = placement,
+              border_width = 1,
+              border_color = beautiful.border_color_normal,
+              visible = true,
+              ontop = true,
             }
           end
 
@@ -908,11 +921,7 @@ in {
                 require('menubar').show()
               end),
               awful.button({}, 3, nil, function()
-                awful.popup {
-                  widget = M.logout_menu,
-                  border_width = 1,
-                  visible = true,
-                }
+                M.popup(M.logout_menu)
               end)
             }
           }
@@ -1025,9 +1034,9 @@ in {
 
           -- helpers
           local function const(f, ...)
-            local args = ...
+            local args = table.pack(...)
             return function()
-              f(args)
+              return f(table.unpack(args or {}))
             end
           end
 
@@ -1044,14 +1053,7 @@ in {
               modifiers = { M.leader, M.alternate },
               key = 'q',
               
-              on_press = function()
-                awful.popup {
-                  widget = widgets.logout_menu,
-                  border_width = 1,
-                  placement = awful.placement.centered,
-                  visible = true,
-                } 
-              end, 
+              on_press = const(widgets.popup, widgets.logout_menu, awful.placement.centered), 
 
               description = 'Exit Awesome',
               group = M.groups.wm,
