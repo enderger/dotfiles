@@ -856,6 +856,7 @@ in {
               border_color = beautiful.border_color_normal,
               visible = true,
               ontop = true,
+              hide_on_right_click = true,
             }
           end
 
@@ -870,7 +871,8 @@ in {
               M.button('shutdown', function() awful.spawn('systemctl poweroff') end),
               M.button('reboot', function() awful.spawn('systemctl reboot') end),
 
-              layout = layout.flex.horizontal
+              forced_num_cols = 3,
+              layout = layout.grid,
             },
             
             widget = layout.fixed.vertical
