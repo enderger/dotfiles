@@ -29,6 +29,7 @@ let
   font = "FiraCode Nerd Font";
   term = "alacritty";
   browser = "qutebrowser";
+  lock = "${pkgs.i3lock}/bin/i3lock -n -c ${theme-colour 0}";
   # TODO: Set up Neovide
   editor = "${term} -e nvim";
 in {
@@ -778,12 +779,20 @@ in {
 
           -- error handling
           naughty.connect_signal("request::display_error", function(message, startup)
-            error_type = startup and "Startup" or "Runtime"
+            local error_type = startup and "Startup" or "Runtime"
+
+            -- show notification
             naughty.notification {
               urgency = "critical",
               title = error_type.." error!",
               message = message,
             }
+
+            -- write to file
+            local fd = io.open(os.getenv("HOME")..'/awesome-err.log', 'w')
+            fd:write(error_type.." error:\n")
+            fd:write(message)
+            fd:close()
           end)
 
           require('theme').setup()
@@ -794,50 +803,98 @@ in {
           require('rules').setup()
           require('screens').setup()
         '';
+        lib = ''
+          -- users/enderger/awesome/lib
+          local M = {}
+
+          function M.fix_args(f, before, use_inputs, after)
+            return function(...)
+              local args = use_inputs and table.pack(...) or {}
+              return f(table.unpack(before or {}), table.unpack(args), table.unpack(after or {}))
+            end
+          end
+
+          return M
+        '';
         widgets = ''
           -- users/enderger/awesome/widgets
-          local M = {}
+          local M = {
+            listeners = {},
+            components = {},
+            widgets = {},
+            boxes = {},
+          }
+          package.loaded[...] = M
 
           local awful = require('awful')
           local beautiful = require('beautiful')
+          local keys = require('keys')
+          local layout = require('wibox.layout')
+          local lib = require('lib')
           local wibox = require('wibox')
-          local layout = wibox.layout
 
-          -- components
-          function M.button(text, action)
-            -- base widget
-            local w = wibox.widget {
-              {
-                markup = text,
+          -- listeners
+          function M.listeners.hover(w)
+            local function hover_signal(enter)
+              return function() 
+                w:emit_signal("mouse::toggle", enter) 
+              end
+            end
 
-                align = 'center',
-                valign = 'center',
-
-                widget = wibox.widget.textbox,
-              },
-
-              buttons = {
-                awful.button {
-                  modifiers = {},
-                  button = 1,
-                  on_press = action,
-                },
-              },
-
-              border_width = 1,
-              border_color = beautiful.border_color_normal,
-              widget = wibox.container.background,
-            }
-            
-            -- signals
-            w:connect_signal("mouse::enter", function(w) w:set_bg(beautiful.bg_focus) end)
-            w:connect_signal("mouse::leave", function(w) w:set_bg(beautiful.bg_normal) end)
-
+            w:connect_signal("mouse::enter", hover_signal(true))
+            w:connect_signal("mouse::leave", hover_signal(false))
+            w:emit_signal("mouse::toggle", false)
             return w
           end
 
-          function M.title(text)
-            return wibox.widget {
+          -- containers
+
+          -- layouts
+
+          -- components
+          function M.components.button(text, trigger)
+            -- variables
+            local colours = {
+              bg = beautiful.bg_normal,
+              hover = beautiful.bg_focus,
+              fg = beautiful.fg_normal,
+              border = beautiful.border_color_normal,
+            }
+
+            -- widgets
+            local textbox = wibox.widget {
+              markup = text,
+              align = "center",
+              valign = "center",
+              widget = wibox.widget.textbox,
+            }
+            local widget = wibox.widget {
+              textbox,
+
+              border_width = 1,
+              border_color = colours.border,
+              fg = colours.fg,
+              bg = colours.bg,
+
+              widget = wibox.container.background,
+            }
+
+            -- hovering
+            widget:connect_signal("mouse::toggle", function(self, enter)
+              local bg = colours.bg
+              if enter then bg = colours.hover end
+              self.bg = bg
+            end)
+            M.listeners.hover(widget)
+
+            -- buttons
+            widget:add_button(awful.button({}, 1, trigger))
+
+            return widget
+          end
+
+          function M.components.title(text)
+            local widget = wibox.widget {
               markup = '<big>'..text..'</big>',
 
               align = 'center',
@@ -845,149 +902,317 @@ in {
 
               widget = wibox.widget.textbox,
             }
-          end
-
-          -- containers
-          function M.popup(widget, placement)
-            return awful.popup {
-              widget = widget,
-              placement = placement,
-              border_width = 1,
-              border_color = beautiful.border_color_normal,
-              visible = true,
-              ontop = true,
-              hide_on_right_click = true,
-            }
-          end
-
-          -- menus
-          M.logout_menu = wibox.widget {
-            M.title('Logout'),
-
-            {
-              M.button('reload', awesome.restart),
-              M.button('logout', awesome.quit),
-              M.button('suspend', function() awful.spawn('systemctl suspend') end),
-              M.button('shutdown', function() awful.spawn('systemctl poweroff') end),
-              M.button('reboot', function() awful.spawn('systemctl reboot') end),
-
-              forced_num_cols = 3,
-              layout = layout.grid,
-            },
             
-            widget = layout.fixed.vertical
-          }
-
-          -- popups
-          M.keyboard_layout = awful.widget.keyboardlayout()
-
-          -- titlebars
-          function M.titlebar(c)
-            local tb = awful.titlebar
-
-            local buttons = {
-              awful.button({ }, 1, function() c:activate { context = "titlebar", action = "mouse_move" } end),
-              awful.button({ }, 3, function() c:activate { context = "titlebar", action = "mouse_resize"} end),
-            }
-
-            return {
-              {
-                tb.widget.iconwidget(c),
-                buttons = buttons,
-                layout = layout.fixed.horizontal,
-              },
-              {
-                {
-                  align = "center",
-                  widget = tb.widget.titlewidget(c),
-                },
-                buttons = buttons,
-                layout = layout.flex.horizontal,
-              },
-              {
-                tb.widget.closebutton(c),
-                tb.widget.floatingbutton(c),
-                tb.widget.maximizedbutton(c),
-                layout = layout.fixed.horizontal,
-              },
-              layout = layout.align.horizontal,
-            }
+            return widget
           end
 
-          -- wibar
-          --- widgets
-          M.main_menu = awful.widget.button {
-            image = beautiful.awesome_icon,
-            buttons = {
-              awful.button({}, 1, nil, function()
-                require('menubar').show()
-              end),
-              awful.button({}, 3, nil, function()
-                M.popup(M.logout_menu)
-              end)
+          -- widgets
+          function M.widgets.logout_menu()
+            local cs = M.components
+
+            -- variables  
+            local colours = {
+              bg = beautiful.bg_normal,
+              border = beautiful.border_color_normal,
             }
-          }
-
-          function M.prompt_box(s)
-            local pb = awful.widget.prompt
-
-            return pb { prompt = '$ ' }
-          end
-
-          function M.tag_list(s)
-            local tl = awful.widget.taglist
-
-            return tl {
-              screen = s,
-              filter = tl.filter.all,
-              buttons = {
-                awful.button({ }, 1, function(t) t:view_only() end),
-                awful.button({ }, 4, function(t) awful.tag.viewprev(t.screen) end),
-                awful.button({ }, 5, function(t) awful.tag.viewnext(t.screen) end),
-              }
-            }
-          end
-
-          function M.task_list(s)
-            local tl = awful.widget.tasklist
-
-            return tl {
-              screen = s,
-              filter = tl.filter.currenttags,
-              buttons = {
-                awful.button({ }, 1, function(c) c:activate { context = "tasklist", action = "toggle_minimization" } end),
-                awful.button({ }, 4, function() awful.client.focus.byidx(-1) end),
-                awful.button({ }, 5, function() awful.client.focus.byidx(1) end),
-              }
-            }
-          end
-
-          --- bar
-          function M.wibar(s)
-            s.wibar = awful.wibar({ position = "top", screen = s })
 
             -- widgets
-            s.wibar_widgets = {
-              prompt_box = M.prompt_box(s),
-              tag_list = M.tag_list(s),
-              task_list = M.task_list(s),
+            local button_panel = wibox.widget {
+              cs.button('Reload', awesome.restart),
+              cs.button('Logout', awesome.quit),
+              cs.button('Lock', lib.fix_args(awful.spawn, { '${lock}' })),
+              cs.button('Sleep', lib.fix_args(awful.spawn, { 'systemctl suspend' })),
+              cs.button('Shutdown', lib.fix_args(awful.spawn, { 'systemctl poweroff' })),
+              cs.button('Reboot', lib.fix_args(awful.spawn, { 'systemctl reboot' })),
+
+              layout = wibox.layout.fixed.vertical,
+            }
+            local widget = wibox.widget {
+              {
+                cs.title('Exit Awesome'),
+                button_panel,
+
+                layout = wibox.layout.fixed.vertical,
+              },
+
+              bg = colours.bg,
+              border_width = 1,
+              border_color = colours.border,
+              widget = wibox.container.background,
             }
 
-            s.wibar.widget = {
-              layout = layout.align.horizontal,
-              {
-                layout = layout.fixed.horizontal,
-                M.main_menu,
-                s.wibar_widgets.prompt_box,
-                s.wibar_widgets.tag_list,
+            return widget
+          end
+
+          function M.widgets.promptbox(s)
+            local pb = awful.widget.prompt
+
+            -- widgets
+            local widget = wibox.widget {
+              prompt = '$ ',
+              widget = pb,
+            }
+
+            return widget
+          end
+
+          function M.widgets.taglist(s)
+            local tl = awful.widget.taglist
+
+            -- widgets
+            local widget = tl {
+              screen = s,
+              filter = tl.filter.all,
+            }
+
+            -- buttons
+            local buttons = {
+              awful.button({ }, 1, function(t)
+                t:view_only() 
+              end),
+              awful.button({ keys.modifier }, 1, function(t)
+                  if client.focus then
+                    client.focus:move_to_tag(t)
+                  end
+                end),
+              awful.button({ }, 4, function(t) awful.tag.viewprev(t.screen) end),
+              awful.button({ }, 5, function(t) awful.tag.viewnext(t.screen) end),
+            }
+            widget.buttons = buttons
+
+            return widget
+          end
+
+          function M.widgets.tasklist(s)
+            local tl = awful.widget.tasklist
+
+            -- variables
+            local layout = {
+              spacing_widget = {
+                {
+                  forced_width = 5,
+                  forced_height = 24,
+                  thickness = 1,
+                  color = beautiful.fg_minimize,
+                  widget = wibox.widget.separator,
+                },
+                valign = 'center',
+                halign = 'center',
+                widget = wibox.container.place,
               },
-              s.wibar_widgets.task_list,
+              spacing = 1,
+              layout = wibox.layout.fixed.horizontal,
+            }
+
+            -- widgets
+            local template = wibox.widget {
               {
-                layout = layout.fixed.horizontal,
-                M.keyboard_layout,
-                wibox.widget.systray(),
+                wibox.widget.base.make_widget(),
+                forced_height = 2,
+                id = 'background',
+                widget = wibox.container.background,
+              },
+              {
+                awful.widget.clienticon,
+                margins = 2,
+                widget = wibox.container.margin,
+              },
+              nil,
+              layout = wibox.layout.align.vertical,
+            }
+            local widget = tl {
+              screen = s,
+              layout = layout,
+              filter = tl.filter.currenttags,
+              widget_template = template,
+            }
+
+            -- buttons
+            widget.buttons = {
+              awful.button({ }, 1, function(c)
+                c:activate {
+                  context = "tasklist",
+                  action = "toggle_minimization",
+                }
+              end),
+              awful.button({ }, 3, function()
+                awful.menu.client_list {
+                  theme = {
+                    width = 250,
+                  },
+                } 
+              end),
+              awful.button({ }, 4, function()
+                awful.client.focus.byidx(-1)
+              end),
+              awful.button({ }, 5, function()
+                awful.client.focus.byidx(1) 
+              end),
+            }
+
+            return widget
+          end
+
+          function M.widgets.textclock()
+            -- widgets
+            local widget = wibox.widget {
+              format = '%a %b %d | %H:%M',
+              widget = wibox.widget.textclock,
+            }
+
+            return widget
+          end
+
+          -- boxes
+          function M.boxes.logout(s)
+            local ws = M.widgets
+
+            -- setup
+            local box = wibox {
+              screen = s,
+              width = 100,
+              height = 200,
+              ontop = true,
+            }
+
+            -- placement
+            awful.placement.centered(box)
+
+            -- layout
+            box:setup {
+              ws.logout_menu(),
+              layout = wibox.layout.fixed.vertical,
+            }
+
+            -- buttons
+            box.buttons = {
+              awful.button({}, 3, function()
+                box.visible = false
+              end),
+            }
+
+            return box
+          end
+
+          function M.boxes.titlebar(c)
+            local tb = awful.titlebar
+
+            -- setup
+            local box = tb(c, {
+              size = 15,
+              bg_normal = beautiful.bg_focus,
+            })
+            
+            -- widgets
+            local left = wibox.widget {
+              tb.widget.iconwidget(c),
+
+              layout = wibox.layout.fixed.horizontal,
+            }
+            local centre = wibox.widget {
+              {
+                align = "center",
+                widget = tb.widget.titlewidget(c),
+              },
+
+              layout = wibox.layout.flex.horizontal,
+            }
+            local right = wibox.widget { 
+              tb.widget.floatingbutton(c),
+              tb.widget.maximizedbutton(c),
+              tb.widget.closebutton(c),
+
+              layout = wibox.layout.fixed.horizontal,
+            }
+
+            -- buttons
+            local function tb_button(action)
+              return c:activate { context = "titlebar", action = action }
+            end
+            local buttons = {
+              awful.button({ }, 1, lib.fix_args(tb_button, { "mouse_move" })),
+              awful.button({ }, 3, lib.fix_args(tb_button, { "mouse_resize" })),
+            }
+            left.buttons = buttons
+            centre.buttons = buttons
+
+            -- layout
+            box:setup {
+              left, centre, right,
+
+              layout = wibox.layout.align.horizontal,
+            }
+
+            return box
+          end
+
+          function M.boxes.wibar(s)
+            local ws = M.widgets
+
+            -- container
+            local box = awful.wibar {
+              position = "top",
+              screen = s,
+            }
+
+            -- widget
+            local mainmenu = wibox.widget {
+              image = beautiful.awesome_icon,
+              buttons = {
+                awful.button({}, 1, nil, lib.fix_args(require('menubar').show)),
               },
             }
+            local systray = wibox.widget.systray()
+            local textclock = ws.textclock()
+            local widget = wibox.widget {
+              {
+                mainmenu,
+                s.my.taglist,
+                s.my.promptbox,
+                layout = wibox.layout.fixed.horizontal,
+              },
+              s.my.tasklist,
+              {
+                systray,
+                textclock,
+                layout = wibox.layout.fixed.horizontal, 
+              },
+              layout = wibox.layout.align.horizontal,
+            }
+
+            box.widget = widget
+            return box
+          end
+
+          -- setup functions
+          function M.setup_client(c)
+            local bs = M.boxes
+            
+            c.my = {}
+            c.my.boxes = {
+              titlebar = M.boxes.titlebar(c),
+            }
+
+            return c
+          end
+
+          function M.setup_screen(s)
+            -- widgets
+            local ws = M.widgets
+            local bs = M.boxes
+
+            s.my = {}
+            s.my.widgets = {
+              promptbox = ws.promptbox(s),
+              taglist = ws.taglist(s),
+              tasklist = ws.tasklist(s),
+            }
+            s.my.boxes = {
+              logout = bs.logout(s),
+              wibar = bs.wibar(s), 
+            }
+
+            return s
           end
 
           return M
@@ -1011,6 +1236,7 @@ in {
           local M = {}
 
           local awful = require('awful')
+          local lib = require('lib')
           local widgets = require('widgets')
 
           -- modifiers
@@ -1022,9 +1248,9 @@ in {
           M.keygroups = require('gears.table').join(awful.key.keygroups, {
             vimkeys = {
               {'h', 'left'},
-              {'j', 'right'},
+              {'j', 'down'},
               {'k', 'up'},
-              {'l', 'down'},
+              {'l', 'right'},
             },
 
             vimcycle = {
@@ -1032,15 +1258,6 @@ in {
               {'p', -1},
             },
           })
-          awful.key.keygroups = M.keygroups
-
-          -- helpers
-          local function const(f, ...)
-            local args = table.pack(...)
-            return function()
-              return f(table.unpack(args or {}))
-            end
-          end
 
           -- tables
           M.groups = {
@@ -1049,258 +1266,267 @@ in {
             client = 'client',
           }
 
-          M.global_keys = {
-            -- window management
-            awful.key {
-              modifiers = { M.leader, M.alternate },
-              key = 'q',
-              
-              on_press = const(widgets.popup, widgets.logout_menu, awful.placement.centered), 
-
-              description = 'Exit Awesome',
-              group = M.groups.wm,
-            },
-
-            awful.key {
-              modifiers = { M.leader, M.alternate },
-              key = 'm',
-
-              on_press = function()
-                local c = awful.client.restore()
-
-                if c then
-                  c:activate { raise = true, context = 'key.unminimize' }
-                end
-              end,
-
-              description = 'Unminimize',
-              group = M.groups.wm,
-            },
-
-            --- clients
-            awful.key {
-              modifiers = { M.leader },
-              keygroup = 'vimkeys',
-              
-              on_press = awful.client.focus.global_bydirection,
-
-              description = 'Focus client',
-              group = M.groups.wm,
-            },
-
-            awful.key {
-              modifiers = { M.leader, M.modifier },
-              keygroup = 'vimkeys',
-
-              on_press = awful.client.swap.global_bydirection,
-
-              description = 'Move client',
-              group = M.groups.client,
-            },
-
-            --- screens
-            awful.key {
-              modifiers = { M.leader },
-              keygroup = 'vimcycle',
-              
-              on_press = awful.screen.focus_relative,
-
-              description = 'Focus screen',
-              group = M.groups.wm,
-            },
-
-            awful.key {
-              modifiers = { M.leader, M.modifier },
-              keygroup = 'vimcycle',
-              
-              on_press = function(direction)
-                local c = awful.client.focused
-                if c then
-                  c:move_to_screen(c.screen.index + direction)
-                end
-              end,
-
-              description = 'Move to screen',
-              group = M.groups.client,
-            },
-
-            --- tags
-            awful.key {
-              modifiers = { M.leader, M.alternate },
-              keygroup = 'vimcycle',
-              
-              on_press = awful.tag.viewidx,
-
-              description = 'Cycle tags',
-              group = M.groups.wm,
-            },
-
-            awful.key {
-              modifiers = { M.leader },
-              keygroup = 'numrow',
-
-              on_press = function (idx)
-                local tag = awful.screen.focused().tags[idx]
-                if tag then
-                  tag:view_only()
-                end
-              end,
-
-              description = 'Focus tag',
-              group = M.groups.wm,
-            },
-
-            awful.key {
-              modifiers = { M.leader, M.modifier },
-              keygroup = 'numrow',
-
-              on_press = function (idx)
-                local c = awful.client.foucs
+          function M.global_keys(awful)
+            return {
+              -- window management
+              awful.key {
+                modifiers = { M.leader, M.alternate },
+                key = 'q',
                 
-                if c and c.screen.tags[idx] then
-                  c:move_to_tag(c.screen.tags[idx])
-                end
-              end,
+                on_press = function()
+                  awful.screen.focused().my.boxes.logout.visible = true
+                end, 
 
-              description = 'Move to tag',
-              group = M.groups.wm,
-            },
+                description = 'Exit Awesome',
+                group = M.groups.wm,
+              },
 
-            --- layout
-            awful.key {
-              modifiers = { M.leader },
-              key = 'Tab',
+              awful.key {
+                modifiers = { M.leader, M.alternate },
+                key = 'm',
 
-              on_press = function()
-                local s = awful.screen.focused {}
-                awful.layout.inc(1, s)
-              end,
+                on_press = function()
+                  local c = awful.client.restore()
 
-              description = 'Next layout',
-              group = M.groups.wm,
-            },
+                  if c then
+                    c:activate { raise = true, context = 'key.unminimize' }
+                  end
+                end,
 
-            awful.key {
-              modifiers = { M.leader, M.modifier },
-              key = 'Tab',
+                description = 'Unminimize',
+                group = M.groups.wm,
+              },
 
-              on_press = function()
-                local s = awful.screen.focused {}
-                awful.layout.inc(-1, s)
-              end,
+              --- clients
+              awful.key {
+                modifiers = { M.leader },
+                keygroup = 'vimkeys',
+                
+                on_press = awful.client.focus.global_bydirection,
 
-              description = 'Previous layout',
-              group = M.groups.wm,
-            },
+                description = 'Focus client',
+                group = M.groups.wm,
+              },
 
-            -- app launchers
-            awful.key {
-              modifiers = { M.leader },
-              key = 'p',
+              awful.key {
+                modifiers = { M.leader, M.modifier },
+                keygroup = 'vimkeys',
 
-              on_press = const(require('menubar').show),
+                on_press = awful.client.swap.global_bydirection,
 
-              description = 'Application menu',
-              group = M.groups.launchers,
-            },
+                description = 'Move client',
+                group = M.groups.client,
+              },
 
-            awful.key {
-              modifiers = { M.leader },
-              key = 'Return',
+              --- screens
+              awful.key {
+                modifiers = { M.leader },
+                keygroup = 'vimcycle',
+                
+                on_press = awful.screen.focus_relative,
 
-              on_press = const(awful.spawn, '${term}'),
+                description = 'Focus screen',
+                group = M.groups.wm,
+              },
 
-              description = 'Launch terminal',
-              group = M.groups.launchers,
-            },
+              awful.key {
+                modifiers = { M.leader, M.modifier },
+                keygroup = 'vimcycle',
+                
+                on_press = function(direction)
+                  local c = awful.client.focused
 
-            awful.key {
-              modifiers = { M.leader },
-              key = 'b',
+                  if c then
+                    c:move_to_screen(c.screen.index + direction)
+                  end
+                end,
 
-              on_press = const(awful.spawn, '${browser}'),
+                description = 'Move to screen',
+                group = M.groups.client,
+              },
 
-              description = 'Launch web browser',
-              group = M.groups.launchers,
-            },
+              --- tags
+              awful.key {
+                modifiers = { M.leader, M.alternate },
+                keygroup = 'vimcycle',
+                
+                on_press = awful.tag.viewidx,
 
-            awful.key {
-              modifiers = { M.leader },
-              key = 'e',
+                description = 'Cycle tags',
+                group = M.groups.wm,
+              },
 
-              on_press = const(awful.spawn, '${editor}'),
+              awful.key {
+                modifiers = { M.leader },
+                keygroup = 'numrow',
 
-              description = 'Launch text editor',
-              group = M.groups.launchers,
-            },
-          }
+                on_press = function (idx)
+                  local tag = awful.screen.focused().tags[idx]
 
-          M.client_keys = {
-            awful.key {
-              modifiers = { M.leader, M.modifier },
-              key = 'c',
+                  if tag then
+                    tag:view_only()
+                  end
+                end,
 
-              on_press = function(c) 
-                c:kill()
-              end,
+                description = 'Focus tag',
+                group = M.groups.wm,
+              },
 
-              description = 'Close program',
-              group = M.groups.client,
-            },
+              awful.key {
+                modifiers = { M.leader, M.modifier },
+                keygroup = 'numrow',
 
-            -- properties
-            awful.key {
-              modifiers = { M.leader },
-              key = 'f',
+                on_press = function (idx)
+                  local c = awful.client.foucs
+                  
+                  if c and c.screen.tags[idx] then
+                    c:move_to_tag(c.screen.tags[idx])
+                  end
+                end,
 
-              on_press = function(c)
-                c.maximized = not c.maximized
-                c:raise()
-              end,
+                description = 'Move to tag',
+                group = M.groups.wm,
+              },
 
-              description = 'Toggle maximized',
-              group = M.groups.client,
-            },
+              --- layout
+              awful.key {
+                modifiers = { M.leader },
+                key = 'Tab',
 
-            awful.key {
-              modifiers = { M.leader, M.modifier },
-              key = 'f',
+                on_press = function()
+                  local s = awful.screen.focused {}
+                  awful.layout.inc(1, s)
+                end,
 
-              on_press = function(c)
-                c.floating = not c.floating
-              end,
+                description = 'Next layout',
+                group = M.groups.wm,
+              },
 
-              description = 'Toggle floating',
-              group = M.groups.client,
-            },
+              awful.key {
+                modifiers = { M.leader, M.modifier },
+                key = 'Tab',
 
-            -- movement
-            awful.key {
-              modifiers = { M.leader },
-              key = 'm',
+                on_press = function()
+                  local s = awful.screen.focused {}
+                  awful.layout.inc(-1, s)
+                end,
 
-              on_press = awful.client.setmaster,
+                description = 'Previous layout',
+                group = M.groups.wm,
+              },
 
-              description = 'Set master',
-              group = M.groups.client,
-            },
+              -- app launchers
+              awful.key {
+                modifiers = { M.leader },
+                key = 'p',
 
-            awful.key {
-              modifiers = { M.leader, M.modifier },
-              key = 'm',
+                on_press = lib.fix_args(require('menubar').show),
 
-              on_press = awful.client.setslave,
+                description = 'Application menu',
+                group = M.groups.launchers,
+              },
 
-              description = 'Set slave',
-              group = M.groups.client,
-            },
-          }
+              awful.key {
+                modifiers = { M.leader },
+                key = 'Return',
+
+                on_press = lib.fix_args(awful.spawn, { '${term}' }),
+
+                description = 'Launch terminal',
+                group = M.groups.launchers,
+              },
+
+              awful.key {
+                modifiers = { M.leader },
+                key = 'b',
+
+                on_press = lib.fix_args(awful.spawn, { '${browser}' }),
+
+                description = 'Launch web browser',
+                group = M.groups.launchers,
+              },
+
+              awful.key {
+                modifiers = { M.leader },
+                key = 'e',
+
+                on_press = lib.fix_args(awful.spawn, { '${editor}' }),
+
+                description = 'Launch text editor',
+                group = M.groups.launchers,
+              },
+            }
+          end
+
+          function M.client_keys(awful)
+            return {
+              awful.key {
+                modifiers = { M.leader, M.modifier },
+                key = 'c',
+
+                on_press = function(c) 
+                  c:kill()
+                end,
+
+                description = 'Close program',
+                group = M.groups.client,
+              },
+
+              -- properties
+              awful.key {
+                modifiers = { M.leader },
+                key = 'f',
+
+                on_press = function(c)
+                  c.maximized = not c.maximized
+                  c:raise()
+                end,
+
+                description = 'Toggle maximized',
+                group = M.groups.client,
+              },
+
+              awful.key {
+                modifiers = { M.leader, M.modifier },
+                key = 'f',
+
+                on_press = function(c)
+                  c.floating = not c.floating
+                end,
+
+                description = 'Toggle floating',
+                group = M.groups.client,
+              },
+
+              -- movement
+              awful.key {
+                modifiers = { M.leader },
+                key = 'm',
+
+                on_press = awful.client.setmaster,
+
+                description = 'Set master',
+                group = M.groups.client,
+              },
+
+              awful.key {
+                modifiers = { M.leader, M.modifier },
+                key = 'm',
+
+                on_press = awful.client.setslave,
+
+                description = 'Set slave',
+                group = M.groups.client,
+              },
+            }
+          end
 
           function M.setup()
-            local kb = awful.keyboard
+            awful.key.keygroups = M.keygroups
             
-            kb.append_global_keybindings(M.global_keys)
-            kb.append_client_keybindings(M.client_keys)
+            local kb = awful.keyboard 
+            kb.append_global_keybindings(M.global_keys(awful))
+            kb.append_client_keybindings(M.client_keys(awful))
           end
 
           return M
@@ -1320,26 +1546,64 @@ in {
                 class = {'Steam'},
                 type = {'dialog', 'utility', 'splash'}
               },
-              properties = { floating = true },
+              properties = { 
+                floating = true,
+              },
+            },
+            {
+              id = 'focus',
+              rule = {},
+              properties = {
+                focus = awful.client.focus.filter,
+                raise = true,
+                screen = awful.screen.preferred,
+              },
             },
             {
               id = 'titlebars',
               rule_any = {
                 type = {'normal', 'dialog'},
               },
-              properties = { titlebars_enabled = true },
+              properties = { 
+                titlebars_enabled = true 
+              },
             },
           }
 
           -- signals
-          function M.on_titlebar_request(c)
-            awful.titlebar(c).widget = widgets.titlebar(c)
+          function M.on_client_unmanage(c)
+            if client.focused then return end
+            local new_c = awful.client.getmaster(c.screen)
+
+            if new_c then
+              new_c:activate { context = "inherited" }
+            end
           end
+
+          function M.on_tag_switch(t)
+            if not t then return end
+
+            local c = awful.client.getmaster(t.screen)
+            if c then
+              c:activate { context = "switchtag" }
+            end
+          end
+
+          function M.on_titlebar_request(c)
+            widgets.setup_client(c)
+          end
+
             
 
           function M.setup()
             require('ruled.client').append_rules(M.rules)
+
+            -- client rules
+            client.connect_signal("request::unmanage", M.on_client_unmanage)
             client.connect_signal("request::titlebars", M.on_titlebar_request)
+
+            -- tag rules
+            awful.tag.attached_connect_signal(nil, "property::selected", M.on_tag_switch)
           end
 
           return M
@@ -1372,7 +1636,7 @@ in {
             
             awful.screen.connect_for_each_screen(function(s)
               set_tags(s)
-              widgets.wibar(s)
+              widgets.setup_screen(s)
             end)
           end
 
@@ -1743,7 +2007,7 @@ in {
       timers = [
         {
           delay = 300;
-          command = "${pkgs.i3lock}/bin/i3lock -n -c ${theme-colour 0}";
+          command = lock;
         }
         {
           delay = 3600;

@@ -54,8 +54,9 @@ in {
     enable = true;
     layout = "us";
 
+    displayManager.startx.enable = true;
     displayManager.lightdm = {
-      enable = true;
+      enable = false;
       greeters.gtk = {
         enable = true;
         theme = {
