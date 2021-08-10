@@ -1,6 +1,7 @@
 ---
 title: GRUB config
 ---
+
 This module tweaks GRUB's defaults to prefer UEFI over BIOS, among other things.
 
 # Implementation

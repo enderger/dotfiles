@@ -1,6 +1,7 @@
 ---
 title: Pipewire
 ---
+
 This module auto-enables a few of Pipewire's submodules automatically, if they are applicable.
 
 # Implementation

@@ -1,6 +1,7 @@
 ---
 title: Hardware Interface Module
 ---
+
 This module defines the interface used to define what exactly the hardware supports.
 
 # Implementation

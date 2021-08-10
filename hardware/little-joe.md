@@ -1,6 +1,7 @@
 ---
 title: Hardware :: Little Joe
 ---
+
 This is the hardware configuration used for testing other components in VMs. It's named after the Little Joe rocket used to test the launch escape system in the Mercury Program.
 
 # Implementation

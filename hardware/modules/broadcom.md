@@ -1,6 +1,7 @@
 ---
 title: Broadcom Driver Configuration
 ---
+
 This module provides support for the Broadcom STA driver, which is needed for some cards.
 
 # Implementation

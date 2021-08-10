@@ -1,6 +1,7 @@
 ---
 title: Hardware :: Soyuz
 ---
+
 This is the hardware configuration for my main development PC. It may sound a bit questionable, but it's holding up quite well.
 
 # Specs

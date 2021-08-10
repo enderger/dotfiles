@@ -160,12 +160,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           ./systems/modules/home-manager.nix
           # systems/modules.doas
           ./systems/modules/doas.nix
-          # hardware/modules.grub
-          ./hardware/modules/grub.nix
           # hardware/modules.pipewire
           ./hardware/modules/pipewire.nix
           # hardware/modules.interface
           ./hardware/modules/interface.nix
+          # hardware/modules.grub
+          ./hardware/modules/grub.nix
           # hardware/modules.broadcom
           ./hardware/modules/broadcom.nix
           # users/modules.awesome
@@ -184,12 +184,12 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           ./systems/modules/doas.nix
         ];
         hardware = [
-          # hardware/modules.grub
-          ./hardware/modules/grub.nix
           # hardware/modules.pipewire
           ./hardware/modules/pipewire.nix
           # hardware/modules.interface
           ./hardware/modules/interface.nix
+          # hardware/modules.grub
+          ./hardware/modules/grub.nix
           # hardware/modules.broadcom
           ./hardware/modules/broadcom.nix
         ];
