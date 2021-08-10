@@ -14,7 +14,7 @@ This module tweaks GRUB's defaults to prefer UEFI over BIOS, among other things.
   boot.loader = {
     grub = {
       efiSupport = lib.mkDefault true;
-      devices = lib.mkDefault [ "nodev" ];
+      device = lib.mkDefault "nodev";
       configurationLimit = lib.mkDefault 60;
     };
 

@@ -38,8 +38,9 @@ in {
 Firstly, we need to configure the kernel modules needed to make the system work. We also enable firmware updates where applicable.
 ```nix "hardware/soyuz/kernel"
 # hardware/soyuz/kernel
-boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usb_storage" "ums_realtek" "usbhid" "sd_mod" "sr_mod" ];
+boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usb_storage" "ums_realtek" "usbhid" "sd_mod" "sr_mod" "nvme" ];
 boot.kernelModules = [ "kvm-amd" ];
+boot.kernelParams = [ "processor.max_cstate=5" "intel_idle.max_cstate=1" ];
 hardware.cpu.amd.updateMicrocode = true;
 ```
 
@@ -63,6 +64,7 @@ networking = {
 
   wireless = {
     inherit (secrets) networks;
+    interfaces = [ "wlp6s0" ];
     enable = true;
   };
 };

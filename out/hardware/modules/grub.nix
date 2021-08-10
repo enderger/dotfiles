@@ -8,7 +8,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
   boot.loader = {
     grub = {
       efiSupport = lib.mkDefault true;
-      devices = lib.mkDefault [ "nodev" ];
+      device = lib.mkDefault "nodev";
       configurationLimit = lib.mkDefault 60;
     };
 

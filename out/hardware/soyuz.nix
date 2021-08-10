@@ -12,8 +12,9 @@ in {
 
   time = { inherit (secrets) timeZone; };
   # hardware/soyuz/kernel
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usb_storage" "ums_realtek" "usbhid" "sd_mod" "sr_mod" ];
+  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usb_storage" "ums_realtek" "usbhid" "sd_mod" "sr_mod" "nvme" ];
   boot.kernelModules = [ "kvm-amd" ];
+  boot.kernelParams = [ "processor.max_cstate=5" "intel_idle.max_cstate=1" ];
   hardware.cpu.amd.updateMicrocode = true;
   # hardware/soyuz/bootloader
   boot.plymouth.enable = true;
@@ -27,6 +28,7 @@ in {
 
     wireless = {
       inherit (secrets) networks;
+      interfaces = [ "wlp6s0" ];
       enable = true;
     };
   };
