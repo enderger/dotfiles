@@ -2264,7 +2264,10 @@ in {
     };
   };
 
-  webpage.bg = colour 0;
+  webpage = {
+    bg = colour 0;
+    preferred_color_scheme = "dark";
+  };
 };
 
 downloads.position = "bottom";
