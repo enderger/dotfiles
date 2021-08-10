@@ -1758,14 +1758,12 @@ end
 function M.widgets.taglist(s)
   local tl = awful.widget.taglist
 
-  -- widgets
-  local widget = tl {
+  -- args
+  local args = {
     screen = s,
     filter = tl.filter.all,
   }
-
-  -- buttons
-  local buttons = {
+  args.buttons = {
     awful.button({ }, 1, function(t)
       t:view_only() 
     end),
@@ -1777,7 +1775,9 @@ function M.widgets.taglist(s)
     awful.button({ }, 4, function(t) awful.tag.viewprev(t.screen) end),
     awful.button({ }, 5, function(t) awful.tag.viewnext(t.screen) end),
   }
-  widget.buttons = buttons
+
+  -- widgets
+  local widget = tl(args)
 
   return widget
 end
@@ -1785,30 +1785,20 @@ end
 function M.widgets.tasklist(s)
   local tl = awful.widget.tasklist
 
-  -- variables
-  local layout = {
-    spacing_widget = {
-      {
-        forced_width = 5,
-        forced_height = 24,
-        thickness = 1,
-        color = beautiful.fg_minimize,
-        widget = wibox.widget.separator,
-      },
-      valign = 'center',
-      halign = 'center',
-      widget = wibox.container.place,
-    },
+  -- args
+  local args = {
+    screen = s,
+    filter = tl.filter.currenttags,
+  }
+  args.layout = {
     spacing = 1,
     layout = wibox.layout.fixed.horizontal,
   }
-
-  -- widgets
-  local template = wibox.widget {
+  args.widget_template = {
     {
       wibox.widget.base.make_widget(),
       forced_height = 2,
-      id = 'background',
+      id = 'background_role',
       widget = wibox.container.background,
     },
     {
@@ -1817,17 +1807,10 @@ function M.widgets.tasklist(s)
       widget = wibox.container.margin,
     },
     nil,
+    forced_width = 20,
     layout = wibox.layout.align.vertical,
   }
-  local widget = tl {
-    screen = s,
-    layout = layout,
-    filter = tl.filter.currenttags,
-    widget_template = template,
-  }
-
-  -- buttons
-  widget.buttons = {
+  args.buttons = {
     awful.button({ }, 1, function(c)
       c:activate {
         context = "tasklist",
@@ -1849,13 +1832,16 @@ function M.widgets.tasklist(s)
     end),
   }
 
+  -- widgets
+  local widget = tl(args)
+
   return widget
 end
 
 function M.widgets.textclock()
   -- widgets
   local widget = wibox.widget {
-    format = '%a %b %d | %H:%M',
+    format = '%a %b %d %H:%M ',
     widget = wibox.widget.textclock,
   }
 
@@ -1948,38 +1934,51 @@ end
 function M.boxes.wibar(s)
   local ws = M.widgets
 
+  -- variables
+  local spacing = 1
+
   -- container
   local box = awful.wibar {
     position = "top",
     screen = s,
   }
 
-  -- widget
-  local mainmenu = wibox.widget {
+  -- widgets
+  local mainmenu = awful.widget.button {
     image = beautiful.awesome_icon,
     buttons = {
       awful.button({}, 1, nil, lib.fix_args(require('menubar').show)),
     },
   }
+  local spacer = wibox.widget {
+    color = beautiful.fg_minimize,
+    widget = wibox.widget.separator,
+  }
   local systray = wibox.widget.systray()
   local textclock = ws.textclock()
-  local widget = wibox.widget {
+
+  box:setup {
     {
       mainmenu,
-      s.my.taglist,
-      s.my.promptbox,
+      s.my.widgets.taglist,
+      s.my.widgets.promptbox,
+      s.my.widgets.tasklist,
+
+      spacing = spacing,
+      spacing_widget = spacer,
       layout = wibox.layout.fixed.horizontal,
     },
-    s.my.tasklist,
+    nil,
     {
-      systray,
       textclock,
+      systray,
+
+      spacing = spacing,
+      spacing_widget = spacer,
       layout = wibox.layout.fixed.horizontal, 
     },
     layout = wibox.layout.align.horizontal,
   }
-
-  box.widget = widget
   return box
 end
 
