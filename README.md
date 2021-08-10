@@ -3,7 +3,7 @@ title: My Dotfiles
 ---
 
 # Intro
-Welcome to my dotfiles repository! Here, I keep my literate NixOS configs (automatically built by Nix) here, along with everything else used in my configs. The literate form *should* be available on man.sr.ht (will add once I get it set up).
+Welcome to my dotfiles repository! Here, I keep my literate NixOS configs (automatically built by Nix) here, along with everything else used in my configs. The literate form *should* be available on [man.sr.ht](https://man.sr.ht/~hutzdog/dotfiles/).
 
 # Tools used
 While this repo only requires the [Nix Package Manager](https://nixos.org) to build (with Flake support enabled), there are several tools used to make this work. The main ones are:
