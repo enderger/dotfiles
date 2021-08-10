@@ -49,7 +49,7 @@ interface.hardware.gui = true;
 ```
 
 ## Audio
-Here, we enable PipeWire audio (note that defaults are set in the PipeWire module)
+Here, we enable PipeWire audio (note that defaults are set in the [PipeWire module](./hardware/modules/pipewire.md))
 ```nix "hardware/little-joe/audio"
 # hardware/little-joe/audio
 services.pipewire.enable = true;

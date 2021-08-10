@@ -52,7 +52,7 @@ boot.loader.grub.theme = pkgs.nixos-grub2-theme;
 ```
 
 ## Networking
-We set up the networking configuration here, I prefer to use Networkd to make things work. I should note that the network configuration itself is in the secret file, so you'll need to supply your own. I also enable the custom Broadcom module.
+We set up the networking configuration here, I prefer to use Networkd to make things work. I should note that the network configuration itself is in the secret file, so you'll need to supply your own. I also enable the [custom Broadcom module](./hardware/modules/broadcom.md).
 ```nix "hardware/soyuz/networking"
 # hardware/soyuz/networking
 networking = {
@@ -94,7 +94,7 @@ interface.hardware.gui = true;
 ```
 
 ## Audio
-Here, we enable PipeWire audio (note that defaults are set in the PipeWire module)
+Here, we enable PipeWire audio (note that defaults are set in the [PipeWire module](./hardware/modules/pipewire.md))
 ```nix "hardware/soyuz/audio"
 # hardware/soyuz/audio
 services.pipewire.enable = true;
