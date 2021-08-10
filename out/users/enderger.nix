@@ -93,7 +93,7 @@ in {
       in {
         format = ''
           \[$username$hostname\]$nix_shell$hg_branch$git_status$git_branch$git_commit$git_state
-          $character'';
+          $directory $character'';
         add_newline = false;
 
         username = {
@@ -111,13 +111,24 @@ in {
           ssh_only = true;
         };
 
+        directory = {
+          style = "cyan";
+          format = "[$read_only]($read_only_style)[$path]($style)";
+
+          read_only = "";
+          read_only_style = "red";
+          truncation_symbol = "…/";
+        };
+
         nix_shell = {
           style = "bold blue";
+          symbol = " ";
           format = " \\([$symbol$state \\($name\\)]($style)\\)";
         };
 
         hg_branch = {
           style = hg_color;
+          symbol = " ";
           format = " [$symbol$branch]($style)";
         };
 
@@ -128,6 +139,7 @@ in {
 
         git_branch = {
           style = git_color;
+          symbol = " ";
           format = " [$symbol$branch]($style)";
         };
 
