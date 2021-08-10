@@ -1,6 +1,7 @@
 ---
 title: Systems
 ---
+
 The system configuration is used to define system-wide configurations based on available hardware. 
 
 # Naming

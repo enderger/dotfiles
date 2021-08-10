@@ -1,6 +1,7 @@
 ---
 title: Systems :: Sputnik
 ---
+
 This is the system configuration for my primary development PC.
 
 ```nix systems/sputnik.nix

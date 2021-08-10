@@ -1,6 +1,7 @@
 ---
 title: Doas
 ---
+
 I personally prefer using Doas over Sudo. However, I also like to create an alias such that any script which calls Sudo will instead prefer Doas. I also ususally enable persist, since not using it proves annoying.
 
 # Implementation

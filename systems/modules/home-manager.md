@@ -1,6 +1,7 @@
 ---
 title: Home Manager
 ---
+
 This module simply provides a default configuration for [home-manager](https://github.com/nix-community/home-manager) which is a bit more Flake-friendly. I also use the opprotunity to introduce the user modules, which are consumed by `home-manager` configurations.
 
 # Implementation
