@@ -168,10 +168,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           ./hardware/modules/grub.nix
           # hardware/modules.broadcom
           ./hardware/modules/broadcom.nix
-          # users/modules.awesome
-          ./users/modules/awesome.nix
           # users/modules.neovim
           ./users/modules/neovim.nix
+          # users/modules.awesome
+          ./users/modules/awesome.nix
         ];
       in inputs.fup.lib.modulesFromList moduleList;
 
@@ -194,10 +194,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           ./hardware/modules/broadcom.nix
         ];
         user = [
-          # users/modules.awesome
-          ./users/modules/awesome.nix
           # users/modules.neovim
           ./users/modules/neovim.nix
+          # users/modules.awesome
+          ./users/modules/awesome.nix
         ];
       };
       overlay = import ./pkgs;

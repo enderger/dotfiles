@@ -1,6 +1,7 @@
 ---
 title: Neovim
 ---
+
 Extensions to the Neovim module, primarily to better support Lua.
 
 # Implementation

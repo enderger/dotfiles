@@ -1,6 +1,7 @@
 ---
 title: Awesome
 ---
+
 This module adds in support for adding config files for Awesome.
 
 # Implementation

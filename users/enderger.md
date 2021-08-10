@@ -1,6 +1,7 @@
 ---
 title: Users :: Enderger
 ---
+
 This is my primary user, not much more to say.
 
 ```nix users/enderger.nix
@@ -254,7 +255,7 @@ programs.bat = {
 ```
 
 ### Neovim
-Here, we configure my text editor of choice: Neovim. I use Aniseed to configure it with Fennel LISP (see the module for more info), and take full advantage of nightly features.
+Here, we configure my text editor of choice: Neovim. I take full advantage of nightly features in it.
 ```nix "users/enderger/neovim"
 # users/enderger/neovim
 programs.neovim = {
