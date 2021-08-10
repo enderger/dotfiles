@@ -48,7 +48,6 @@ networking = {
   inherit (secrets) firewall;
   hostName = lib.mkForce secrets.hostName;
 };
-services.ntp.enable = true;
 ```
 
 # User Configuration
@@ -127,6 +126,13 @@ The set of packages to include with the system, most user utilities should be in
 ```nix "systems/sputnik/packages"
 # systems/sputnik/packages
 environment.systemPackages = with pkgs; [
-  wget curl git htop tinycc lynx neovim-nightly
+  curl
+  git
+  htop
+  lynx
+  neovim-nightly
+  tinycc
+  transcrypt
+  wget
 ];
 ```

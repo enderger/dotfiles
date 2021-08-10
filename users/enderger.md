@@ -19,8 +19,7 @@ let
   term = "alacritty";
   browser = "qutebrowser";
   lock = "${pkgs.i3lock}/bin/i3lock -n -c ${theme-colour 0}";
-  # TODO: Set up Neovide
-  editor = "${term} -e nvim";
+  editor = "neovide";
 in {
   <<<users/enderger/userOptions>>>
 
@@ -288,6 +287,7 @@ These plugins provide the core functionality used in this config.
 - `nvim-lspconfig` sets up the Neovim builtin `Language Server Protocol` client.
 - `nvim-treesitter` adds support for `tree-sitter` parsers.
 - `telescope-nvim` adds an exceptionally powerful fuzzy finder for Neovim.
+- `vim-polyglot` provides syntax highlighting where Treesitter fails to.
 - `vim-vsnip` / `vim-vsnip-integ` give support for snippets.
 - `which-key-nvim` provides a better keybinding system.
 
@@ -299,6 +299,7 @@ nvim-lspconfig
 # this loads all tree-sitter grammars
 (nvim-treesitter.withPlugins builtins.attrValues)
 telescope-nvim
+vim-polyglot
 vim-vsnip vim-vsnip-integ
 which-key-nvim
 ```
@@ -646,6 +647,9 @@ g.completion_matching_smart_case = true
 -- Snippets
 g.completion_enable_snippet = 'vim-vsnip'
 
+-- Syntax
+g.markdown_fenced_languages = {'nix', 'lua', 'rust'}
+
 -- Treesitter
 local ts = require('nvim-treesitter.configs')
 local ts_enabled = { enable = true }
@@ -792,6 +796,7 @@ local feline_config = {
           end,
 
           right_sep = ' ',
+          left_sep = ' ',
           icon = "",
         },
 
@@ -821,12 +826,38 @@ local feline_config = {
     },
     mid = {
       active = {
+        -- LSP info
+        {
+          provider = 'diagnostic_errors',
+          enabled = function() return feline_lsp.diagnostics_exist('Error') end,
+          hl = { fg = 'base08' },
+        },
+        {
+          provider = 'diagnostic_warnings',
+          enabled = function() return feline_lsp.diagnostics_exist('Warning') end,
+          hl = { fg = 'base0A' },
+        },
+        {
+          provider = 'diagnostic_hints',
+          enabled = function() return feline_lsp.diagnostics_exist('Hint') end,
+          hl = { fg = 'base0C' },
+        },
+        {
+          provider = 'diagnostic_info',
+          enabled = function() return feline_lsp.diagnostics_exist('Information') end,
+          hl = { fg = 'base0D' },
+        },
+      },
+      inactive = {},
+    },
+    right = {
+      active = {
         -- git info
         {
           provider = 'git_branch',
 
           hl = { 
-            fg = 'base0c',
+            fg = 'base0C',
             style = 'bold',
           },
 
@@ -836,7 +867,7 @@ local feline_config = {
           provider = 'git_diff_added',
 
           hl = { 
-            fg = 'base0b',
+            fg = 'base0B',
             style = 'bold',
           },
 
@@ -865,32 +896,6 @@ local feline_config = {
       }, 
       inactive = {},
     },
-    right = {
-      active = {
-        -- LSP info
-        {
-          provider = 'diagnostic_errors',
-          enabled = function() return feline_lsp.diagnostics_exist('Error') end,
-          hl = { fg = 'base08' },
-        },
-        {
-          provider = 'diagnostic_warnings',
-          enabled = function() return feline_lsp.diagnostics_exist('Warning') end,
-          hl = { fg = 'base0a' },
-        },
-        {
-          provider = 'diagnostic_hints',
-          enabled = function() return feline_lsp.diagnostics_exist('Hint') end,
-          hl = { fg = 'base0c' },
-        },
-        {
-          provider = 'diagnostic_info',
-          enabled = function() return feline_lsp.diagnostics_exist('Information') end,
-          hl = { fg = 'base0d' },
-        },
-      },
-      inactive = {},
-    },
   },
   properties = {
     force_inactive = {
@@ -904,20 +909,20 @@ local feline_config = {
     },
   },
   mode_colours = {
-    NORMAL = 'base0b',
-    OP = 'base0b',
+    NORMAL = 'base0B',
+    OP = 'base0B',
     INSERT = 'base08',
-    VISUAL = 'base0d',
-    BLOCK = 'base0d',
-    REPLACE = 'base0e',
-    ['V-REPLACE'] = 'base0e',
-    ENTER = 'base0c',
-    MORE = 'base0c',
-    SELECT = 'base0f',
-    COMMAND = 'base0b',
-    SHELL = 'base0b',
-    TERM = 'base0b',
-    NONE = 'base0a',
+    VISUAL = 'base0D',
+    BLOCK = 'base0D',
+    REPLACE = 'base0E',
+    ['V-REPLACE'] = 'base0E',
+    ENTER = 'base0C',
+    MORE = 'base0C',
+    SELECT = 'base0F',
+    COMMAND = 'base0B',
+    SHELL = 'base0B',
+    TERM = 'base0B',
+    NONE = 'base0A',
   },
 }
 
@@ -1239,7 +1244,7 @@ function M.global_keys(awful)
     -- app launchers
     awful.key {
       modifiers = { M.leader },
-      key = 'p',
+      key = 'r',
 
       on_press = lib.fix_args(require('menubar').show),
 
@@ -1342,12 +1347,25 @@ function M.client_keys(awful)
   }
 end
 
+function M.client_mouse(awful)
+  return {
+    awful.button({ }, 1, function(c)
+      c:activate { context = "mouseclick" }
+    end),
+    awful.button({ M.leader }, 1, awful.mouse.client.move),
+    awful.button({ M.leader }, 3, awful.mouse.client.move),
+  }
+end
+
 function M.setup()
   awful.key.keygroups = M.keygroups
   
   local kb = awful.keyboard 
   kb.append_global_keybindings(M.global_keys(awful))
   kb.append_client_keybindings(M.client_keys(awful))
+
+  local ms = awful.mouse
+  ms.append_client_mousebindings(M.client_mouse(awful))
 end
 
 return M
@@ -1416,8 +1434,6 @@ end
 function M.on_titlebar_request(c)
   widgets.setup_client(c)
 end
-
-  
 
 function M.setup()
   require('ruled.client').append_rules(M.rules)
@@ -1785,8 +1801,12 @@ function M.widgets.taglist(s)
           client.focus:move_to_tag(t)
         end
       end),
-    awful.button({ }, 4, function(t) awful.tag.viewprev(t.screen) end),
-    awful.button({ }, 5, function(t) awful.tag.viewnext(t.screen) end),
+    awful.button({ }, 4, function(t) 
+      awful.tag.viewprev(t.screen)
+    end),
+    awful.button({ }, 5, function(t)
+      awful.tag.viewnext(t.screen) 
+    end),
   }
 
   -- widgets
@@ -2346,6 +2366,7 @@ The packages to install for this user.
 # users/enderger/packages
 ## DEPENDENCIES
 lxqt.lxqt-policykit
+neovide
 (nerdfonts.override { fonts = [ "FiraCode" ]; })
 pfetch
 transcrypt

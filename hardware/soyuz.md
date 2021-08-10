@@ -62,6 +62,10 @@ networking = {
   usePredictableInterfaceNames = true;
   enableBCMWL = true;
 
+  interfaces = {
+    wlp6s0.useDHCP = true;
+  };
+
   wireless = {
     inherit (secrets) networks;
     interfaces = [ "wlp6s0" ];
@@ -86,10 +90,15 @@ services.xserver.videoDrivers = [ "nvidia" ];
 
 services.xserver.xrandrHeads = [
   {
-    output = "HDMI-A-0";
+    output = "HDMI-0";
     primary = true;
   }  
-  "DVI-D-0"
+  {
+    output = "DVI-D-0";
+    monitorConfig = ''
+      Option "RightOf" "HDMI-A-0"
+    '';
+  }
 ];
 
 interface.hardware.gui = true;

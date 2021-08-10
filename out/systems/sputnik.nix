@@ -24,7 +24,6 @@ in {
     inherit (secrets) firewall;
     hostName = lib.mkForce secrets.hostName;
   };
-  services.ntp.enable = true;
   # systems/sputnik/user
   users.mutableUsers = false;
   users.users.root = {
@@ -73,6 +72,13 @@ in {
   documentation.man.generateCaches = true;
   # systems/sputnik/packages
   environment.systemPackages = with pkgs; [
-    wget curl git htop tinycc lynx neovim-nightly
+    curl
+    git
+    htop
+    lynx
+    neovim-nightly
+    tinycc
+    transcrypt
+    wget
   ];
 }
