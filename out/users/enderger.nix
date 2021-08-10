@@ -1071,10 +1071,12 @@ in {
             }
 
             -- buttons
+            local function close()
+              box.visible = false
+            end
             box.buttons = {
-              awful.button({}, 3, function()
-                box.visible = false
-              end),
+              awful.button({}, 1, close),
+              awful.button({}, 3, close),
             }
 
             return box
