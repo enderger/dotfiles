@@ -24,6 +24,23 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       inputs.nixpkgs.follows = "nixpkgs";
     };
     neovim.url = "github:nix-community/neovim-nightly-overlay";
+    # flake/inputs.nixpkgs
+    stable.url = "github:nixos/nixpkgs/nixos-21.05";
+    unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    master.url = "github:nixos/nixpkgs/master";
+    fallback.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.follows = "unstable";
+    # flake/inputs.core
+    hm.url = "github:nix-community/home-manager";
+    fup.url = "github:gytis-ivaskevicius/flake-utils-plus";
+    # flake/inputs.packages
+    nur.url = "github:nix-community/NUR";
+    my-nur.url = "git+https://git.sr.ht/~hutzdog/NUR";
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    neovim.url = "github:nix-community/neovim-nightly-overlay";
   };
 
   outputs = inputs@{ self, ... }:
@@ -70,6 +87,29 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             allowInsecure = true;
           };
         };
+        # flake/outputs/channels/cumulative.stable
+        stable = {
+          input = inputs.stable;
+        };
+        # flake/outputs/channels/cumulative.unstable
+        unstable = {
+          input = inputs.unstable;
+          overlaysBuilder = channels: [
+            (final: prev: { inherit (channels.master.vimPlugins) feline-nvim lsp-rooter-nvim; })
+          ];
+        };
+        # flake/outputs/channels/cumulative.master
+        master = {
+          input = inputs.master;
+        };
+        # flake/outputs/channels/cumulative.fallback
+        fallback = {
+          input = inputs.fallback;
+          config = {
+            allowBroken = true;
+            allowInsecure = true;
+          };
+        };
       };
       # flake/outputs/hosts
       hostDefaults = {
@@ -80,6 +120,22 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       };
 
       hosts = with inputs; {
+        # flake/outputs/hosts/cumulative.main
+        primary-desktop = {
+          modules = [
+            ./hardware/soyuz.nix
+            ./systems/sputnik.nix
+            ./users/enderger.nix
+          ];
+        };
+        # flake/outputs/hosts/cumulative.testbed
+        testbed = {
+          modules = [
+            ./hardware/little-joe.nix
+            ./systems/sputnik.nix
+            ./users/enderger.nix
+          ];
+        };
         # flake/outputs/hosts/cumulative.main
         primary-desktop = {
           modules = [
