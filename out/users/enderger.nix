@@ -2032,10 +2032,32 @@ in {
     # Packages
     home.packages = with pkgs; [
       # users/enderger/packages
+      ## DEPENDENCIES
       lxqt.lxqt-policykit
       (nerdfonts.override { fonts = [ "FiraCode" ]; })
       pfetch
       transcrypt
+
+      ## APPLICATIONS
+      discord-ptb
+      etcher
+      exercism
+      pcmanfm
+      spectacle
+      zoom-us
+
+      ## GAMES
+      ckan
+      multimc
+
+      ## UTILITIES
+      adoptopenjdk-openj9-bin-11
+      gnumake
+      lshw
+      nix-prefetch-git
+      pandoc
+      pciutils
+      xorg.xkill
     ];
   };
 }
