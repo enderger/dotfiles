@@ -187,10 +187,10 @@ hosts = with inputs; {
 ```
 
 #### Main Desktop
-- Hardware :: <./hardware/soyuz.md>
-- System :: <./systems/sputnik.md>
+- [Hardware](./hardware/soyuz.md)
+- [System](./systems/sputnik.md)
 - Users:
-  + <./users/enderger.md>
+  + [Enderger](./users/enderger.md)
 
 ```nix "flake/outputs/hosts/cumulative" +=
 # flake/outputs/hosts/cumulative.main
