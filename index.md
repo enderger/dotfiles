@@ -10,6 +10,13 @@ While this repo only requires the [Nix Package Manager](https://nixos.org) to bu
 - [Literate Markdown Tangle](https://github.com/driusan/lmt) is used to convert this wiki into a working set of config files
 - [Nix Package Manager](https://nixos.org) is used to handle the configuration of the whole system.
 
+# Other Pages
+This repo also serves as a `man.sr.ht` wiki. Here, I'll link the other pages in this repo to have a look at.
+- [Hardware](./hardware)
+- [Packages](./pkgs)
+- [Systems](./systems)
+- [Users](./users)
+
 # The Flake
 The remainder of this document will be used to define the **Flake**, which is the upcoming way to define Nix repositories. I've broken this into sections, which will be defined below.
 ```nix flake.nix
