@@ -56,7 +56,7 @@ in {
         complete_from_path = true;
         ctrlc_exit = false;
         disable_table_indexes = false;
-        filesize_format = "GiB";
+        filesize_format = "MiB";
         nonzero_exit_errors = true;
         pivot_mode = "auto";
         prompt = "starship prompt";
@@ -76,11 +76,6 @@ in {
           tab_width = 2;
           theme = "base16";
         };
-
-        startup = lib.splitString "\n" ''
-          # users/enderger/nushell/startup
-          pfetch
-        '';
       };
     };
     # users/enderger/starship
@@ -262,6 +257,7 @@ in {
       extraPackages = with pkgs; [
         # users/enderger/neovim/plugins/packages
         deno nodePackages.vscode-html-languageserver-bin nodePackages.vscode-css-languageserver-bin
+        git
         rnix-lsp
         (with fenix; combine [
           default.rustfmt-preview default.clippy-preview rust-analyzer
@@ -1839,7 +1835,7 @@ in {
       # users/enderger/qutebrowser/keys
       keyBindings = {
         normal = {
-          ",m" = "spawn mpv {url}";
+          ",m" = "spawn ${pkgs.mpv}/bin/mpv {url}";
         };
       };
       # users/enderger/qutebrowser/quickmarks

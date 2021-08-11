@@ -64,7 +64,7 @@ programs.nushell = {
     complete_from_path = true;
     ctrlc_exit = false;
     disable_table_indexes = false;
-    filesize_format = "GiB";
+    filesize_format = "MiB";
     nonzero_exit_errors = true;
     pivot_mode = "auto";
     prompt = "starship prompt";
@@ -84,18 +84,8 @@ programs.nushell = {
       tab_width = 2;
       theme = "base16";
     };
-
-    startup = lib.splitString "\n" ''
-      <<<users/enderger/nushell/startup>>>
-    '';
   };
 };
-```
-
-#### Startup
-```nu "users/enderger/nushell/startup"
-# users/enderger/nushell/startup
-pfetch
 ```
 
 ### Starship
@@ -377,6 +367,7 @@ Here, we'll set up the environment within which Neovim operates. This includes t
 ```nix "users/enderger/neovim/plugins/packages"
 # users/enderger/neovim/plugins/packages
 deno nodePackages.vscode-html-languageserver-bin nodePackages.vscode-css-languageserver-bin
+git
 rnix-lsp
 (with fenix; combine [
   default.rustfmt-preview default.clippy-preview rust-analyzer
@@ -2076,7 +2067,7 @@ Here, we define all of my custom keybinds for the browser.
 # users/enderger/qutebrowser/keys
 keyBindings = {
   normal = {
-    ",m" = "spawn mpv {url}";
+    ",m" = "spawn ${pkgs.mpv}/bin/mpv {url}";
   };
 };
 ```
