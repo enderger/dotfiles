@@ -1351,7 +1351,7 @@ in {
                 keygroup = 'vimcycle',
                 
                 on_press = function(direction)
-                  local c = awful.client.focused
+                  local c = client.focus
 
                   if c then
                     c:move_to_screen(c.screen.index + direction)
@@ -1394,7 +1394,7 @@ in {
                 keygroup = 'numrow',
 
                 on_press = function (idx)
-                  local c = awful.client.foucs
+                  local c = client.foucs
                   
                   if c and c.screen.tags[idx] then
                     c:move_to_tag(c.screen.tags[idx])
