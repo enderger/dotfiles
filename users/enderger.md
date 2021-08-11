@@ -1125,19 +1125,9 @@ function M.global_keys(awful)
       group = M.groups.wm,
     },
 
-    awful.key {
-      modifiers = { M.leader, M.modifier },
-      keygroup = 'vimkeys',
-
-      on_press = awful.client.swap.global_bydirection,
-
-      description = 'Move client',
-      group = M.groups.client,
-    },
-
     --- screens
     awful.key {
-      modifiers = { M.leader },
+      modifiers = { M.leader, M.modifier },
       keygroup = 'vimcycle',
       
       on_press = awful.screen.focus_relative,
@@ -1146,25 +1136,9 @@ function M.global_keys(awful)
       group = M.groups.wm,
     },
 
-    awful.key {
-      modifiers = { M.leader, M.modifier },
-      keygroup = 'vimcycle',
-      
-      on_press = function(direction)
-        local c = client.focus
-
-        if c then
-          c:move_to_screen(c.screen.index + direction)
-        end
-      end,
-
-      description = 'Move to screen',
-      group = M.groups.client,
-    },
-
     --- tags
     awful.key {
-      modifiers = { M.leader, M.alternate },
+      modifiers = { M.leader },
       keygroup = 'vimcycle',
       
       on_press = awful.tag.viewidx,
@@ -1186,22 +1160,6 @@ function M.global_keys(awful)
       end,
 
       description = 'Focus tag',
-      group = M.groups.wm,
-    },
-
-    awful.key {
-      modifiers = { M.leader, M.modifier },
-      keygroup = 'numrow',
-
-      on_press = function (idx)
-        local c = client.foucs
-        
-        if c and c.screen.tags[idx] then
-          c:move_to_tag(c.screen.tags[idx])
-        end
-      end,
-
-      description = 'Move to tag',
       group = M.groups.wm,
     },
 
@@ -1333,6 +1291,47 @@ function M.client_keys(awful)
       on_press = awful.client.setslave,
 
       description = 'Set slave',
+      group = M.groups.client,
+    },
+
+    awful.key {
+      modifiers = { M.leader, M.modifier },
+      keygroup = 'vimkeys',
+
+      on_press = function(dir, c)
+        awful.client.swap.bydirection(dir, c)
+      end,
+
+      description = 'Move client',
+      group = M.groups.client,
+    },
+
+    awful.key {
+      modifiers = { M.leader, M.modifier },
+      keygroup = 'numrow',
+
+      on_press = function (idx, c)        
+        local t = c.screen.tags[idx]
+        if t then
+          c:move_to_tag(t)
+        end
+      end,
+
+      description = 'Move to tag',
+      group = M.groups.client,
+    },
+
+    awful.key {
+      modifiers = { M.leader, M.alternate },
+      keygroup = 'vimcycle',
+      
+      on_press = function(dir, c)
+        local s = c.screen
+        c:move_to_screen(s.index + dir)
+        awful.screen.focus(s)
+      end,
+
+      description = 'Move to screen',
       group = M.groups.client,
     },
   }
