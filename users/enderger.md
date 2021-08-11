@@ -218,7 +218,7 @@ programs.alacritty = {
         white = mkColor 7;
       };
     };
-    background_opacity = 0.95;
+    background_opacity = 0.97;
   };
 };
 ```
@@ -2294,11 +2294,11 @@ services.picom = {
 
   backend = "xrender";
   blur = true;
-  inactiveOpacity = "0.8";
+  inactiveOpacity = "0.97";
+  vSync = true;
 
   extraOptions = ''
     unredir-if-possible = false;
-    vsync = true;
   '';
 };
 ```
