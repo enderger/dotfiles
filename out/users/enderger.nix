@@ -336,6 +336,12 @@ in {
           map('jk', '<Cmd>stopinsert<CR>', 'i')
           map('<C-Leader>', '<C-o><Leader>', 'i')
 
+          -- window switching
+          map('gh', '<C-w>h', 'n')
+          map('gj', '<C-w>j', 'n')
+          map('gk', '<C-w>k', 'n')
+          map('gl', '<C-w>l', 'n')
+
           -- applications
           local application_keys = {
             name = 'apps/',
