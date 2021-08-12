@@ -2431,5 +2431,6 @@ lshw
 nix-prefetch-git
 pandoc
 pciutils
+rustc cargo
 xorg.xkill
 ```
