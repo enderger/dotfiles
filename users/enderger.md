@@ -470,7 +470,7 @@ opt.completeopt = { 'menuone', 'noinsert', 'noselect' }
 opt.foldmethod = 'expr'
 opt.hidden = true
 opt.mouse = 'a'
-opt.spell = true
+opt.spell = false
 opt.title = true
 ```
 
@@ -498,6 +498,9 @@ map('gh', '<C-w>h', 'n')
 map('gj', '<C-w>j', 'n')
 map('gk', '<C-w>k', 'n')
 map('gl', '<C-w>l', 'n')
+
+-- terminal mappings
+map('<Esc>', '<C-\\><C-n>', 't')
 
 -- applications
 local application_keys = {
