@@ -2407,6 +2407,7 @@ The packages to install for this user.
 ```nix "users/enderger/packages"
 # users/enderger/packages
 ## DEPENDENCIES
+glow
 lxqt.lxqt-policykit
 neovide
 pfetch
@@ -2431,6 +2432,9 @@ lshw
 nix-prefetch-git
 pandoc
 pciutils
-rustc cargo
+(with fenix; combine [
+  default.toolchain
+  latest.rust-src
+])
 xorg.xkill
 ```
