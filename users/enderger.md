@@ -15,7 +15,11 @@ let
     <<<users/enderger/colours>>>
   ];
   theme-colour = builtins.elemAt theme;
-  font = "FiraCode Nerd Font";
+  font = {
+    name = "FiraCode Nerd Font";
+    package = pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; };
+    size = 11;
+  };
   term = "alacritty";
   browser = "qutebrowser";
   lock = "${pkgs.i3lock}/bin/i3lock -n -c ${theme-colour 0}";
@@ -43,6 +47,7 @@ in {
     <<<users/enderger/qutebrowser>>>
     <<<users/enderger/picom>>>
     <<<users/enderger/xidlehook>>>
+    <<<users/enderger/themes>>>
 
     # Packages
     home.packages = with pkgs; [
@@ -68,7 +73,7 @@ programs.nushell = {
     nonzero_exit_errors = true;
     pivot_mode = "auto";
     prompt = "starship prompt";
-    rm_always_trash = true;
+    rm_always_trash = false;
     skip_welcome_message = true;
     table_mode = "rounded";
 
@@ -179,7 +184,7 @@ programs.alacritty = {
   enable = true;
   settings = {
     env.TERM = "alacritty";
-    font.normal.family = font;
+    font.normal.family = font.name;
 
     window = {
       decorations = "none";
@@ -367,6 +372,7 @@ Here, we'll set up the environment within which Neovim operates. This includes t
 ```nix "users/enderger/neovim/plugins/packages"
 # users/enderger/neovim/plugins/packages
 deno nodePackages.vscode-html-languageserver-bin nodePackages.vscode-css-languageserver-bin
+nur.repos.zachcoyle.kotlin-language-server
 git
 rnix-lsp
 (with fenix; combine [
@@ -446,7 +452,7 @@ local opt = vim.opt
 -- asthetic
 opt.background = 'dark'
 opt.cursorline = true
-opt.guifont = '${font}' -- interpolated via Nix
+opt.guifont = '${font.name}' -- interpolated via Nix
 opt.number = true
 opt.showmode = false
 opt.signcolumn = 'yes:3'
@@ -607,6 +613,11 @@ capabilities.textDocument.completion.completionItem.snippetSupport = true
 
 --- Deno
 lsp.denols.setup {
+  capabilities = capabilities,
+}
+
+-- Kotlin
+lsp.kotlin_language_server.setup {
   capabilities = capabilities,
 }
 
@@ -1512,7 +1523,7 @@ local titlebar_icon = collection('titlebar', '.png')
 local layout_icon = collection('layouts', 'w.png')
 
 -- variables
-M.font = '${font} 11'
+M.font = '${font.name} {builtins.toString font.size}'
 M.tl_square_size = xresources.apply_dpi(4)
 M.menu_height = xresources.apply_dpi(15)
 
@@ -2269,8 +2280,8 @@ in {
 downloads.position = "bottom";
 
 fonts = {
-  default_family = font;
-  default_size = "11pt";
+  default_family = font.name;
+  default_size = "${builtins.toString font.size}pt";
 };
 ```
 
@@ -2322,6 +2333,35 @@ services.xidlehook = {
 };
 ```
 
+### Themes
+Here, we set up my GTK and QT themes.
+```nix "users/enderger/themes"
+# users/enderger/themes
+gtk = {
+  enable = true;
+
+  inherit font;
+  iconTheme = {
+    package = pkgs.papirus-icon-theme;
+    name = "ePapirus";
+  };
+  theme = {
+    package = pkgs.nordic;
+    name = "Nordic";
+  };
+};
+
+qt = {
+  enable = true;
+  platformTheme = "gtk";
+
+  style = {
+    package = pkgs.libsForQt5.qtstyleplugins;
+    name = "gtk2";
+  };
+};
+```
+
 # User Configuration
 ## Metadata
 Some basic options for how the user should be seen by the system.
@@ -2366,7 +2406,6 @@ The packages to install for this user.
 ## DEPENDENCIES
 lxqt.lxqt-policykit
 neovide
-(nerdfonts.override { fonts = [ "FiraCode" ]; })
 pfetch
 transcrypt
 
