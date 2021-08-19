@@ -264,6 +264,10 @@ programs.neovim = {
     <<<users/enderger/neovim/plugins/packages>>>
   ];
   
+  langServers = {
+    <<<users/enderger/neovim/plugins/langServers>>>
+  };
+
   luaInit = "init";
   luaModules = {
     <<<users/enderger/neovim/config>>>
@@ -380,6 +384,20 @@ rnix-lsp
 ])
 ```
 
+##### Language Servers
+Here, we'll set up the language servers provided by the Neovim module.
+```nix "users/enderger/neovim/plugins/langServers"
+# users/enderger/neovim/plugins/langServers
+zls = {
+  enable = true;
+  settings = {
+    enable_snippets = true;
+    warn_style = true;
+    include_at_in_builtins = true;
+  };
+};
+```
+
 #### Config
 Now, we'll set up my Neovim config. It takes the form of a set of Lua modules that are loaded by Neovim through the Neovim module.
 ```nix "users/enderger/neovim/config"
@@ -433,6 +451,20 @@ local lib = {};
 
 function lib.autocmd(event, action, filter)
   vim.cmd(string.format("autocmd %s %s %s", event, filter or '*', action))
+end
+
+function lib.augroup(name, cmds, keepExisting)
+  vim.cmd("augroup "..name)
+
+  if not keepExisting then
+    vim.cmd("autocmd!")
+  end
+
+  for _,cmd in pairs(cmds) do
+    lib.autocmd(unpack(cmd))
+  end
+
+  vim.cmd("augroup END")
 end
 
 function lib.map(from, to, mode, opts)
@@ -647,7 +679,12 @@ lsp.rust_analyzer.setup {
       -- use Clippy
       checkOnSave = { command = 'clippy' },
     },
-  }
+  },
+}
+
+--- Zig
+lsp.zls.setup {
+  capabilities = capabilities,
 }
 
 -- Completion
@@ -659,7 +696,7 @@ g.completion_matching_smart_case = true
 g.completion_enable_snippet = 'vim-vsnip'
 
 -- Syntax
-g.markdown_fenced_languages = {'nix', 'lua', 'rust'}
+g.markdown_fenced_languages = {'nix', 'lua', 'rust', 'zig'}
 
 -- Treesitter
 local ts = require('nvim-treesitter.configs')
@@ -689,7 +726,7 @@ require('treesitter-context.config').setup {
 opt.foldexpr = vim.fn['nvim_treesitter#foldexpr']()
 
 -- Formatting
-lib.autocmd('BufWritePre', 'undojoin | Neoformat')
+lib.augroup('fmt', {{'BufWritePre', 'try | undojoin | Neoformat | catch /^Vim\\%((\\a\\+)\\)\\=:E790/ | finally | silent Neoformat | endtry' }})
 
 -- Lightspeed
 local lightspeed = require('lightspeed')
@@ -2422,6 +2459,8 @@ spectacle
 zoom-us
 
 ## GAMES
+steam
+steam-run
 ckan
 multimc
 
