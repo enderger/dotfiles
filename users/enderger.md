@@ -355,7 +355,6 @@ gitsigns-nvim
 glow-nvim
 neogit
 nvim-toggleterm-lua
-vim-test
 ```
 
 ##### UI Plugins
@@ -557,10 +556,6 @@ local application_keys = {
     "<Cmd>ToggleTerm<CR>",
     "shell",
   },
-  t = {
-    "<Cmd>TestSuite<CR>",
-    "tests",
-  },
 }
 wk.register(application_keys, { mode = "n", prefix = "<leader>a" })
 
@@ -613,6 +608,10 @@ local action_keys = {
     require("nvim-treesitter-refactor.smart_rename").smart_rename,
     "rename",
   },
+  t = {
+    "<Cmd>make<CR>",
+    "tests/build",
+  },
 }
 wk.register(action_keys, { mode = "n", prefix = "<leader>c" })
 
@@ -651,7 +650,7 @@ lsp.denols.setup {
   capabilities = capabilities,
 }
 
--- Kotlin
+--- Kotlin
 lsp.kotlin_language_server.setup {
   capabilities = capabilities,
 }
@@ -792,9 +791,6 @@ toggle_term.setup {
   shading_factor = 1,
   open_mapping = "<C-S-t>",
 }
-
--- Testing
-g['test#strategy'] = 'neovim'
 ```
 
 ##### UI

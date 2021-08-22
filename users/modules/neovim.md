@@ -14,6 +14,7 @@ let
   cfg = config.programs.neovim;
   formats = with pkgs.formats; {
     json = json {};
+    yaml = yaml {};
   };
 in {
   options.programs.neovim = {
@@ -23,6 +24,7 @@ in {
   config = lib.mkIf cfg.enable (lib.mkMerge [
     <<<users/modules/neovim/lua>>>
     <<<users/modules/neovim/langServers/zls>>>
+    <<<users/modules/neovim/langServers/efm>>>
   ]);
 }
 ```
@@ -69,6 +71,34 @@ langServers.zls = {
     '';
   };
 };
+
+langServers.efm = {
+  enable = lib.mkEnableOption "the EFM generral-purpose language server";
+
+  package = lib.mkOption {
+    type = lib.types.package;
+    default = pkgs.efm-langserver;
+    description = ''
+      The package to use for EFM
+    '';
+  };
+
+  extraPackages = lib.mkOption {
+    type = with lib.types; listOf package;
+    default = [];
+    description = ''
+      The packages to make available to EFM
+    '';
+  };
+
+  settings = lib.mkOption {
+    type = formats.yaml.type;
+    default = {}; 
+    description = ''
+      Configuration written to <filename>$XDG_CONFIG_HOME/efm-langserver/config.yaml</filename>
+    '';
+  };
+};
 ```
 
 ## Lua
@@ -102,6 +132,18 @@ langServers.zls = {
 
   xdg.configFile."zls.json" = lib.mkIf (zls.settings != {}) {
     source = formats.json.generate "zls-config" zls.settings;
+  };
+}))
+```
+
+### EFM
+```nix "users/modules/neovim/langServers/efm"
+# users/modules/neovim/langservers/efm
+(lib.mkIf cfg.langServers.efm.enable (let efm = cfg.langServers.efm; in {
+  programs.neovim.extraPackages = [ efm.package ] ++ efm.extraPackages;
+
+  xdg.configFile."efm-langserver/config.yaml" = lib.mkIf (efm.settings != {}) {
+    source = formats.yaml.generate "efm-config" efm.settings;
   };
 }))
 ```
