@@ -324,7 +324,6 @@ vim-surround
 These plugins enhance the editing experience in a small way.
 - `auto-session` sets up automatic session management for Neovim.
 - `friendly-snippets` adds a bunch of useful snippets for `vim-vsnip`.
-- `lsp-rooter-nvim` automatically sets the CWD using LSP.
 - `minimap-vim` adds in a minimap.
 - `nvim-lightbulb` adds in VSCode's lightbulb for Neovim's LSP.
 - `nvim-treesitter-context` shows the context of what you can see onscreen.
@@ -334,7 +333,6 @@ These plugins enhance the editing experience in a small way.
 # users/enderger/neovim/plugins.utilities
 auto-session
 friendly-snippets
-lsp-rooter-nvim
 minimap-vim
 nvim-lightbulb
 nvim-treesitter-context
@@ -346,7 +344,7 @@ These plugins integrate Neovim with the outside world.
 - `gitsigns-nvim` adds in Git decorations for Neovim
 - `glow-nvim` adds in a nice Markdown preview to Neovim.
 - `neogit` adds in a Magit-like interface for Git in Neovim.
-- `nvim-toggleterm-lua` adds in better terminal integration to Neovim.
+- `toggleterm-lua` adds in better terminal integration to Neovim.
 - `vim-test` integrates various test runners with Neovim.
 
 ```nix "users/enderger/neovim/plugins" +=
@@ -354,7 +352,7 @@ These plugins integrate Neovim with the outside world.
 gitsigns-nvim
 glow-nvim
 neogit
-nvim-toggleterm-lua
+toggleterm-nvim
 ```
 
 ##### UI Plugins
@@ -375,6 +373,7 @@ Here, we'll set up the environment within which Neovim operates. This includes t
 ```nix "users/enderger/neovim/plugins/packages"
 # users/enderger/neovim/plugins/packages
 deno nodePackages.vscode-html-languageserver-bin nodePackages.vscode-css-languageserver-bin
+java-language-server maven
 nur.repos.zachcoyle.kotlin-language-server
 git
 rnix-lsp
@@ -655,6 +654,12 @@ lsp.kotlin_language_server.setup {
   capabilities = capabilities,
 }
 
+--- Java
+lsp.java_language_server.setup {
+  capabilities = capabilities,
+  cmd = {"java-language-server"},
+}
+
 --- HTML
 lsp.html.setup {
   capabilities = capabilities,
@@ -825,8 +830,9 @@ local feline_lsp = require('feline.providers.lsp')
 local feline_vi = require('feline.providers.vi_mode')
 local feline_config = {
   components = {
-    left = {
-      active = {
+    active = {
+      -- left
+      {
         -- mode
         {
           provider = 'vi_mode',
@@ -864,12 +870,9 @@ local feline_config = {
           right_sep = ')',
         },
       }, 
-      inactive = {
-        { provider = 'file_info' },
-      },
-    },
-    mid = {
-      active = {
+
+      -- middle
+      {
         -- LSP info
         {
           provider = 'diagnostic_errors',
@@ -891,11 +894,10 @@ local feline_config = {
           enabled = function() return feline_lsp.diagnostics_exist('Information') end,
           hl = { fg = 'base0D' },
         },
-      },
-      inactive = {},
-    },
-    right = {
-      active = {
+      },  
+
+      -- right
+      {
         -- git info
         {
           provider = 'git_branch',
@@ -938,18 +940,26 @@ local feline_config = {
           right_sep = ' ',
         },
       }, 
-      inactive = {},
+    },
+
+    inactive = {
+      -- left
+      { 
+        {
+          provider = 'file_info'
+        }
+      },
+      {},
+      {},
     },
   },
-  properties = {
-    force_inactive = {
-      bufnames = {},
-      buftypes = {
-        'terminal',
-      },
-      filetypes = {
-        'NeogitStatus',
-      },
+  force_inactive = {
+    bufnames = {},
+    buftypes = {
+      'terminal',
+    },
+    filetypes = {
+      'NeogitStatus',
     },
   },
   mode_colours = {
@@ -971,11 +981,12 @@ local feline_config = {
 }
 
 feline.setup {
-  default_bg = 'base01',
-  default_fg = 'base04',
-  colors = colours,
+  colors = vim.tbl_extend("keep", colours, {
+    fg = colours.base04,
+    bg = colours.base01 
+  }),
   components = feline_config.components,
-  properties = feline_config.properties,
+  force_inactive = feline_config.force_inactive,
   vi_mode_colors = feline_config.mode_colours,
 }
 ```
@@ -2450,6 +2461,7 @@ transcrypt
 discord-ptb
 etcher
 exercism
+jetbrains.idea-community
 pcmanfm
 spectacle
 zoom-us
@@ -2458,10 +2470,11 @@ zoom-us
 steam
 steam-run
 ckan
-multimc
+minecraft multimc
+glfw
 
 ## UTILITIES
-adoptopenjdk-openj9-bin-11
+adoptopenjdk-openj9-bin-16
 gnumake
 lshw
 nix-prefetch-git
