@@ -26,7 +26,11 @@ let
     "5E81AC" # base0F
   ];
   theme-colour = builtins.elemAt theme;
-  font = "FiraCode Nerd Font";
+  font = {
+    name = "FiraCode Nerd Font";
+    package = pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; };
+    size = 11;
+  };
   term = "alacritty";
   browser = "qutebrowser";
   lock = "${pkgs.i3lock}/bin/i3lock -n -c ${theme-colour 0}";
@@ -60,7 +64,7 @@ in {
         nonzero_exit_errors = true;
         pivot_mode = "auto";
         prompt = "starship prompt";
-        rm_always_trash = true;
+        rm_always_trash = false;
         skip_welcome_message = true;
         table_mode = "rounded";
 
@@ -161,7 +165,7 @@ in {
       enable = true;
       settings = {
         env.TERM = "alacritty";
-        font.normal.family = font;
+        font.normal.family = font.name;
 
         window = {
           decorations = "none";
@@ -219,14 +223,14 @@ in {
       
       plugins = with pkgs.vimPlugins; [
         # users/enderger/neovim/plugins.backend
-        completion-nvim
         neoformat
+        nvim-cmp cmp-nvim-lsp
         nvim-lspconfig
         # this loads all tree-sitter grammars
         (nvim-treesitter.withPlugins builtins.attrValues)
         telescope-nvim
         vim-polyglot
-        vim-vsnip vim-vsnip-integ
+        vim-vsnip cmp-vsnip
         which-key-nvim
         # users/enderger/neovim/plugins.editing
         lightspeed-nvim
@@ -237,7 +241,6 @@ in {
         # users/enderger/neovim/plugins.utilities
         auto-session
         friendly-snippets
-        lsp-rooter-nvim
         minimap-vim
         nvim-lightbulb
         nvim-treesitter-context
@@ -246,8 +249,8 @@ in {
         gitsigns-nvim
         glow-nvim
         neogit
-        nvim-toggleterm-lua
-        vim-test
+        rust-tools-nvim
+        toggleterm-nvim
         # users/enderger/neovim/plugins.ui
         feline-nvim
         nvim-base16
@@ -257,13 +260,28 @@ in {
       extraPackages = with pkgs; [
         # users/enderger/neovim/plugins/packages
         deno nodePackages.vscode-html-languageserver-bin nodePackages.vscode-css-languageserver-bin
+        java-language-server maven
+        nur.repos.zachcoyle.kotlin-language-server
         git
         rnix-lsp
         (with fenix; combine [
           default.rustfmt-preview default.clippy-preview rust-analyzer
         ])
+        ripgrep
       ];
       
+      langServers = {
+        # users/enderger/neovim/plugins/langServers
+        zls = {
+          enable = true;
+          settings = {
+            enable_snippets = true;
+            warn_style = true;
+            include_at_in_builtins = true;
+          };
+        };
+      };
+
       luaInit = "init";
       luaModules = {
         # users/enderger/neovim/config
@@ -284,6 +302,20 @@ in {
             vim.cmd(string.format("autocmd %s %s %s", event, filter or '*', action))
           end
 
+          function lib.augroup(name, cmds, keepExisting)
+            vim.cmd("augroup "..name)
+
+            if not keepExisting then
+              vim.cmd("autocmd!")
+            end
+
+            for _,cmd in pairs(cmds) do
+              lib.autocmd(unpack(cmd))
+            end
+
+            vim.cmd("augroup END")
+          end
+
           function lib.map(from, to, mode, opts)
             local defaults = { noremap = true, silent = true }
             vim.api.nvim_set_keymap(mode, from, to, vim.tbl_deep_extend("force", defaults, opts or {}))
@@ -298,7 +330,7 @@ in {
           -- asthetic
           opt.background = 'dark'
           opt.cursorline = true
-          opt.guifont = '${font}' -- interpolated via Nix
+          opt.guifont = '${font.name}' -- interpolated via Nix
           opt.number = true
           opt.showmode = false
           opt.signcolumn = 'yes:3'
@@ -316,7 +348,7 @@ in {
           opt.foldmethod = 'expr'
           opt.hidden = true
           opt.mouse = 'a'
-          opt.spell = true
+          opt.spell = false
           opt.title = true
         '';
         keys = ''
@@ -342,6 +374,9 @@ in {
           map('gk', '<C-w>k', 'n')
           map('gl', '<C-w>l', 'n')
 
+          -- terminal mappings
+          map('<Esc>', '<C-\\><C-n>', 't')
+
           -- applications
           local application_keys = {
             name = 'apps/',
@@ -364,10 +399,6 @@ in {
             s = {
               "<Cmd>ToggleTerm<CR>",
               "shell",
-            },
-            t = {
-              "<Cmd>TestSuite<CR>",
-              "tests",
             },
           }
           wk.register(application_keys, { mode = "n", prefix = "<leader>a" })
@@ -421,6 +452,10 @@ in {
               require("nvim-treesitter-refactor.smart_rename").smart_rename,
               "rename",
             },
+            t = {
+              "<Cmd>make<CR>",
+              "tests/build",
+            },
           }
           wk.register(action_keys, { mode = "n", prefix = "<leader>c" })
 
@@ -457,6 +492,17 @@ in {
             capabilities = capabilities,
           }
 
+          --- Kotlin
+          lsp.kotlin_language_server.setup {
+            capabilities = capabilities,
+          }
+
+          --- Java
+          lsp.java_language_server.setup {
+            capabilities = capabilities,
+            cmd = {"java-language-server"},
+          }
+
           --- HTML
           lsp.html.setup {
             capabilities = capabilities,
@@ -473,26 +519,42 @@ in {
           }
 
           --- Rust
-          lsp.rust_analyzer.setup {
-            capabilities = capabilities,
-            settings = {
-              ['rust-analyzer'] = {
-                -- use Clippy
-                checkOnSave = { command = 'clippy' },
+          require('rust-tools').setup {
+            tools = {},
+            server = {
+              capabilities = capabilities,
+              settings = {
+                ['rust-analyzer'] = {
+                  -- use Clippy
+                  checkOnSave = { command = 'clippy' },
+                },
               },
-            }
+            },
+          }
+
+          --- Zig
+          lsp.zls.setup {
+            capabilities = capabilities,
           }
 
           -- Completion
-          lib.autocmd('BufEnter', 'lua require(\'completion\').on_attach()')
+          local cmp = require('cmp')
+          cmp.setup {
+            snippet = {
+              expand = function(args)
+                vim.fn["vsnip#anonymous"](args.body)
+              end,
+            },
+            sources = {
+              { name = 'nvim_lsp' },
+              { name = 'vsnip' },
+            },
+          }
+          opt.completeopt = {'menuone', 'noinsert', 'noselect'}
           opt.shortmess:append('c')
-          g.completion_matching_smart_case = true
-
-          -- Snippets
-          g.completion_enable_snippet = 'vim-vsnip'
 
           -- Syntax
-          g.markdown_fenced_languages = {'nix', 'lua', 'rust'}
+          g.markdown_fenced_languages = {'nix', 'lua', 'rust', 'zig'}
 
           -- Treesitter
           local ts = require('nvim-treesitter.configs')
@@ -522,7 +584,7 @@ in {
           opt.foldexpr = vim.fn['nvim_treesitter#foldexpr']()
 
           -- Formatting
-          lib.autocmd('BufWritePre', 'undojoin | Neoformat')
+          lib.augroup('fmt', {{'BufWritePre', 'try | undojoin | Neoformat | catch /^Vim\\%((\\a\\+)\\)\\=:E790/ | finally | silent Neoformat | endtry' }})
 
           -- Lightspeed
           local lightspeed = require('lightspeed')
@@ -585,9 +647,6 @@ in {
             shading_factor = 1,
             open_mapping = "<C-S-t>",
           }
-
-          -- Testing
-          g['test#strategy'] = 'neovim'
         '';
         ui = ''
           -- users/enderger/neovim/config/ui
@@ -619,8 +678,9 @@ in {
           local feline_vi = require('feline.providers.vi_mode')
           local feline_config = {
             components = {
-              left = {
-                active = {
+              active = {
+                -- left
+                {
                   -- mode
                   {
                     provider = 'vi_mode',
@@ -658,12 +718,9 @@ in {
                     right_sep = ')',
                   },
                 }, 
-                inactive = {
-                  { provider = 'file_info' },
-                },
-              },
-              mid = {
-                active = {
+
+                -- middle
+                {
                   -- LSP info
                   {
                     provider = 'diagnostic_errors',
@@ -685,11 +742,10 @@ in {
                     enabled = function() return feline_lsp.diagnostics_exist('Information') end,
                     hl = { fg = 'base0D' },
                   },
-                },
-                inactive = {},
-              },
-              right = {
-                active = {
+                },  
+
+                -- right
+                {
                   -- git info
                   {
                     provider = 'git_branch',
@@ -732,18 +788,26 @@ in {
                     right_sep = ' ',
                   },
                 }, 
-                inactive = {},
+              },
+
+              inactive = {
+                -- left
+                { 
+                  {
+                    provider = 'file_info'
+                  }
+                },
+                {},
+                {},
               },
             },
-            properties = {
-              force_inactive = {
-                bufnames = {},
-                buftypes = {
-                  'terminal',
-                },
-                filetypes = {
-                  'NeogitStatus',
-                },
+            force_inactive = {
+              bufnames = {},
+              buftypes = {
+                'terminal',
+              },
+              filetypes = {
+                'NeogitStatus',
               },
             },
             mode_colours = {
@@ -765,11 +829,12 @@ in {
           }
 
           feline.setup {
-            default_bg = 'base01',
-            default_fg = 'base04',
-            colors = colours,
+            colors = vim.tbl_extend("keep", colours, {
+              fg = colours.base04,
+              bg = colours.base01 
+            }),
             components = feline_config.components,
-            properties = feline_config.properties,
+            force_inactive = feline_config.force_inactive,
             vi_mode_colors = feline_config.mode_colours,
           }
         '';
@@ -1703,7 +1768,7 @@ in {
           local layout_icon = collection('layouts', 'w.png')
 
           -- variables
-          M.font = '${font} 11'
+          M.font = '${font.name} {builtins.toString font.size}'
           M.tl_square_size = xresources.apply_dpi(4)
           M.menu_height = xresources.apply_dpi(15)
 
@@ -2019,8 +2084,8 @@ in {
         downloads.position = "bottom";
 
         fonts = {
-          default_family = font;
-          default_size = "11pt";
+          default_family = font.name;
+          default_size = "${builtins.toString font.size}pt";
         };
       };
     };
@@ -2051,14 +2116,38 @@ in {
         }
       ];
     };
+    # users/enderger/themes
+    gtk = {
+      enable = true;
+
+      inherit font;
+      iconTheme = {
+        package = pkgs.papirus-icon-theme;
+        name = "ePapirus";
+      };
+      theme = {
+        package = pkgs.nordic;
+        name = "Nordic";
+      };
+    };
+
+    qt = {
+      enable = true;
+      platformTheme = "gtk";
+
+      style = {
+        package = pkgs.libsForQt5.qtstyleplugins;
+        name = "gtk2";
+      };
+    };
 
     # Packages
     home.packages = with pkgs; [
       # users/enderger/packages
       ## DEPENDENCIES
+      glow
       lxqt.lxqt-policykit
       neovide
-      (nerdfonts.override { fonts = [ "FiraCode" ]; })
       pfetch
       transcrypt
 
@@ -2066,21 +2155,30 @@ in {
       discord-ptb
       etcher
       exercism
+      jetbrains.idea-community
       pcmanfm
       spectacle
       zoom-us
 
       ## GAMES
+      steam
+      steam-run
       ckan
-      multimc
+      minecraft multimc
+      glfw
 
       ## UTILITIES
-      adoptopenjdk-openj9-bin-11
+      adoptopenjdk-openj9-bin-16
       gnumake
       lshw
       nix-prefetch-git
       pandoc
       pciutils
+      (with fenix; combine [
+        default.toolchain
+        latest.rust-src
+      ])
+      ripgrep
       xorg.xkill
     ];
   };

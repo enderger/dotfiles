@@ -281,25 +281,25 @@ Since there are several plugins, I'll use an accumulator macro.
 
 ##### Core
 These plugins provide the core functionality used in this config.
-- `completion-nvim` gives the builtin Neovim LSP client automatic completion support.
 - `neoformat` adds in automatic code formatting support
+- `nvim-cmp` / `cmp-nvim-lsp` gives the builtin Neovim LSP client automatic completion support.
 - `nvim-lspconfig` sets up the Neovim builtin `Language Server Protocol` client.
 - `nvim-treesitter` adds support for `tree-sitter` parsers.
 - `telescope-nvim` adds an exceptionally powerful fuzzy finder for Neovim.
 - `vim-polyglot` provides syntax highlighting where Treesitter fails to.
-- `vim-vsnip` / `vim-vsnip-integ` give support for snippets.
+- `vim-vsnip` / `cmp-vsnip` give support for snippets.
 - `which-key-nvim` provides a better keybinding system.
 
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.backend
-completion-nvim
 neoformat
+nvim-cmp cmp-nvim-lsp
 nvim-lspconfig
 # this loads all tree-sitter grammars
 (nvim-treesitter.withPlugins builtins.attrValues)
 telescope-nvim
 vim-polyglot
-vim-vsnip vim-vsnip-integ
+vim-vsnip cmp-vsnip
 which-key-nvim
 ```
 
@@ -344,14 +344,15 @@ These plugins integrate Neovim with the outside world.
 - `gitsigns-nvim` adds in Git decorations for Neovim
 - `glow-nvim` adds in a nice Markdown preview to Neovim.
 - `neogit` adds in a Magit-like interface for Git in Neovim.
+- `rust-tools-nvim` adds in better Rust integration to Neovim.
 - `toggleterm-lua` adds in better terminal integration to Neovim.
-- `vim-test` integrates various test runners with Neovim.
 
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.integrations
 gitsigns-nvim
 glow-nvim
 neogit
+rust-tools-nvim
 toggleterm-nvim
 ```
 
@@ -380,6 +381,7 @@ rnix-lsp
 (with fenix; combine [
   default.rustfmt-preview default.clippy-preview rust-analyzer
 ])
+ripgrep
 ```
 
 ##### Language Servers
@@ -676,12 +678,15 @@ lsp.rnix.setup {
 }
 
 --- Rust
-lsp.rust_analyzer.setup {
-  capabilities = capabilities,
-  settings = {
-    ['rust-analyzer'] = {
-      -- use Clippy
-      checkOnSave = { command = 'clippy' },
+require('rust-tools').setup {
+  tools = {},
+  server = {
+    capabilities = capabilities,
+    settings = {
+      ['rust-analyzer'] = {
+        -- use Clippy
+        checkOnSave = { command = 'clippy' },
+      },
     },
   },
 }
@@ -692,12 +697,20 @@ lsp.zls.setup {
 }
 
 -- Completion
-lib.autocmd('BufEnter', 'lua require(\'completion\').on_attach()')
+local cmp = require('cmp')
+cmp.setup {
+  snippet = {
+    expand = function(args)
+      vim.fn["vsnip#anonymous"](args.body)
+    end,
+  },
+  sources = {
+    { name = 'nvim_lsp' },
+    { name = 'vsnip' },
+  },
+}
+opt.completeopt = {'menuone', 'noinsert', 'noselect'}
 opt.shortmess:append('c')
-g.completion_matching_smart_case = true
-
--- Snippets
-g.completion_enable_snippet = 'vim-vsnip'
 
 -- Syntax
 g.markdown_fenced_languages = {'nix', 'lua', 'rust', 'zig'}
@@ -2484,5 +2497,6 @@ pciutils
   default.toolchain
   latest.rust-src
 ])
+ripgrep
 xorg.xkill
 ```

@@ -6,6 +6,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 { config, lib, pkgs, ... }:
 let 
   cfg = config.programs.neovim;
+  formats = with pkgs.formats; {
+    json = json {};
+    yaml = yaml {};
+  };
 in {
   options.programs.neovim = {
     # users/modules/neovim/options
@@ -23,6 +27,54 @@ in {
       description = ''
         Lua module to load in `init.vim`
       '';
+    };
+
+    langServers.zls = {
+      enable = lib.mkEnableOption "the Zig language server";
+
+      packages = lib.mkOption {
+        type = with lib.types; listOf package;
+        default = [ pkgs.zig pkgs.zls ];
+        description = ''
+          Packages to add to the Neovim environment
+        '';
+      };
+
+      settings = lib.mkOption {
+        type = formats.json.type;
+        default = {};
+        description = ''
+          Configuration written to <filename>$XDG_CONFIG_HOME/zls.json</filename>
+        '';
+      };
+    };
+
+    langServers.efm = {
+      enable = lib.mkEnableOption "the EFM generral-purpose language server";
+
+      package = lib.mkOption {
+        type = lib.types.package;
+        default = pkgs.efm-langserver;
+        description = ''
+          The package to use for EFM
+        '';
+      };
+
+      extraPackages = lib.mkOption {
+        type = with lib.types; listOf package;
+        default = [];
+        description = ''
+          The packages to make available to EFM
+        '';
+      };
+
+      settings = lib.mkOption {
+        type = formats.yaml.type;
+        default = {}; 
+        description = ''
+          Configuration written to <filename>$XDG_CONFIG_HOME/efm-langserver/config.yaml</filename>
+        '';
+      };
     };
   };
 
@@ -45,5 +97,21 @@ in {
         (module: text: lib.nameValuePair "nvim/lua/${module}.lua" { inherit text; }) 
         cfg.luaModules;
     })
+    # users/modules/neovim/langservers/zls
+    (lib.mkIf cfg.langServers.zls.enable (let zls = cfg.langServers.zls; in {
+      programs.neovim.extraPackages = zls.packages;
+
+      xdg.configFile."zls.json" = lib.mkIf (zls.settings != {}) {
+        source = formats.json.generate "zls-config" zls.settings;
+      };
+    }))
+    # users/modules/neovim/langservers/efm
+    (lib.mkIf cfg.langServers.efm.enable (let efm = cfg.langServers.efm; in {
+      programs.neovim.extraPackages = [ efm.package ] ++ efm.extraPackages;
+
+      xdg.configFile."efm-langserver/config.yaml" = lib.mkIf (efm.settings != {}) {
+        source = formats.yaml.generate "efm-config" efm.settings;
+      };
+    }))
   ]);
 }
