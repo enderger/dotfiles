@@ -642,9 +642,31 @@ local g = vim.g
 -- LSP
 local lsp = require('lspconfig')
 
+-- Completion
+local cmp = require('cmp')
+local cmp_doc_scroll = 4
+cmp.setup {
+  snippet = {
+    expand = function(args)
+      vim.fn["vsnip#anonymous"](args.body)
+    end,
+  },
+  mapping = {
+    ['<C-j>'] = cmp.mapping.scroll_docs(cmp_doc_scroll),
+    ['<C-k>'] = cmp.mapping.scroll_docs(-cmp_doc_scroll),
+    ['<CR>'] = cmp.mapping.confirm { select = true },
+  },
+  sources = {
+    { name = 'nvim_lsp' },
+    { name = 'vsnip' },
+  },
+}
+opt.completeopt = {'menuone', 'noinsert', 'noselect'}
+opt.shortmess:append('c')
+
 --- Capabilities
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-capabilities.textDocument.completion.completionItem.snippetSupport = true
+local capabilities = require('cmp_nvim_lsp')
+  .update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
 --- Deno
 lsp.denols.setup {
@@ -695,22 +717,6 @@ require('rust-tools').setup {
 lsp.zls.setup {
   capabilities = capabilities,
 }
-
--- Completion
-local cmp = require('cmp')
-cmp.setup {
-  snippet = {
-    expand = function(args)
-      vim.fn["vsnip#anonymous"](args.body)
-    end,
-  },
-  sources = {
-    { name = 'nvim_lsp' },
-    { name = 'vsnip' },
-  },
-}
-opt.completeopt = {'menuone', 'noinsert', 'noselect'}
-opt.shortmess:append('c')
 
 -- Syntax
 g.markdown_fenced_languages = {'nix', 'lua', 'rust', 'zig'}
@@ -2498,5 +2504,6 @@ pciutils
   latest.rust-src
 ])
 ripgrep
+wineWowPackages.full winetricks
 xorg.xkill
 ```
