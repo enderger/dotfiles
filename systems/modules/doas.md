@@ -58,7 +58,12 @@ Here, we add a `security.wrapper` of `sudo` to `doas`, in order to ensure script
   ];
   
   security.sudo.enable = lib.mkDefault false;
-  security.wrappers.sudo.source = "${pkgs.doas}/bin/doas";
+  security.wrappers.sudo = {
+    setuid = true;
+    owner = "root";
+    group = "root";
+    source = "${pkgs.doas}/bin/doas";
+  };
 })
 ```
 

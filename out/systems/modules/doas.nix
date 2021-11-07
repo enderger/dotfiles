@@ -30,7 +30,12 @@ in {
       ];
       
       security.sudo.enable = lib.mkDefault false;
-      security.wrappers.sudo.source = "${pkgs.doas}/bin/doas";
+      security.wrappers.sudo = {
+        setuid = true;
+        owner = "root";
+        group = "root";
+        source = "${pkgs.doas}/bin/doas";
+      };
     })
   ]);
 }

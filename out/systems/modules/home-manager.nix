@@ -3,7 +3,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
-{ inputs, lib, ... }:
+{ inputs, pkgs, lib, ... }:
 {
   imports = with inputs; [
     hm.nixosModules.home-manager
@@ -14,4 +14,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     useUserPackages = lib.mkDefault true;
     sharedModules = inputs.self.moduleSets.user;
   };
+
+  environment.systemPackages = with pkgs; [
+    dconf
+  ];
 }

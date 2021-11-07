@@ -30,6 +30,10 @@ in {
       wlp6s0.useDHCP = true;
     };
 
+    nameservers = [
+      "1.1.1.1" "9.9.9.9"
+    ];
+
     wireless = {
       inherit (secrets) networks;
       interfaces = [ "wlp6s0" ];

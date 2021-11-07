@@ -277,7 +277,6 @@ in {
           settings = {
             enable_snippets = true;
             warn_style = true;
-            include_at_in_builtins = true;
           };
         };
       };
@@ -483,9 +482,33 @@ in {
           -- LSP
           local lsp = require('lspconfig')
 
+          -- Completion
+          local cmp = require('cmp')
+          local cmp_doc_scroll = 4
+          cmp.setup {
+            snippet = {
+              expand = function(args)
+                vim.fn["vsnip#anonymous"](args.body)
+              end,
+            },
+            mapping = {
+              ['<TAB>'] = cmp.mapping.select_next_item({ cmp.SelectBehavior.Select }),
+              ['<S-TAB>'] = cmp.mapping.select_prev_item({ cmp.SelectBehavior.Select }),
+              ['<C-j>'] = cmp.mapping.scroll_docs(cmp_doc_scroll),
+              ['<C-k>'] = cmp.mapping.scroll_docs(-cmp_doc_scroll),
+              ['<CR>'] = cmp.mapping.confirm { select = true },
+            },
+            sources = {
+              { name = 'nvim_lsp' },
+              { name = 'vsnip' },
+            },
+          }
+          opt.completeopt = {'menuone', 'noinsert', 'noselect'}
+          opt.shortmess:append('c')
+
           --- Capabilities
-          local capabilities = vim.lsp.protocol.make_client_capabilities()
-          capabilities.textDocument.completion.completionItem.snippetSupport = true
+          local capabilities = require('cmp_nvim_lsp')
+            .update_capabilities(vim.lsp.protocol.make_client_capabilities())
 
           --- Deno
           lsp.denols.setup {
@@ -537,24 +560,11 @@ in {
             capabilities = capabilities,
           }
 
-          -- Completion
-          local cmp = require('cmp')
-          cmp.setup {
-            snippet = {
-              expand = function(args)
-                vim.fn["vsnip#anonymous"](args.body)
-              end,
-            },
-            sources = {
-              { name = 'nvim_lsp' },
-              { name = 'vsnip' },
-            },
-          }
-          opt.completeopt = {'menuone', 'noinsert', 'noselect'}
-          opt.shortmess:append('c')
-
           -- Syntax
           g.markdown_fenced_languages = {'nix', 'lua', 'rust', 'zig'}
+
+          -- HACK: *.s files are detected as R files for backwards compatibility, but I usually use it for GNU Assembler files
+          lib.autocmd('BufRead,BufNewFile', 'setfiletype asm', '*.s')
 
           -- Treesitter
           local ts = require('nvim-treesitter.configs')
@@ -710,6 +720,18 @@ in {
 
                     left_sep = ' ',
                     right_sep = ' ',
+                  },
+                  {
+                    provider = 'file_type',
+
+                    hl = {
+                      fg = 'base05',
+                      bg = 'base02',
+                      style = 'bold',
+                    },
+
+                    left_sep = '(',
+                    right_sep = ') ',
                   },
                   {
                     provider = 'position',
@@ -2179,6 +2201,7 @@ in {
         latest.rust-src
       ])
       ripgrep
+      wineWowPackages.full winetricks
       xorg.xkill
     ];
   };

@@ -295,8 +295,7 @@ These plugins provide the core functionality used in this config.
 neoformat
 nvim-cmp cmp-nvim-lsp
 nvim-lspconfig
-# this loads all tree-sitter grammars
-(nvim-treesitter.withPlugins builtins.attrValues)
+nvim-treesitter
 telescope-nvim
 vim-polyglot
 vim-vsnip cmp-vsnip
@@ -373,6 +372,7 @@ nvim-web-devicons nvim-nonicons
 Here, we'll set up the environment within which Neovim operates. This includes things such as LSP servers.
 ```nix "users/enderger/neovim/plugins/packages"
 # users/enderger/neovim/plugins/packages
+gcc
 deno nodePackages.vscode-html-languageserver-bin nodePackages.vscode-css-languageserver-bin
 java-language-server maven
 nur.repos.zachcoyle.kotlin-language-server
@@ -393,7 +393,6 @@ zls = {
   settings = {
     enable_snippets = true;
     warn_style = true;
-    include_at_in_builtins = true;
   };
 };
 ```
@@ -652,6 +651,8 @@ cmp.setup {
     end,
   },
   mapping = {
+    ['<TAB>'] = cmp.mapping.select_next_item({ cmp.SelectBehavior.Select }),
+    ['<S-TAB>'] = cmp.mapping.select_prev_item({ cmp.SelectBehavior.Select }),
     ['<C-j>'] = cmp.mapping.scroll_docs(cmp_doc_scroll),
     ['<C-k>'] = cmp.mapping.scroll_docs(-cmp_doc_scroll),
     ['<CR>'] = cmp.mapping.confirm { select = true },
@@ -721,10 +722,15 @@ lsp.zls.setup {
 -- Syntax
 g.markdown_fenced_languages = {'nix', 'lua', 'rust', 'zig'}
 
+-- HACK: *.s files are detected as R files for backwards compatibility, but I usually use it for GNU Assembler files
+lib.autocmd('BufRead,BufNewFile', 'setfiletype asm', '*.s')
+
 -- Treesitter
 local ts = require('nvim-treesitter.configs')
 local ts_enabled = { enable = true }
 ts.setup {
+  ensure_installed = "maintained",
+
   autopairs = ts_enabled,
 
   highlight = ts_enabled,
@@ -742,6 +748,8 @@ ts.setup {
     smart_rename = ts_enabled,
   },
 }
+
+
 require('treesitter-context.config').setup {
   enable = true,
 }
@@ -881,6 +889,18 @@ local feline_config = {
 
           left_sep = ' ',
           right_sep = ' ',
+        },
+        {
+          provider = 'file_type',
+
+          hl = {
+            fg = 'base05',
+            bg = 'base02',
+            style = 'bold',
+          },
+
+          left_sep = '(',
+          right_sep = ') ',
         },
         {
           provider = 'position',

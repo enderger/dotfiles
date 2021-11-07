@@ -92,7 +92,7 @@ Now that we've defined our inputs, we'll define our outputs. If you recall above
 We now will use these to define what our Flake actually does, with the help of FUP.
 ```nix "flake/outputs"
 # flake/outputs
-inputs.fup.lib.systemFlake {
+inputs.fup.lib.mkFlake {
   inherit self inputs; 
   supportedSystems = [ "aarch64-linux" "x86_64-linux" ];
 
@@ -238,7 +238,6 @@ in inputs.fup.lib.modulesFromList moduleList;
 
 moduleSets = {
   system = [
-    inputs.fup.nixosModules.saneFlakeDefaults
     <<<systems/modules>>>
   ];
   hardware = [

@@ -9,7 +9,7 @@ This module simply provides a default configuration for [home-manager](https://g
 /*
 <<<license>>>
 */
-{ inputs, lib, ... }:
+{ inputs, pkgs, lib, ... }:
 {
   imports = with inputs; [
     hm.nixosModules.home-manager
@@ -20,6 +20,10 @@ This module simply provides a default configuration for [home-manager](https://g
     useUserPackages = lib.mkDefault true;
     sharedModules = inputs.self.moduleSets.user;
   };
+
+  environment.systemPackages = with pkgs; [
+    dconf
+  ];
 }
 ```
 

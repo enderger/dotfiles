@@ -28,7 +28,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
   outputs = inputs@{ self, ... }:
     # flake/outputs
-    inputs.fup.lib.systemFlake {
+    inputs.fup.lib.mkFlake {
       inherit self inputs; 
       supportedSystems = [ "aarch64-linux" "x86_64-linux" ];
 
@@ -100,6 +100,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       # flake/outputs/modules
       nixosModules = let
         moduleList = [
+          # systems/modules.nix
+          ./systems/modules/nix.nix
           # systems/modules.home-manager
           ./systems/modules/home-manager.nix
           # systems/modules.doas
@@ -121,7 +123,8 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
       moduleSets = {
         system = [
-          inputs.fup.nixosModules.saneFlakeDefaults
+          # systems/modules.nix
+          ./systems/modules/nix.nix
           # systems/modules.home-manager
           ./systems/modules/home-manager.nix
           # systems/modules.doas
