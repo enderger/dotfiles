@@ -357,12 +357,14 @@ toggleterm-nvim
 
 ##### UI Plugins
 These provide the building blocks of my editor user interface.
-- `galaxyline-nvim` provides the building blocks used for my statusline.
+- `bufferline-nvim` provides a buffer-based tabline because I'm too stupid to implement one myself.
+- `feline-nvim` provides the building blocks used for my statusline.
 - `nvim-base16` provides strong support for Base16 colourschemes in Neovim.
 - `nvim-web-devicons` / `nvim-nonicons` give Neovim icons.
 
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.ui
+bufferline-nvim
 feline-nvim
 nvim-base16
 nvim-web-devicons nvim-nonicons
@@ -486,7 +488,7 @@ opt.cursorline = true
 opt.guifont = '${font.name}' -- interpolated via Nix
 opt.number = true
 opt.showmode = false
-opt.signcolumn = 'yes:3'
+opt.signcolumn = 'yes:1'
 
 -- indentation
 local tabsize = 2
@@ -829,6 +831,9 @@ toggle_term.setup {
 Here, we have plugins which add UI improvements to Neovim.
 ```lua "users/enderger/neovim/config/ui"
 -- users/enderger/neovim/config/ui
+local api = vim.api
+local opt = vim.opt
+
 -- colours
 local b16 = require('base16-colorscheme')
 local colours = {
@@ -1027,6 +1032,24 @@ feline.setup {
   components = feline_config.components,
   force_inactive = feline_config.force_inactive,
   vi_mode_colors = feline_config.mode_colours,
+}
+
+-- bufferline
+local bufferline = require('bufferline')
+
+bufferline.setup {
+  options = {
+    numbers = function(it)
+      return it.ordinal
+    end,
+    show_close_icon = false,
+    show_tab_indicators = false,
+    buffer_close_icon = 'x',
+    modified_icon = '+',
+    diagnostics = "nvim_lsp",
+    separator_style = 'thin',
+    always_show_bufferline = true,
+  },
 }
 ```
 
