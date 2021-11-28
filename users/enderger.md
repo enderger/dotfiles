@@ -343,6 +343,7 @@ These plugins integrate Neovim with the outside world.
 - `gitsigns-nvim` adds in Git decorations for Neovim
 - `glow-nvim` adds in a nice Markdown preview to Neovim.
 - `neogit` adds in a Magit-like interface for Git in Neovim.
+- `presence-nvim` adds in Discord Rich Presence support
 - `rust-tools-nvim` adds in better Rust integration to Neovim.
 - `toggleterm-lua` adds in better terminal integration to Neovim.
 
@@ -351,6 +352,7 @@ These plugins integrate Neovim with the outside world.
 gitsigns-nvim
 glow-nvim
 neogit
+presence-nvim
 rust-tools-nvim
 toggleterm-nvim
 ```
@@ -824,6 +826,13 @@ local toggle_term = require('toggleterm')
 toggle_term.setup {
   shading_factor = 1,
   open_mapping = "<C-S-t>",
+}
+
+-- Discord RPC
+local discord = require('presence')
+discord:setup {
+  auto_update = "true",
+  neovim_image_text = "https://man.sr.ht/~hutzdog/dotfiles/users/enderger.md#neovim",
 }
 ```
 
