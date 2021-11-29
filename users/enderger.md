@@ -183,7 +183,7 @@ Currently, I'm using Alacritty. At some point, I hope to write my own to avoid c
 programs.alacritty = {
   enable = true;
   settings = {
-    env.TERM = "alacritty";
+    env.TERM = term;
     font.normal.family = font.name;
 
     window = {
@@ -223,7 +223,7 @@ programs.alacritty = {
         white = mkColor 7;
       };
     };
-    background_opacity = 0.97;
+    #background_opacity = 0.97;
   };
 };
 ```
@@ -504,6 +504,7 @@ opt.confirm = true
 opt.completeopt = { 'menuone', 'noinsert', 'noselect' }
 opt.foldmethod = 'expr'
 opt.hidden = true
+opt.lazyredraw = false
 opt.mouse = 'a'
 opt.spell = false
 opt.title = true
@@ -831,7 +832,7 @@ toggle_term.setup {
 -- Discord RPC
 local discord = require('presence')
 discord:setup {
-  auto_update = "true",
+  auto_update = true,
   neovim_image_text = "https://man.sr.ht/~hutzdog/dotfiles/users/enderger.md#neovim",
 }
 ```
@@ -1143,10 +1144,10 @@ end)
 require('theme').setup()
 require('menubar').terminal = '${term}'
 
-require('init').setup()
 require('keys').setup()
 require('rules').setup()
 require('screens').setup()
+require('init').setup()
 ```
 
 #### Library Functions
@@ -1176,6 +1177,10 @@ function M.setup()
   spawn('systemctl --user start picom xidlehook')
   spawn('feh --bg-scale '..(require('beautiful').wallpaper))
   spawn('lxqt-policykit')
+
+  spawn('discordptb', {
+    tag = screen[2].tags[5]
+  })
 end
 
 return M
@@ -1535,6 +1540,16 @@ M.rules = {
       titlebars_enabled = true 
     },
   },
+  {
+    id = 'discord',
+    rule = {
+      class = {"discord"},
+      properties = {
+        tag = screen[2].tags[5]
+      }
+    }
+
+  }
 }
 
 -- signals
@@ -2421,7 +2436,7 @@ I personally use Picom for compositing. This config should prevent certain Nvidi
 services.picom = {
   enable = true;
 
-  backend = "xrender";
+  backend = "glx";
   blur = true;
   inactiveOpacity = "0.97";
   vSync = true;

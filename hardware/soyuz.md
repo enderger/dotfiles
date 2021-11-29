@@ -93,13 +93,13 @@ hardware.opengl = {
 
 services.xserver.xrandrHeads = [
   {
-    output = "HDMI-0";
+    output = "HDMI-1";
     primary = true;
   }  
   {
     output = "DVI-D-0";
     monitorConfig = ''
-      Option "RightOf" "HDMI-A-0"
+      Option "RightOf" "HDMI-1"
     '';
   }
 ];
