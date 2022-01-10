@@ -223,7 +223,7 @@ programs.alacritty = {
         white = mkColor 7;
       };
     };
-    #background_opacity = 0.97;
+    background_opacity = 0.97;
   };
 };
 ```
@@ -282,7 +282,8 @@ Since there are several plugins, I'll use an accumulator macro.
 ##### Core
 These plugins provide the core functionality used in this config.
 - `neoformat` adds in automatic code formatting support
-- `nvim-cmp` / `cmp-nvim-lsp` gives the builtin Neovim LSP client automatic completion support.
+- `nvim-cmp` / `cmp-nvim-lsp` gives the builtin Neovim LSP client automatic completion support.
+- `nvim-dap` / `nvim-dap-ui` adds debugger support through DAP
 - `nvim-lspconfig` sets up the Neovim builtin `Language Server Protocol` client.
 - `nvim-treesitter` adds support for `tree-sitter` parsers.
 - `telescope-nvim` adds an exceptionally powerful fuzzy finder for Neovim.
@@ -294,12 +295,30 @@ These plugins provide the core functionality used in this config.
 # users/enderger/neovim/plugins.backend
 neoformat
 nvim-cmp cmp-nvim-lsp
+nvim-dap nvim-dap-ui
 nvim-lspconfig
 nvim-treesitter
 telescope-nvim
 vim-polyglot
 vim-vsnip cmp-vsnip
-which-key-nvim
+
+# HACK: Fix #226
+(which-key-nvim.overrideAttrs (prev: {
+  patches = [(builtins.toFile "whichkey.patch" ''
+    --- a/lua/which-key/keys.lua
+    +++ b/lua/which-key/keys.lua
+    @@ -248,7 +248,7 @@ M.mappings = {}
+     M.duplicates = {}
+
+     function M.map(mode, prefix, cmd, buf, opts)
+    -  local other = vim.api.nvim_buf_call(buf, function()
+    +  local other = vim.api.nvim_buf_call(buf or 0, function()
+         local ret = vim.fn.maparg(prefix, mode, false, true)
+         ---@diagnostic disable-next-line: undefined-field
+         return (ret and ret.lhs and ret.rhs ~= cmd) and ret or nil
+    '')
+  ];
+}))
 ```
 
 ##### Editing Facilities
@@ -322,6 +341,7 @@ vim-surround
 ##### Utilities
 These plugins enhance the editing experience in a small way.
 - `auto-session` sets up automatic session management for Neovim.
+- `crates-nvim` adds support for rust crate version info
 - `friendly-snippets` adds a bunch of useful snippets for `vim-vsnip`.
 - `minimap-vim` adds in a minimap.
 - `nvim-lightbulb` adds in VSCode's lightbulb for Neovim's LSP.
@@ -331,6 +351,7 @@ These plugins enhance the editing experience in a small way.
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.utilities
 auto-session
+crates-nvim
 friendly-snippets
 minimap-vim
 nvim-lightbulb
@@ -376,16 +397,30 @@ nvim-web-devicons nvim-nonicons
 Here, we'll set up the environment within which Neovim operates. This includes things such as LSP servers.
 ```nix "users/enderger/neovim/plugins/packages"
 # users/enderger/neovim/plugins/packages
+# dependencies
 gcc
-deno nodePackages.vscode-html-languageserver-bin nodePackages.vscode-css-languageserver-bin
-java-language-server maven
-nur.repos.zachcoyle.kotlin-language-server
 git
+ripgrep
+
+# C++
+ccls lldb
+
+# Webdev
+deno nodePackages.vscode-html-languageserver-bin nodePackages.vscode-css-languageserver-bin
+
+# Java
+java-language-server maven
+
+# Kotlin
+nur.repos.zachcoyle.kotlin-language-server
+
+# Nix
 rnix-lsp
+
+# Rust
 (with fenix; combine [
   default.rustfmt-preview default.clippy-preview rust-analyzer
 ])
-ripgrep
 ```
 
 ##### Language Servers
@@ -516,6 +551,8 @@ Here, we set up my keybindings (primarily using `which-key`)
 -- users/enderger/neovim/config/keys
 local map = require('lib').map
 local ts = require('telescope.builtin')
+local dapui = require('dapui')
+local dap = require('dap')
 
 -- leaders
 vim.g.mapleader = ' '
@@ -620,6 +657,57 @@ local action_keys = {
 }
 wk.register(action_keys, { mode = "n", prefix = "<leader>c" })
 
+-- debugger
+local debug_keys = {
+  name = 'debug/',
+  t = {
+    function() dapui.toggle() end,
+    "toggle",
+  },
+  b = {
+    dap.toggle_breakpoint,
+    "breakpoint",
+  },
+  ["<S-b>"] = {
+    function()
+      local condition = vim.fn.input('Breakpoint condition: ')
+      dap.set_breakpoint(condition)
+    end,
+    "breakpoint/conditional",
+  },
+  c = {
+    dap.continue,
+    "continue",
+  },
+  l = {
+    function()
+      local message = vim.fn.input('Message: ')
+      dap.set_breakpoint(nil, nil, message)
+    end,
+    "breakpoint/log_point",
+  },
+  r = {
+    function() dap.repl.open() end,
+    "repl",
+  },
+  s = {
+    name = "step/",
+    i = {
+      function() dap.step_into() end,
+      "into",
+    },
+    o = {
+      function() dap.step_out() end,
+      "out_of",
+    },
+    p = {
+      function() dap.step_over() end,
+      "past",
+    },
+  },
+}
+wk.register(debug_keys, { mode = "n", prefix = "<leader>x" })
+
 -- help
 local help_keys = {
   name = 'help/',
@@ -642,9 +730,6 @@ Here, we set up plugins which focus on directly extending the Vim experience.
 local lib = require('lib')
 local opt = vim.opt
 local g = vim.g
-
--- LSP
-local lsp = require('lspconfig')
 
 -- Completion
 local cmp = require('cmp')
@@ -669,6 +754,9 @@ cmp.setup {
 }
 opt.completeopt = {'menuone', 'noinsert', 'noselect'}
 opt.shortmess:append('c')
+
+-- LSP
+local lsp = require('lspconfig')
 
 --- Capabilities
 local capabilities = require('cmp_nvim_lsp')
@@ -723,6 +811,52 @@ require('rust-tools').setup {
 lsp.zls.setup {
   capabilities = capabilities,
 }
+
+--- C++
+lsp.ccls.setup {
+  capabilities = capabilities,
+}
+
+-- Debugger
+local dap = require('dap')
+
+--- UI
+require('dapui').setup {
+  sidebar = {
+    position = "right",
+  },
+}
+
+--- Adapters
+dap.adapters.lldb = {
+  type = 'executable',
+  command = '${pkgs.lldb}/bin/lldb-vscode',
+  name = 'lldb'
+}
+
+--- Configurations
+local function getExecutable()
+  local prompt = string.format('Executable: %s/', vim.fn.getcwd())
+  return vim.fn.input(prompt, 'file')
+end
+
+--- LLDB
+local lldb_configuration = {
+  {
+    name = "Launch",
+    type = "lldb",
+    request = "launch",
+    program = getExecutable,
+    cwd = '$${workspaceFolder}',
+    stopOnEntry = false,
+    args = {},
+    runInTerminal = false,
+  },
+}
+
+dap.configurations.cpp = lldb_configuration
+dap.configurations.c = lldb_configuration
+dap.configurations.rust = lldb_configuration
 
 -- Syntax
 g.markdown_fenced_languages = {'nix', 'lua', 'rust', 'zig'}
@@ -780,6 +914,9 @@ lib.autocmd('CursorHold,CursorHoldI', 'lua require(\'nvim-lightbulb\').update_li
 -- Git Signs
 local gitsigns = require('gitsigns')
 gitsigns.setup {}
+
+-- Crates
+require('crates').setup {}
 ```
 
 ##### Extensions
@@ -869,6 +1006,7 @@ b16.setup(colours)
 -- statusline
 local feline = require('feline')
 local feline_lsp = require('feline.providers.lsp')
+local lsp_severity = vim.diagnostic.severity
 local feline_vi = require('feline.providers.vi_mode')
 local feline_config = {
   components = {
@@ -930,22 +1068,22 @@ local feline_config = {
         -- LSP info
         {
           provider = 'diagnostic_errors',
-          enabled = function() return feline_lsp.diagnostics_exist('Error') end,
+          enabled = function() return feline_lsp.diagnostics_exist(lsp_severity.ERROR) end,
           hl = { fg = 'base08' },
         },
         {
           provider = 'diagnostic_warnings',
-          enabled = function() return feline_lsp.diagnostics_exist('Warning') end,
+          enabled = function() return feline_lsp.diagnostics_exist(lsp_severity.WARN) end,
           hl = { fg = 'base0A' },
         },
         {
           provider = 'diagnostic_hints',
-          enabled = function() return feline_lsp.diagnostics_exist('Hint') end,
+          enabled = function() return feline_lsp.diagnostics_exist(lsp_severity.HINT) end,
           hl = { fg = 'base0C' },
         },
         {
           provider = 'diagnostic_info',
-          enabled = function() return feline_lsp.diagnostics_exist('Information') end,
+          enabled = function() return feline_lsp.diagnostics_exist(lsp_severity.INFO) end,
           hl = { fg = 'base0D' },
         },
       },  
@@ -1035,14 +1173,15 @@ local feline_config = {
 }
 
 feline.setup {
-  colors = vim.tbl_extend("keep", colours, {
-    fg = colours.base04,
-    bg = colours.base01 
-  }),
   components = feline_config.components,
   force_inactive = feline_config.force_inactive,
   vi_mode_colors = feline_config.mode_colours,
 }
+
+feline.use_theme(vim.tbl_extend("keep", colours, {
+  fg = colours.base04,
+  bg = colours.base01 
+}))
 
 -- bufferline
 local bufferline = require('bufferline')
@@ -2435,14 +2574,17 @@ I personally use Picom for compositing. This config should prevent certain Nvidi
 # users/enderger/picom
 services.picom = {
   enable = true;
-
-  backend = "glx";
   blur = true;
+
+  # better Nouvau support
+  backend = "xr_glx_hybrid";
   inactiveOpacity = "0.97";
   vSync = true;
 
   extraOptions = ''
-    unredir-if-possible = false;
+    unredir-if-possible = true;
+    use-damage = true;
+    glx-no-stencil = true;
   '';
 };
 ```
@@ -2561,6 +2703,7 @@ glfw
 
 ## UTILITIES
 adoptopenjdk-openj9-bin-16
+cargo-expand
 gnumake
 lshw
 nix-prefetch-git

@@ -91,15 +91,19 @@ hardware.opengl = {
   driSupport32Bit = true;
 };
 
-services.xserver.xrandrHeads = [
+services.xserver.videoDrivers = [ "nvidia" ];
+services.xserver.xrandrHeads = let
+  HDMI-monitor = "HDMI-0";
+  DVI-monitor = "DVI-D-0";
+in [
   {
-    output = "HDMI-1";
+    output = HDMI-monitor;
     primary = true;
   }  
   {
-    output = "DVI-D-0";
+    output = DVI-monitor;
     monitorConfig = ''
-      Option "RightOf" "HDMI-1"
+      Option "RightOf" "${HDMI-monitor}"
     '';
   }
 ];
