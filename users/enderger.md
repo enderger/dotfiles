@@ -374,7 +374,24 @@ gitsigns-nvim
 glow-nvim
 neogit
 presence-nvim
-rust-tools-nvim
+
+# HACK: fix #128
+(rust-tools-nvim.overrideAttrs (prev: {
+  patches = [(builtins.toFile "rust-tools.patch" ''
+    --- a/lua/rust-tools/utils/utils.lua
+    +++ b/lua/rust-tools/utils/utils.lua
+    @@ -63,7 +63,7 @@ M.oberride_apply_text_edits()
+     	local old_func = vim.lsp.util.apply_text_edits
+     	vim.lsp.util.apply_text_edits = function(edits, bufnr)
+     		M.snippet_text_edits_to_text_edits(edits)
+    -		old_func(edits, bufnr)
+    +		old_func(edits, bufnr, "utf16")
+     	end
+     end
+    '')
+  ];
+}))
+
 toggleterm-nvim
 ```
 
@@ -523,6 +540,7 @@ local opt = vim.opt
 opt.background = 'dark'
 opt.cursorline = true
 opt.guifont = '${font.name}' -- interpolated via Nix
+opt.list = true
 opt.number = true
 opt.showmode = false
 opt.signcolumn = 'yes:1'
@@ -2698,7 +2716,7 @@ zoom-us
 steam
 steam-run
 ckan
-minecraft multimc
+minecraft polymc
 glfw
 
 ## UTILITIES

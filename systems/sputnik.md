@@ -119,7 +119,7 @@ Here, we have everything which doesn't fit into a category cleanly.
 ```nix "systems/sputnik/misc"
 # systems/sputnik/misc
 documentation.man.generateCaches = true;
-services.dbus.packages = with pkgs; [ gnome.dconf ];
+services.dbus.packages = with pkgs; [ dconf ];
 ```
 
 # Packages
