@@ -150,7 +150,7 @@ This channel is used when bleeding-edge is preferred. I use this more than stabl
 unstable = {
   input = inputs.unstable;
   overlaysBuilder = channels: [
-    (final: prev: { inherit (channels.master.vimPlugins) feline-nvim lsp-rooter-nvim; })
+    (final: prev: { inherit (channels.fallback.linuxPackages_xanmod) nvidia_x11; })
   ];
 };
 ```

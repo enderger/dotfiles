@@ -223,7 +223,7 @@ programs.alacritty = {
         white = mkColor 7;
       };
     };
-    background_opacity = 0.97;
+    window.opacity = 0.97;
   };
 };
 ```
@@ -301,24 +301,7 @@ nvim-treesitter
 telescope-nvim
 vim-polyglot
 vim-vsnip cmp-vsnip
-
-# HACK: Fix #226
-(which-key-nvim.overrideAttrs (prev: {
-  patches = [(builtins.toFile "whichkey.patch" ''
-    --- a/lua/which-key/keys.lua
-    +++ b/lua/which-key/keys.lua
-    @@ -248,7 +248,7 @@ M.mappings = {}
-     M.duplicates = {}
-
-     function M.map(mode, prefix, cmd, buf, opts)
-    -  local other = vim.api.nvim_buf_call(buf, function()
-    +  local other = vim.api.nvim_buf_call(buf or 0, function()
-         local ret = vim.fn.maparg(prefix, mode, false, true)
-         ---@diagnostic disable-next-line: undefined-field
-         return (ret and ret.lhs and ret.rhs ~= cmd) and ret or nil
-    '')
-  ];
-}))
+which-key-nvim
 ```
 
 ##### Editing Facilities
@@ -367,6 +350,7 @@ These plugins integrate Neovim with the outside world.
 - `presence-nvim` adds in Discord Rich Presence support
 - `rust-tools-nvim` adds in better Rust integration to Neovim.
 - `toggleterm-lua` adds in better terminal integration to Neovim.
+- `tup` adds suppport for Tupfiles
 
 ```nix "users/enderger/neovim/plugins" +=
 # users/enderger/neovim/plugins.integrations
@@ -374,25 +358,9 @@ gitsigns-nvim
 glow-nvim
 neogit
 presence-nvim
-
-# HACK: fix #128
-(rust-tools-nvim.overrideAttrs (prev: {
-  patches = [(builtins.toFile "rust-tools.patch" ''
-    --- a/lua/rust-tools/utils/utils.lua
-    +++ b/lua/rust-tools/utils/utils.lua
-    @@ -63,7 +63,7 @@ M.oberride_apply_text_edits()
-     	local old_func = vim.lsp.util.apply_text_edits
-     	vim.lsp.util.apply_text_edits = function(edits, bufnr)
-     		M.snippet_text_edits_to_text_edits(edits)
-    -		old_func(edits, bufnr)
-    +		old_func(edits, bufnr, "utf16")
-     	end
-     end
-    '')
-  ];
-}))
-
+rust-tools-nvim
 toggleterm-nvim
+tup
 ```
 
 ##### UI Plugins
@@ -430,6 +398,9 @@ java-language-server maven
 
 # Kotlin
 nur.repos.zachcoyle.kotlin-language-server
+
+# Nim
+nimlsp nim
 
 # Nix
 rnix-lsp
@@ -542,6 +513,7 @@ opt.cursorline = true
 opt.guifont = '${font.name}' -- interpolated via Nix
 opt.list = true
 opt.number = true
+opt.relativenumber = true
 opt.showmode = false
 opt.signcolumn = 'yes:1'
 
@@ -767,6 +739,7 @@ cmp.setup {
   },
   sources = {
     { name = 'nvim_lsp' },
+    { name = "crates" },
     { name = 'vsnip' },
   },
 }
@@ -806,6 +779,16 @@ lsp.cssls.setup {
   capabilities = capabilities,
 }
 
+--- C++
+lsp.ccls.setup {
+  capabilities = capabilities,
+}
+
+--- Nim
+lsp.nimls.setup {
+  capabilties = capabilities,
+}
+
 --- Nix
 lsp.rnix.setup {
   capabilities = capabilities,
@@ -827,11 +810,6 @@ require('rust-tools').setup {
 
 --- Zig
 lsp.zls.setup {
-  capabilities = capabilities,
-}
-
---- C++
-lsp.ccls.setup {
   capabilities = capabilities,
 }
 
@@ -875,6 +853,7 @@ local lldb_configuration = {
 dap.configurations.cpp = lldb_configuration
 dap.configurations.c = lldb_configuration
 dap.configurations.rust = lldb_configuration
+dap.configurations.nim = lldb_configuration
 
 -- Syntax
 g.markdown_fenced_languages = {'nix', 'lua', 'rust', 'zig'}
@@ -956,7 +935,7 @@ tsc.setup {
         ['<Esc>'] = tsc_actions.close,
       },
     },
-    
+
     prompt_prefix = '$ ',
     selection_caret = '> ',
   },
@@ -980,7 +959,9 @@ neogit.setup {
 -- Terminal
 local toggle_term = require('toggleterm')
 toggle_term.setup {
+  hide_numbers = false,
   shading_factor = 1,
+  shade_terminals = true,
   open_mapping = "<C-S-t>",
 }
 
@@ -2594,8 +2575,9 @@ services.picom = {
   enable = true;
   blur = true;
 
-  # better Nouvau support
-  backend = "xr_glx_hybrid";
+  # better Nvidia support
+  experimentalBackends = true;
+  backend = "glx";
   inactiveOpacity = "0.97";
   vSync = true;
 
@@ -2603,6 +2585,7 @@ services.picom = {
     unredir-if-possible = true;
     use-damage = true;
     glx-no-stencil = true;
+    xrender-sync-fence = true;
   '';
 };
 ```

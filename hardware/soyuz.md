@@ -30,7 +30,7 @@ in {
   <<<hardware/soyuz/audio>>>
   <<<hardware/soyuz/printing>>>
   <<<hardware/soyuz/filesystem>>>
-  nix.maxJobs = lib.mkDefault 16;
+  nix.settings.max-jobs = lib.mkDefault 16;
 }
 ```
 
@@ -40,7 +40,7 @@ Firstly, we need to configure the kernel modules needed to make the system work.
 # hardware/soyuz/kernel
 boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usb_storage" "ums_realtek" "usbhid" "sd_mod" "sr_mod" "nvme" ];
 boot.kernelModules = [ "kvm-amd" ];
-boot.kernelParams = [ "processor.max_cstate=5" "intel_idle.max_cstate=1" ];
+boot.kernelParams = [ "processor.max_cstate=5" "intel_idle.max_cstate=1" "video=HDMI-1:1920x1080@60" "video=VGA-1:1440x900" ];
 hardware.cpu.amd.updateMicrocode = true;
 ```
 
@@ -60,10 +60,10 @@ networking = {
   useNetworkd = true;
   useDHCP = false;
   usePredictableInterfaceNames = true;
-  enableBCMWL = true;
+  enableBCMWL = false;
 
   interfaces = {
-    wlp6s0.useDHCP = true;
+    wlp5s0.useDHCP = true;
   };
 
   nameservers = [
@@ -72,7 +72,7 @@ networking = {
 
   wireless = {
     inherit (secrets) networks;
-    interfaces = [ "wlp6s0" ];
+    interfaces = [ "wlp5s0" ];
     enable = true;
   };
 };
@@ -91,6 +91,7 @@ hardware.opengl = {
   driSupport32Bit = true;
 };
 
+# TODO: Figure out why Nvidia drivers refuse to download (again)
 services.xserver.videoDrivers = [ "nvidia" ];
 services.xserver.xrandrHeads = let
   HDMI-monitor = "HDMI-0";
