@@ -39,6 +39,7 @@ in {
     <<<users/enderger/man>>>
     <<<users/enderger/bat>>>
     <<<users/enderger/neovim>>>
+    <<<users/enderger/emacs>>>
     <<<users/enderger/git>>>
 
     # GUI Setup
@@ -1199,6 +1200,203 @@ bufferline.setup {
     always_show_bufferline = true,
   },
 }
+```
+
+### EMACS
+Here, we configure EMACS, maybe in the future something like OrgMode will be used here.
+
+```nix "users/enderger/emacs"
+# users/enderger/emacs
+programs.emacs = let
+  emacs = pkgs.emacsUnstable;
+  emacs' = (pkgs.emacsPackagesFor emacs).emacsWithPackages (epkgs:
+    with epkgs; [
+      <<<users/enderger/emacs/packages>>>
+    ]);
+  in {
+  enable = true;
+  package = emacs';
+  extraConfig = ''
+    <<<users/enderger/emacs/theming>>>
+    <<<users/enderger/emacs/keys>>>
+    ;<<<users/enderger/emacs/tree-sitter>>>
+    <<<users/enderger/emacs/lsp>>>
+  '';
+};
+```
+
+#### Packages
+```nix "users/enderger/emacs/packages"
+# users/enderger/emacs/packages
+# Editing
+company
+#dap-mode
+lsp-mode lsp-ui
+# TODO: wait for tree-sitter support in nixpkgs/emacs-overlay
+#tree-sitter tree-sitter-indent tree-sitter-langs
+
+# Keys
+meow
+
+# Theming
+dashboard
+mini-modeline
+nord-theme
+```
+
+#### Theming
+```elisp "users/enderger/emacs/theming"
+; users/enderger/emacs/theming
+;; Theme
+(require 'nord-theme)
+(load-theme 'nord t)
+
+;; Numbers
+(global-display-line-numbers-mode)
+(setq display-line-numbers-type 'relative)
+(set-face-attribute 'line-number-current-line nil
+  :weight 'bold
+  :foreground "white")
+
+;; Cursorline
+(global-hl-line-mode)
+
+;; Modeline
+(require 'mini-modeline)
+(setq mini-modeline-enhance-visual t)
+(setq mini-modeline-display-gui-line nil)
+(mini-modeline-mode t)
+
+;; GUI Elements
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(toggle-scroll-bar -1)
+
+;; Start Screen
+(require 'dashboard)
+(setq dashboard-startup-banner 'logo)
+(setq dashboard-show-shortcuts t)
+(dashboard-setup-startup-hook)
+```
+
+#### Keys
+```elisp "users/enderger/emacs/keys"
+; users/enderger/emacs/keys
+;; Meow
+(require 'meow)
+
+;;; Use meow QWERTY keys
+(defun meow-setup ()
+  (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+  (meow-motion-overwrite-define-key
+   '("j" . meow-next)
+   '("k" . meow-prev)
+   '("<escape>" . ignore))
+  (meow-leader-define-key
+   ;; SPC j/k will run the original command in MOTION state.
+   '("j" . "H-j")
+   '("k" . "H-k")
+   ;; Use SPC (0-9) for digit arguments.
+   '("1" . meow-digit-argument)
+   '("2" . meow-digit-argument)
+   '("3" . meow-digit-argument)
+   '("4" . meow-digit-argument)
+   '("5" . meow-digit-argument)
+   '("6" . meow-digit-argument)
+   '("7" . meow-digit-argument)
+   '("8" . meow-digit-argument)
+   '("9" . meow-digit-argument)
+   '("0" . meow-digit-argument)
+   '("/" . meow-keypad-describe-key)
+   '("?" . meow-cheatsheet))
+  (meow-normal-define-key
+   '("0" . meow-expand-0)
+   '("9" . meow-expand-9)
+   '("8" . meow-expand-8)
+   '("7" . meow-expand-7)
+   '("6" . meow-expand-6)
+   '("5" . meow-expand-5)
+   '("4" . meow-expand-4)
+   '("3" . meow-expand-3)
+   '("2" . meow-expand-2)
+   '("1" . meow-expand-1)
+   '("-" . negative-argument)
+   '(";" . meow-reverse)
+   '("," . meow-inner-of-thing)
+   '("." . meow-bounds-of-thing)
+   '("[" . meow-beginning-of-thing)
+   '("]" . meow-end-of-thing)
+   '("a" . meow-append)
+   '("A" . meow-open-below)
+   '("b" . meow-back-word)
+   '("B" . meow-back-symbol)
+   '("c" . meow-change)
+   '("d" . meow-delete)
+   '("D" . meow-backward-delete)
+   '("e" . meow-next-word)
+   '("E" . meow-next-symbol)
+   '("f" . meow-find)
+   '("g" . meow-cancel-selection)
+   '("G" . meow-grab)
+   '("h" . meow-left)
+   '("H" . meow-left-expand)
+   '("i" . meow-insert)
+   '("I" . meow-open-above)
+   '("j" . meow-next)
+   '("J" . meow-next-expand)
+   '("k" . meow-prev)
+   '("K" . meow-prev-expand)
+   '("l" . meow-right)
+   '("L" . meow-right-expand)
+   '("m" . meow-join)
+   '("n" . meow-search)
+   '("o" . meow-block)
+   '("O" . meow-to-block)
+   '("p" . meow-yank)
+   '("q" . meow-quit)
+   '("Q" . meow-goto-line)
+   '("r" . meow-replace)
+   '("R" . meow-swap-grab)
+   '("s" . meow-kill)
+   '("t" . meow-till)
+   '("u" . meow-undo)
+   '("U" . meow-undo-in-selection)
+   '("v" . meow-visit)
+   '("w" . meow-mark-word)
+   '("W" . meow-mark-symbol)
+   '("x" . meow-line)
+   '("X" . meow-goto-line)
+   '("y" . meow-save)
+   '("Y" . meow-sync-grab)
+   '("z" . meow-pop-selection)
+   '("'" . repeat)
+   '("<escape>" . ignore)
+   '(":" . eval-expression)))
+
+(meow-setup)
+(meow-global-mode t)
+```
+
+#### Tree Sitter
+NOTE: will be used once issues in Nixpkgs are fixed
+```elisp "users/enderger/emacs/tree-sitter"
+; users/enderger/emacs/tree-sitter
+;; Tree sitter
+(require 'tree-sitter)
+(require 'tree-sitter-langs)
+(global-tree-sitter-mode)
+
+(tree-sitter-require 'rust)
+(require 'tree-sitter-indent)
+(add-hook 'rust-mode-hook #'tree-sitter-indent-mode)
+```
+
+#### LSP
+```elisp "users/enderger/emacs/lsp"
+; users/enderger/emacs/lsp
+;; LSP
+(require 'lsp-mode)
+(add-hook 'rust-mode-hook #'lsp)
 ```
 
 ## Other

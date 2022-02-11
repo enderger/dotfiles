@@ -52,6 +52,7 @@ luaInit = lib.mkOption {
   '';
 };
 
+# TODO: refactor to separate module, since they are now included with EMACS as well
 langServers.zls = {
   enable = lib.mkEnableOption "the Zig language server";
 

@@ -68,6 +68,7 @@ fup.url = "github:gytis-ivaskevicius/flake-utils-plus";
 
 ### Package Sources
 Next, let's add those inputs which are intended to extend Nixpkgs.
+- `emacs` : The EMACS unstable builds, packaged for nix
 - `nur` : The NUR (Nix User Repositories) extend the Nixpkgs ecosystem with a set of user-maintained package sets.
 - `my-nur` : My own NUR repo
 - `fenix` : Fenix provides strong integration of the Rust toolchains into Nix.
@@ -75,6 +76,7 @@ Next, let's add those inputs which are intended to extend Nixpkgs.
 
 ```nix "flake/inputs" +=
 # flake/inputs.packages
+emacs.url = "github:nix-community/emacs-overlay";
 nur.url = "github:nix-community/NUR";
 my-nur.url = "git+https://git.sr.ht/~hutzdog/NUR";
 fenix = {
@@ -128,6 +130,7 @@ Before we define our channels, we need to define the `flake/outputs/channels/ove
 ```nix "flake/outputs/channels/overlays"
 # flake/outputs/channels/overlays
 self.overlay
+emacs.overlay
 nur.overlay
 my-nur.overlays.awesome
 neovim.overlay
