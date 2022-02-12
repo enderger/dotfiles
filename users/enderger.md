@@ -14,6 +14,7 @@ let
   theme = [
     <<<users/enderger/colours>>>
   ];
+  
   theme-colour = builtins.elemAt theme;
   font = {
     name = "FiraCode Nerd Font";
@@ -1236,19 +1237,23 @@ eglot
 # HACK: tree-sitter support in nixpkgs/emacs-overlay is broken
 pkgs.fix-emacs-ts.emacsPackages.tree-sitter
 pkgs.fix-emacs-ts.emacsPackages.tree-sitter-langs
-tree-sitter-indent
 
 # Keys
 ace-window
 meow
+vterm vterm-toggle
 which-key
 
 # Languages
 p.deno
+p.luajitPackages.lua-lsp lua-mode
+markdown-mode poly-markdown poly-R ess
 p.nim p.nimlsp nim-mode
+nix-mode
+p.python3
 (with p.fenix; combine [
   default.rustfmt-preview default.clippy-preview rust-analyzer
-])
+]) rust-mode
 p.zig p.zls zig-mode
 
 # Integrations
@@ -1257,9 +1262,10 @@ treemacs
 
 # Theming
 all-the-icons
-doom-themes
 centaur-tabs
 dashboard
+doom-themes
+hl-todo    
 mini-modeline
 ```
 
@@ -1298,6 +1304,14 @@ mini-modeline
 (toggle-scroll-bar -1)
 (whitespace-mode)
 
+;; Todos
+(require 'hl-todo)
+(setq hl-todo-keyword-faces
+	  '(("TODO" . (face-attribute 'org-todo :foreground))
+		("FIXME" . (face-attribute 'error :foreground))
+		("HACK" . (face-attribute 'warning :foreground))))
+(add-hook 'prog-mode-hook 'hl-todo-mode)
+
 ;; Start Screen
 (require 'dashboard)
 (setq dashboard-startup-banner 'logo)
@@ -1305,6 +1319,7 @@ mini-modeline
 (dashboard-setup-startup-hook)
 
 ;; Ido
+(require 'ido)
 (setq ido-enable-flex-matching t)
 (setq ido-everywhere t)
 (ido-mode t)
@@ -1327,7 +1342,14 @@ mini-modeline
 
 ;; Ace Window
 (require 'ace-window)
-(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l ?;))
+(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+
+;; Shell Pop
+(require 'vterm)
+(require 'vterm-toggle)
+
+;; Auto pairs
+(electric-pair-mode t)
 
 ;; Meow
 (require 'meow)
@@ -1356,15 +1378,16 @@ mini-modeline
    '("0" . meow-digit-argument)
    '("/" . meow-keypad-describe-key)
    '("?" . meow-cheatsheet)
-   '("t" . treemacs)
-   '("g" . magit)
-   '("s" . eshell)
+   '("f" . treemacs)
+   '("v" . magit)
    '("r" . eval-expression)
    '("n" . centaur-tabs-forward)
    '("p" . centaur-tabs-backward)
    '("d" . kill-whole-line)
    '("q" . kill-buffer)
-   '("w" . ace-window))
+   '("s" . ace-window)
+   '("w" . save-buffer)
+   '("t" . vterm-toggle))
   (meow-normal-define-key
    '("0" . meow-expand-0)
    '("9" . meow-expand-9)
@@ -1431,6 +1454,17 @@ mini-modeline
 
 (meow-setup)
 (meow-global-mode t)
+
+;; Other
+(global-set-key
+ (kbd "/")
+ (lambda () (interactive)
+   (isearch-forward-regexp)))
+  
+(global-set-key
+ (kbd "?")
+ (lambda () (interactive)
+   (isearch-backward-regexp)))
 ```
 
 #### Tree Sitter
@@ -1477,23 +1511,35 @@ mini-modeline
 #### Languages
 ```elisp "users/enderger/emacs/languages"
 ; users/enderger/emacs/languages
+;; Lua
+(require 'lua-mode)
+(add-hook 'lua-mode-hook #'eglot-ensure)
+
 ;; Nim
 (require 'nim-mode)
 (add-hook 'nim-mode-hook #'eglot-ensure)
 
+;; Nix
+(require 'nix-mode)
+(add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode))
+
 ;; Rust
-(tree-sitter-require 'rust)
-(require 'tree-sitter-indent)
-(add-hook 'rust-mode-hook 'tree-sitter-indent-mode)
+(require 'rust-mode)
 (add-hook 'rust-mode-hook 'eglot-ensure)
+(add-hook 'rust-mode-hook (lambda () (prettify-symbols-mode)))
 
 ;; Zig
 (require 'zig-mode)
 (add-hook 'zig-mode-hook 'eglot-ensure)
+
+;; Markdown
+(require 'markdown-mode)
+(require 'poly-R)
+(require 'poly-markdown)
 ```
 
 ## Other
-### Git
+### Git 
 ```nix "users/enderger/git"
 # users/enderger/git
 programs.git = {
@@ -2982,6 +3028,7 @@ discord-ptb
 etcher
 exercism
 jetbrains.idea-community
+obs-studio    
 pcmanfm
 spectacle
 zoom-us
