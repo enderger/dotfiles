@@ -45,6 +45,7 @@ The first input we need is the main repo for Nix, called **Nixpkgs**. The differ
 - `unstable` : The rolling version of Nix, I use the `nixos-unstable-small` channel for even faster releases
 - `fallback` : The `nixos-unstable` branch, which I provide as a fallback channel via an overlay
 - `nixpkgs` : An alias to whichever channel dependencies should use
+- `fix-emacs-ts` : Provides a working Tree-Sitter derivation for EMACS.
 
 ```nix "flake/inputs" +=
 # flake/inputs.nixpkgs
@@ -53,6 +54,8 @@ unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
 master.url = "github:nixos/nixpkgs/master";
 fallback.url = "github:nixos/nixpkgs/nixos-unstable";
 nixpkgs.follows = "unstable";
+
+fix-emacs-ts.url = "github:pimeys/nixpkgs/emacs-tree-sitter/link-grammars";
 ```
 
 ### Core Tools
@@ -153,7 +156,13 @@ This channel is used when bleeding-edge is preferred. I use this more than stabl
 unstable = {
   input = inputs.unstable;
   overlaysBuilder = channels: [
-    (final: prev: { inherit (channels.fallback.linuxPackages_xanmod) nvidia_x11; })
+    (final: prev: {
+      linuxPackages_xanmod = prev.linuxPackages_xanmod // {
+        inherit (channels.fallback.linuxPackages_xanmod) nvidia_x11; 
+      };
+
+      inherit (channels) fallback fix-emacs-ts;
+    })
   ];
 };
 ```
@@ -180,15 +189,25 @@ fallback = {
 };
 ```
 
+#### Other
+```nix "flake/outputs/channels/cumulative" +=
+# flake/outputs/channels/cumulative.other
+fix-emacs-ts = {
+  input = inputs.fix-emacs-ts;
+};
+```
+
 ### Hosts
 Now, we get to use our inputs to make a set of system configurations.
 ```nix "flake/outputs/hosts"
 # flake/outputs/hosts
-hostDefaults = {
-  system = "x86_64-linux";
+hostDefaults = let
+  sys = "x86_64-linux";
+in {
+  system = sys;
   modules = with self.moduleSets; system ++ hardware;
   channelName = "unstable";
-  specialArgs = { inherit inputs; };
+  specialArgs = { inherit inputs; system = sys; };
 };
 
 hosts = with inputs; {

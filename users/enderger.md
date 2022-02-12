@@ -8,7 +8,7 @@ This is my primary user, not much more to say.
 /*
 <<<license>>>
 */
-{ pkgs, inputs, lib, ... }:
+{ pkgs, inputs, lib, system, ... }:
 let 
   secrets = import ./enderger.secret.nix;
   theme = [
@@ -1210,7 +1210,7 @@ Here, we configure EMACS, maybe in the future something like OrgMode will be use
 programs.emacs = let
   emacs = pkgs.emacsUnstable;
   emacs' = (pkgs.emacsPackagesFor emacs).emacsWithPackages (epkgs:
-    with epkgs; [
+    with epkgs; let p = pkgs; in [
       <<<users/enderger/emacs/packages>>>
     ]);
   in {
@@ -1219,8 +1219,9 @@ programs.emacs = let
   extraConfig = ''
     <<<users/enderger/emacs/theming>>>
     <<<users/enderger/emacs/keys>>>
-    ;<<<users/enderger/emacs/tree-sitter>>>
+    <<<users/enderger/emacs/tree-sitter>>>
     <<<users/enderger/emacs/lsp>>>
+    <<<users/enderger/emacs/languages>>>
   '';
 };
 ```
@@ -1229,27 +1230,45 @@ programs.emacs = let
 ```nix "users/enderger/emacs/packages"
 # users/enderger/emacs/packages
 # Editing
-company
-#dap-mode
-lsp-mode lsp-ui
-# TODO: wait for tree-sitter support in nixpkgs/emacs-overlay
-#tree-sitter tree-sitter-indent tree-sitter-langs
+company company-quickhelp
+eglot
+
+# HACK: tree-sitter support in nixpkgs/emacs-overlay is broken
+pkgs.fix-emacs-ts.emacsPackages.tree-sitter
+pkgs.fix-emacs-ts.emacsPackages.tree-sitter-langs
+tree-sitter-indent
 
 # Keys
+ace-window
 meow
+which-key
+
+# Languages
+p.deno
+p.nim p.nimlsp nim-mode
+(with p.fenix; combine [
+  default.rustfmt-preview default.clippy-preview rust-analyzer
+])
+p.zig p.zls zig-mode
+
+# Integrations
+magit
+treemacs
 
 # Theming
+all-the-icons
+doom-themes
+centaur-tabs
 dashboard
 mini-modeline
-nord-theme
 ```
 
 #### Theming
 ```elisp "users/enderger/emacs/theming"
 ; users/enderger/emacs/theming
 ;; Theme
-(require 'nord-theme)
-(load-theme 'nord t)
+(require 'doom-themes)
+(load-theme 'doom-nord t)
 
 ;; Numbers
 (global-display-line-numbers-mode)
@@ -1267,21 +1286,49 @@ nord-theme
 (setq mini-modeline-display-gui-line nil)
 (mini-modeline-mode t)
 
+;; Tabline
+(require 'centaur-tabs)
+(setq centaur-tabs-height 16)
+(setq centaur-tabs-set-bar 'left)
+(centaur-tabs-mode t)
+
 ;; GUI Elements
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (toggle-scroll-bar -1)
+(whitespace-mode)
 
 ;; Start Screen
 (require 'dashboard)
 (setq dashboard-startup-banner 'logo)
 (setq dashboard-show-shortcuts t)
 (dashboard-setup-startup-hook)
+
+;; Ido
+(setq ido-enable-flex-matching t)
+(setq ido-everywhere t)
+(ido-mode t)
+
+;; File tree
+(require 'treemacs)
+(setq doom-themes-treemacs-theme "doom-nord")
+(doom-themes-treemacs-config)
+
+;; Git integration
+(require 'magit)
 ```
 
 #### Keys
 ```elisp "users/enderger/emacs/keys"
 ; users/enderger/emacs/keys
+;; Which-key
+(require 'which-key)
+(which-key-mode)
+
+;; Ace Window
+(require 'ace-window)
+(setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l ?;))
+
 ;; Meow
 (require 'meow)
 
@@ -1308,7 +1355,16 @@ nord-theme
    '("9" . meow-digit-argument)
    '("0" . meow-digit-argument)
    '("/" . meow-keypad-describe-key)
-   '("?" . meow-cheatsheet))
+   '("?" . meow-cheatsheet)
+   '("t" . treemacs)
+   '("g" . magit)
+   '("s" . eshell)
+   '("r" . eval-expression)
+   '("n" . centaur-tabs-forward)
+   '("p" . centaur-tabs-backward)
+   '("d" . kill-whole-line)
+   '("q" . kill-buffer)
+   '("w" . ace-window))
   (meow-normal-define-key
    '("0" . meow-expand-0)
    '("9" . meow-expand-9)
@@ -1371,32 +1427,69 @@ nord-theme
    '("z" . meow-pop-selection)
    '("'" . repeat)
    '("<escape>" . ignore)
-   '(":" . eval-expression)))
+   '(":" . execute-extended-command)))
 
 (meow-setup)
 (meow-global-mode t)
 ```
 
 #### Tree Sitter
-NOTE: will be used once issues in Nixpkgs are fixed
 ```elisp "users/enderger/emacs/tree-sitter"
 ; users/enderger/emacs/tree-sitter
 ;; Tree sitter
 (require 'tree-sitter)
 (require 'tree-sitter-langs)
-(global-tree-sitter-mode)
-
-(tree-sitter-require 'rust)
-(require 'tree-sitter-indent)
-(add-hook 'rust-mode-hook #'tree-sitter-indent-mode)
+(add-hook 'after-init-hook 'global-tree-sitter-mode)
 ```
 
 #### LSP
 ```elisp "users/enderger/emacs/lsp"
 ; users/enderger/emacs/lsp
+;; Company
+(require 'company)
+(require 'company-quickhelp)
+(add-hook 'after-init-hook 'global-company-mode)
+(add-hook 'after-init-hook 'company-quickhelp-mode)
+
+(setq company-idle-delay 0)
+(setq company-minimum-prefix-length 1)
+(setq company-selection-wrap-around t)
+
+(with-eval-after-load 'company
+  (define-key company-active-map
+    (kbd "<tab>")
+    #'company-complete-common-or-cycle)
+  (define-key company-active-map
+    (kbd "<backtab>")
+    (lambda () (interactive)
+      (company-complete-common-or-cycle -1))))
+
 ;; LSP
-(require 'lsp-mode)
-(add-hook 'rust-mode-hook #'lsp)
+(require 'eglot)
+(add-to-list 'eglot-server-programs
+  '(nim-mode . ("nimlsp")))
+
+;; Flymake
+(remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
+(flymake-mode t)
+```
+
+#### Languages
+```elisp "users/enderger/emacs/languages"
+; users/enderger/emacs/languages
+;; Nim
+(require 'nim-mode)
+(add-hook 'nim-mode-hook #'eglot-ensure)
+
+;; Rust
+(tree-sitter-require 'rust)
+(require 'tree-sitter-indent)
+(add-hook 'rust-mode-hook 'tree-sitter-indent-mode)
+(add-hook 'rust-mode-hook 'eglot-ensure)
+
+;; Zig
+(require 'zig-mode)
+(add-hook 'zig-mode-hook 'eglot-ensure)
 ```
 
 ## Other
@@ -2897,13 +2990,14 @@ zoom-us
 steam
 steam-run
 ckan
-minecraft polymc
 glfw
+minecraft polymc
 
 ## UTILITIES
 adoptopenjdk-openj9-bin-16
 cargo-expand
 gnumake
+lldb
 lshw
 nix-prefetch-git
 pandoc
@@ -2913,6 +3007,8 @@ pciutils
   latest.rust-src
 ])
 ripgrep
+tup
 wineWowPackages.full winetricks
+xclip
 xorg.xkill
 ```
