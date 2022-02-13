@@ -24,7 +24,7 @@ let
   term = "alacritty";
   browser = "qutebrowser";
   lock = "${pkgs.i3lock}/bin/i3lock -n -c ${theme-colour 0}";
-  editor = "neovide";
+  editor = "emacsclient";
 in {
   <<<users/enderger/userOptions>>>
 
@@ -1218,12 +1218,17 @@ programs.emacs = let
   enable = true;
   package = emacs';
   extraConfig = ''
-    <<<users/enderger/emacs/theming>>>
     <<<users/enderger/emacs/keys>>>
-    <<<users/enderger/emacs/tree-sitter>>>
-    <<<users/enderger/emacs/lsp>>>
     <<<users/enderger/emacs/languages>>>
+    <<<users/enderger/emacs/interface>>>
+    <<<users/enderger/emacs/completions>>>
   '';
+  };
+
+services.emacs = {
+    enable = true;
+    defaultEditor = true;
+    client.enable = true;
 };
 ```
 
@@ -1241,19 +1246,34 @@ pkgs.fix-emacs-ts.emacsPackages.tree-sitter-langs
 # Keys
 ace-window
 meow
+
 vterm vterm-toggle
 which-key
+
+# Dependencies
+p.python3
 
 # Languages
 p.deno
 p.luajitPackages.lua-lsp lua-mode
 markdown-mode poly-markdown poly-R ess
-p.nim p.nimlsp nim-mode
+p.nim p.nimlsp nim-mode    
 nix-mode
-p.python3
+
+## Ocaml
+caml p.ocaml
+dune p.dune_2
+merlin merlin-company p.ocamlPackages.merlin
+tuareg
+utop p.ocamlPackages.utop
+
+## Rust
 (with p.fenix; combine [
   default.rustfmt-preview default.clippy-preview rust-analyzer
-]) rust-mode
+])
+rust-mode
+
+## Zig
 p.zig p.zls zig-mode
 
 # Integrations
@@ -1265,13 +1285,13 @@ all-the-icons
 centaur-tabs
 dashboard
 doom-themes
-hl-todo    
+hl-todo
 mini-modeline
 ```
 
-#### Theming
-```elisp "users/enderger/emacs/theming"
-; users/enderger/emacs/theming
+#### Interface
+```elisp "users/enderger/emacs/interface"
+; users/enderger/emacs/interface
 ;; Theme
 (require 'doom-themes)
 (load-theme 'doom-nord t)
@@ -1318,6 +1338,11 @@ mini-modeline
 (setq dashboard-show-shortcuts t)
 (dashboard-setup-startup-hook)
 
+;; Syntax
+(require 'tree-sitter)
+(require 'tree-sitter-langs)
+(add-hook 'after-init-hook 'global-tree-sitter-mode)
+
 ;; Ido
 (require 'ido)
 (setq ido-enable-flex-matching t)
@@ -1360,7 +1385,8 @@ mini-modeline
   (meow-motion-overwrite-define-key
    '("j" . meow-next)
    '("k" . meow-prev)
-   '("<escape>" . ignore))
+   '("<escape>" . ignore)
+   '(":" . execute-extended-command))
   (meow-leader-define-key
    ;; SPC j/k will run the original command in MOTION state.
    '("j" . "H-j")
@@ -1385,6 +1411,7 @@ mini-modeline
    '("p" . centaur-tabs-backward)
    '("d" . kill-whole-line)
    '("q" . kill-buffer)
+   '("e" . find-file)
    '("s" . ace-window)
    '("w" . save-buffer)
    '("t" . vterm-toggle))
@@ -1450,35 +1477,18 @@ mini-modeline
    '("z" . meow-pop-selection)
    '("'" . repeat)
    '("<escape>" . ignore)
-   '(":" . execute-extended-command)))
+   '(":" . execute-extended-command)
+   '("/" . (lambda () (interactive)
+			 (isearch-forward-regexp)))
+   '("?" . (lambda () (interactive)
+			 (isearch-backward-regexp)))))
 
 (meow-setup)
 (meow-global-mode t)
-
-;; Other
-(global-set-key
- (kbd "/")
- (lambda () (interactive)
-   (isearch-forward-regexp)))
-  
-(global-set-key
- (kbd "?")
- (lambda () (interactive)
-   (isearch-backward-regexp)))
 ```
-
-#### Tree Sitter
-```elisp "users/enderger/emacs/tree-sitter"
-; users/enderger/emacs/tree-sitter
-;; Tree sitter
-(require 'tree-sitter)
-(require 'tree-sitter-langs)
-(add-hook 'after-init-hook 'global-tree-sitter-mode)
-```
-
-#### LSP
-```elisp "users/enderger/emacs/lsp"
-; users/enderger/emacs/lsp
+#### Completion
+```elisp "users/enderger/emacs/completions"
+; users/enderger/emacs/completions
 ;; Company
 (require 'company)
 (require 'company-quickhelp)
@@ -1522,6 +1532,17 @@ mini-modeline
 ;; Nix
 (require 'nix-mode)
 (add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode))
+
+;; Ocaml
+(require 'tuareg)
+(require 'caml)
+(require 'merlin)
+(require 'merlin-company)
+
+(add-hook 'tuareg-mode-hook 'merlin-mode t)
+(add-hook 'caml-mode-hook 'merlin-mode t)
+(add-to-list 'company-backends 'merlin-company-backend)
+(add-hook 'tuareg-mode-hook 'utop-minor-mode)
 
 ;; Rust
 (require 'rust-mode)
@@ -3043,7 +3064,7 @@ minecraft polymc
 ## UTILITIES
 adoptopenjdk-openj9-bin-16
 cargo-expand
-gnumake
+gcc gnumake
 lldb
 lshw
 nix-prefetch-git
