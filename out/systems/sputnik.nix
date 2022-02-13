@@ -70,7 +70,7 @@ in {
   };
   # systems/sputnik/misc
   documentation.man.generateCaches = true;
-  services.dbus.packages = with pkgs; [ gnome.dconf ];
+  services.dbus.packages = with pkgs; [ dconf ];
   # systems/sputnik/packages
   environment.systemPackages = with pkgs; [
     curl

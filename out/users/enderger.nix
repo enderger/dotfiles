@@ -3,7 +3,7 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
-{ pkgs, inputs, lib, ... }:
+{ pkgs, inputs, lib, system, ... }:
 let 
   secrets = import ./enderger.secret.nix;
   theme = [
@@ -25,6 +25,7 @@ let
     "B48EAD" # base0E
     "5E81AC" # base0F
   ];
+  
   theme-colour = builtins.elemAt theme;
   font = {
     name = "FiraCode Nerd Font";
@@ -34,7 +35,7 @@ let
   term = "alacritty";
   browser = "qutebrowser";
   lock = "${pkgs.i3lock}/bin/i3lock -n -c ${theme-colour 0}";
-  editor = "neovide";
+  editor = "emacsclient";
 in {
   # users/enderger/userOptions
   environment.shells = [ pkgs.nushell ];
@@ -164,7 +165,7 @@ in {
     programs.alacritty = {
       enable = true;
       settings = {
-        env.TERM = "alacritty";
+        env.TERM = term;
         font.normal.family = font.name;
 
         window = {
@@ -204,7 +205,7 @@ in {
             white = mkColor 7;
           };
         };
-        background_opacity = 0.97;
+        window.opacity = 0.97;
       };
     };
     # users/enderger/man
@@ -225,9 +226,9 @@ in {
         # users/enderger/neovim/plugins.backend
         neoformat
         nvim-cmp cmp-nvim-lsp
+        nvim-dap nvim-dap-ui
         nvim-lspconfig
-        # this loads all tree-sitter grammars
-        (nvim-treesitter.withPlugins builtins.attrValues)
+        nvim-treesitter
         telescope-nvim
         vim-polyglot
         vim-vsnip cmp-vsnip
@@ -240,6 +241,7 @@ in {
         vim-surround
         # users/enderger/neovim/plugins.utilities
         auto-session
+        crates-nvim
         friendly-snippets
         minimap-vim
         nvim-lightbulb
@@ -249,9 +251,12 @@ in {
         gitsigns-nvim
         glow-nvim
         neogit
+        presence-nvim
         rust-tools-nvim
         toggleterm-nvim
+        tup
         # users/enderger/neovim/plugins.ui
+        bufferline-nvim
         feline-nvim
         nvim-base16
         nvim-web-devicons nvim-nonicons
@@ -259,15 +264,33 @@ in {
 
       extraPackages = with pkgs; [
         # users/enderger/neovim/plugins/packages
-        deno nodePackages.vscode-html-languageserver-bin nodePackages.vscode-css-languageserver-bin
-        java-language-server maven
-        nur.repos.zachcoyle.kotlin-language-server
+        # dependencies
+        gcc
         git
+        ripgrep
+
+        # C++
+        ccls lldb
+
+        # Webdev
+        deno nodePackages.vscode-html-languageserver-bin nodePackages.vscode-css-languageserver-bin
+
+        # Java
+        java-language-server maven
+
+        # Kotlin
+        nur.repos.zachcoyle.kotlin-language-server
+
+        # Nim
+        nimlsp nim
+
+        # Nix
         rnix-lsp
+
+        # Rust
         (with fenix; combine [
           default.rustfmt-preview default.clippy-preview rust-analyzer
         ])
-        ripgrep
       ];
       
       langServers = {
@@ -330,9 +353,11 @@ in {
           opt.background = 'dark'
           opt.cursorline = true
           opt.guifont = '${font.name}' -- interpolated via Nix
+          opt.list = true
           opt.number = true
+          opt.relativenumber = true
           opt.showmode = false
-          opt.signcolumn = 'yes:3'
+          opt.signcolumn = 'yes:1'
 
           -- indentation
           local tabsize = 2
@@ -346,6 +371,7 @@ in {
           opt.completeopt = { 'menuone', 'noinsert', 'noselect' }
           opt.foldmethod = 'expr'
           opt.hidden = true
+          opt.lazyredraw = false
           opt.mouse = 'a'
           opt.spell = false
           opt.title = true
@@ -354,6 +380,8 @@ in {
           -- users/enderger/neovim/config/keys
           local map = require('lib').map
           local ts = require('telescope.builtin')
+          local dapui = require('dapui')
+          local dap = require('dap')
 
           -- leaders
           vim.g.mapleader = ' '
@@ -458,6 +486,57 @@ in {
           }
           wk.register(action_keys, { mode = "n", prefix = "<leader>c" })
 
+          -- debugger
+          local debug_keys = {
+            name = 'debug/',
+            t = {
+              function() dapui.toggle() end,
+              "toggle",
+            },
+            b = {
+              dap.toggle_breakpoint,
+              "breakpoint",
+            },
+            ["<S-b>"] = {
+              function()
+                local condition = vim.fn.input('Breakpoint condition: ')
+                dap.set_breakpoint(condition)
+              end,
+              "breakpoint/conditional",
+            },
+            c = {
+              dap.continue,
+              "continue",
+            },
+            l = {
+              function()
+                local message = vim.fn.input('Message: ')
+                dap.set_breakpoint(nil, nil, message)
+              end,
+              "breakpoint/log_point",
+            },
+            r = {
+              function() dap.repl.open() end,
+              "repl",
+            },
+            s = {
+              name = "step/",
+              i = {
+                function() dap.step_into() end,
+                "into",
+              },
+              o = {
+                function() dap.step_out() end,
+                "out_of",
+              },
+              p = {
+                function() dap.step_over() end,
+                "past",
+              },
+            },
+          }
+          wk.register(debug_keys, { mode = "n", prefix = "<leader>x" })
+
           -- help
           local help_keys = {
             name = 'help/',
@@ -479,9 +558,6 @@ in {
           local opt = vim.opt
           local g = vim.g
 
-          -- LSP
-          local lsp = require('lspconfig')
-
           -- Completion
           local cmp = require('cmp')
           local cmp_doc_scroll = 4
@@ -500,11 +576,15 @@ in {
             },
             sources = {
               { name = 'nvim_lsp' },
+              { name = "crates" },
               { name = 'vsnip' },
             },
           }
           opt.completeopt = {'menuone', 'noinsert', 'noselect'}
           opt.shortmess:append('c')
+
+          -- LSP
+          local lsp = require('lspconfig')
 
           --- Capabilities
           local capabilities = require('cmp_nvim_lsp')
@@ -536,6 +616,16 @@ in {
             capabilities = capabilities,
           }
 
+          --- C++
+          lsp.ccls.setup {
+            capabilities = capabilities,
+          }
+
+          --- Nim
+          lsp.nimls.setup {
+            capabilties = capabilities,
+          }
+
           --- Nix
           lsp.rnix.setup {
             capabilities = capabilities,
@@ -560,6 +650,48 @@ in {
             capabilities = capabilities,
           }
 
+          -- Debugger
+          local dap = require('dap')
+
+          --- UI
+          require('dapui').setup {
+            sidebar = {
+              position = "right",
+            },
+          }
+
+          --- Adapters
+          dap.adapters.lldb = {
+            type = 'executable',
+            command = '${pkgs.lldb}/bin/lldb-vscode',
+            name = 'lldb'
+          }
+
+          --- Configurations
+          local function getExecutable()
+            local prompt = string.format('Executable: %s/', vim.fn.getcwd())
+            return vim.fn.input(prompt, 'file')
+          end
+
+          --- LLDB
+          local lldb_configuration = {
+            {
+              name = "Launch",
+              type = "lldb",
+              request = "launch",
+              program = getExecutable,
+              cwd = '$${workspaceFolder}',
+              stopOnEntry = false,
+              args = {},
+              runInTerminal = false,
+            },
+          }
+
+          dap.configurations.cpp = lldb_configuration
+          dap.configurations.c = lldb_configuration
+          dap.configurations.rust = lldb_configuration
+          dap.configurations.nim = lldb_configuration
+
           -- Syntax
           g.markdown_fenced_languages = {'nix', 'lua', 'rust', 'zig'}
 
@@ -570,6 +702,8 @@ in {
           local ts = require('nvim-treesitter.configs')
           local ts_enabled = { enable = true }
           ts.setup {
+            ensure_installed = "maintained",
+
             autopairs = ts_enabled,
 
             highlight = ts_enabled,
@@ -587,6 +721,8 @@ in {
               smart_rename = ts_enabled,
             },
           }
+
+
           require('treesitter-context.config').setup {
             enable = true,
           }
@@ -612,6 +748,9 @@ in {
           -- Git Signs
           local gitsigns = require('gitsigns')
           gitsigns.setup {}
+
+          -- Crates
+          require('crates').setup {}
         '';
         extensions = ''
           -- users/enderger/neovim/config/extensions
@@ -630,7 +769,7 @@ in {
                   ['<Esc>'] = tsc_actions.close,
                 },
               },
-              
+
               prompt_prefix = '$ ',
               selection_caret = '> ',
             },
@@ -654,12 +793,24 @@ in {
           -- Terminal
           local toggle_term = require('toggleterm')
           toggle_term.setup {
+            hide_numbers = false,
             shading_factor = 1,
+            shade_terminals = true,
             open_mapping = "<C-S-t>",
+          }
+
+          -- Discord RPC
+          local discord = require('presence')
+          discord:setup {
+            auto_update = true,
+            neovim_image_text = "https://man.sr.ht/~hutzdog/dotfiles/users/enderger.md#neovim",
           }
         '';
         ui = ''
           -- users/enderger/neovim/config/ui
+          local api = vim.api
+          local opt = vim.opt
+
           -- colours
           local b16 = require('base16-colorscheme')
           local colours = {
@@ -685,6 +836,7 @@ in {
           -- statusline
           local feline = require('feline')
           local feline_lsp = require('feline.providers.lsp')
+          local lsp_severity = vim.diagnostic.severity
           local feline_vi = require('feline.providers.vi_mode')
           local feline_config = {
             components = {
@@ -746,22 +898,22 @@ in {
                   -- LSP info
                   {
                     provider = 'diagnostic_errors',
-                    enabled = function() return feline_lsp.diagnostics_exist('Error') end,
+                    enabled = function() return feline_lsp.diagnostics_exist(lsp_severity.ERROR) end,
                     hl = { fg = 'base08' },
                   },
                   {
                     provider = 'diagnostic_warnings',
-                    enabled = function() return feline_lsp.diagnostics_exist('Warning') end,
+                    enabled = function() return feline_lsp.diagnostics_exist(lsp_severity.WARN) end,
                     hl = { fg = 'base0A' },
                   },
                   {
                     provider = 'diagnostic_hints',
-                    enabled = function() return feline_lsp.diagnostics_exist('Hint') end,
+                    enabled = function() return feline_lsp.diagnostics_exist(lsp_severity.HINT) end,
                     hl = { fg = 'base0C' },
                   },
                   {
                     provider = 'diagnostic_info',
-                    enabled = function() return feline_lsp.diagnostics_exist('Information') end,
+                    enabled = function() return feline_lsp.diagnostics_exist(lsp_severity.INFO) end,
                     hl = { fg = 'base0D' },
                   },
                 },  
@@ -851,13 +1003,32 @@ in {
           }
 
           feline.setup {
-            colors = vim.tbl_extend("keep", colours, {
-              fg = colours.base04,
-              bg = colours.base01 
-            }),
             components = feline_config.components,
             force_inactive = feline_config.force_inactive,
             vi_mode_colors = feline_config.mode_colours,
+          }
+
+          feline.use_theme(vim.tbl_extend("keep", colours, {
+            fg = colours.base04,
+            bg = colours.base01 
+          }))
+
+          -- bufferline
+          local bufferline = require('bufferline')
+
+          bufferline.setup {
+            options = {
+              numbers = function(it)
+                return it.ordinal
+              end,
+              show_close_icon = false,
+              show_tab_indicators = false,
+              buffer_close_icon = 'x',
+              modified_icon = '+',
+              diagnostics = "nvim_lsp",
+              separator_style = 'thin',
+              always_show_bufferline = true,
+            },
           }
         '';
         /* Will uncomment when needed
@@ -866,6 +1037,332 @@ in {
         '';
         */
       };
+    };
+    # users/enderger/emacs
+    programs.emacs = let
+      emacs = pkgs.emacsUnstable;
+      emacs' = (pkgs.emacsPackagesFor emacs).emacsWithPackages (epkgs:
+        with epkgs; let p = pkgs; in [
+          # users/enderger/emacs/packages
+          # Editing
+          company company-quickhelp
+          eglot
+
+          # HACK: tree-sitter support in nixpkgs/emacs-overlay is broken
+          pkgs.fix-emacs-ts.emacsPackages.tree-sitter
+          pkgs.fix-emacs-ts.emacsPackages.tree-sitter-langs
+
+          # Keys
+          ace-window
+          meow
+
+          vterm vterm-toggle
+          which-key
+
+          # Dependencies
+          p.python3
+
+          # Languages
+          p.deno
+          p.luajitPackages.lua-lsp lua-mode
+          markdown-mode poly-markdown poly-R ess
+          p.nim p.nimlsp nim-mode    
+          nix-mode
+
+          ## Ocaml
+          caml p.ocaml
+          dune p.dune_2
+          merlin merlin-company p.ocamlPackages.merlin
+          tuareg
+          utop p.ocamlPackages.utop
+
+          ## Rust
+          (with p.fenix; combine [
+            default.rustfmt-preview default.clippy-preview rust-analyzer
+          ])
+          rust-mode
+
+          ## Zig
+          p.zig p.zls zig-mode
+
+          # Integrations
+          magit
+          treemacs
+
+          # Theming
+          all-the-icons
+          centaur-tabs
+          dashboard
+          doom-themes
+          hl-todo
+          mini-modeline
+        ]);
+      in {
+      enable = true;
+      package = emacs';
+      extraConfig = ''
+        ; users/enderger/emacs/keys
+        ;; Which-key
+        (require 'which-key)
+        (which-key-mode)
+
+        ;; Ace Window
+        (require 'ace-window)
+        (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+
+        ;; Shell Pop
+        (require 'vterm)
+        (require 'vterm-toggle)
+
+        ;; Auto pairs
+        (electric-pair-mode t)
+
+        ;; Meow
+        (require 'meow)
+
+        ;;; Use meow QWERTY keys
+        (defun meow-setup ()
+          (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+          (meow-motion-overwrite-define-key
+           '("j" . meow-next)
+           '("k" . meow-prev)
+           '("<escape>" . ignore)
+           '(":" . execute-extended-command))
+          (meow-leader-define-key
+           ;; SPC j/k will run the original command in MOTION state.
+           '("j" . "H-j")
+           '("k" . "H-k")
+           ;; Use SPC (0-9) for digit arguments.
+           '("1" . meow-digit-argument)
+           '("2" . meow-digit-argument)
+           '("3" . meow-digit-argument)
+           '("4" . meow-digit-argument)
+           '("5" . meow-digit-argument)
+           '("6" . meow-digit-argument)
+           '("7" . meow-digit-argument)
+           '("8" . meow-digit-argument)
+           '("9" . meow-digit-argument)
+           '("0" . meow-digit-argument)
+           '("/" . meow-keypad-describe-key)
+           '("?" . meow-cheatsheet)
+           '("f" . treemacs)
+           '("v" . magit)
+           '("r" . eval-expression)
+           '("n" . centaur-tabs-forward)
+           '("p" . centaur-tabs-backward)
+           '("d" . kill-whole-line)
+           '("q" . kill-buffer)
+           '("e" . find-file)
+           '("s" . ace-window)
+           '("w" . save-buffer)
+           '("t" . vterm-toggle))
+          (meow-normal-define-key
+           '("0" . meow-expand-0)
+           '("9" . meow-expand-9)
+           '("8" . meow-expand-8)
+           '("7" . meow-expand-7)
+           '("6" . meow-expand-6)
+           '("5" . meow-expand-5)
+           '("4" . meow-expand-4)
+           '("3" . meow-expand-3)
+           '("2" . meow-expand-2)
+           '("1" . meow-expand-1)
+           '("-" . negative-argument)
+           '(";" . meow-reverse)
+           '("," . meow-inner-of-thing)
+           '("." . meow-bounds-of-thing)
+           '("[" . meow-beginning-of-thing)
+           '("]" . meow-end-of-thing)
+           '("a" . meow-append)
+           '("A" . meow-open-below)
+           '("b" . meow-back-word)
+           '("B" . meow-back-symbol)
+           '("c" . meow-change)
+           '("d" . meow-delete)
+           '("D" . meow-backward-delete)
+           '("e" . meow-next-word)
+           '("E" . meow-next-symbol)
+           '("f" . meow-find)
+           '("g" . meow-cancel-selection)
+           '("G" . meow-grab)
+           '("h" . meow-left)
+           '("H" . meow-left-expand)
+           '("i" . meow-insert)
+           '("I" . meow-open-above)
+           '("j" . meow-next)
+           '("J" . meow-next-expand)
+           '("k" . meow-prev)
+           '("K" . meow-prev-expand)
+           '("l" . meow-right)
+           '("L" . meow-right-expand)
+           '("m" . meow-join)
+           '("n" . meow-search)
+           '("o" . meow-block)
+           '("O" . meow-to-block)
+           '("p" . meow-yank)
+           '("q" . meow-quit)
+           '("Q" . meow-goto-line)
+           '("r" . meow-replace)
+           '("R" . meow-swap-grab)
+           '("s" . meow-kill)
+           '("t" . meow-till)
+           '("u" . meow-undo)
+           '("U" . meow-undo-in-selection)
+           '("v" . meow-visit)
+           '("w" . meow-mark-word)
+           '("W" . meow-mark-symbol)
+           '("x" . meow-line)
+           '("X" . meow-goto-line)
+           '("y" . meow-save)
+           '("Y" . meow-sync-grab)
+           '("z" . meow-pop-selection)
+           '("'" . repeat)
+           '("<escape>" . ignore)
+           '(":" . execute-extended-command)
+           '("/" . (lambda () (interactive)
+        			 (isearch-forward-regexp)))
+           '("?" . (lambda () (interactive)
+        			 (isearch-backward-regexp)))))
+
+        (meow-setup)
+        (meow-global-mode t)
+        ; users/enderger/emacs/languages
+        ;; Lua
+        (require 'lua-mode)
+        (add-hook 'lua-mode-hook #'eglot-ensure)
+
+        ;; Nim
+        (require 'nim-mode)
+        (add-hook 'nim-mode-hook #'eglot-ensure)
+
+        ;; Nix
+        (require 'nix-mode)
+        (add-to-list 'auto-mode-alist '("\\.nix\\'" . nix-mode))
+
+        ;; Ocaml
+        (require 'tuareg)
+        (require 'caml)
+        (require 'merlin)
+        (require 'merlin-company)
+
+        (add-hook 'tuareg-mode-hook 'merlin-mode t)
+        (add-hook 'caml-mode-hook 'merlin-mode t)
+        (add-to-list 'company-backends 'merlin-company-backend)
+        (add-hook 'tuareg-mode-hook 'utop-minor-mode)
+
+        ;; Rust
+        (require 'rust-mode)
+        (add-hook 'rust-mode-hook 'eglot-ensure)
+        (add-hook 'rust-mode-hook (lambda () (prettify-symbols-mode)))
+
+        ;; Zig
+        (require 'zig-mode)
+        (add-hook 'zig-mode-hook 'eglot-ensure)
+
+        ;; Markdown
+        (require 'markdown-mode)
+        (require 'poly-R)
+        (require 'poly-markdown)
+        ; users/enderger/emacs/interface
+        ;; Theme
+        (require 'doom-themes)
+        (load-theme 'doom-nord t)
+
+        ;; Numbers
+        (global-display-line-numbers-mode)
+        (setq display-line-numbers-type 'relative)
+        (set-face-attribute 'line-number-current-line nil
+          :weight 'bold
+          :foreground "white")
+
+        ;; Cursorline
+        (global-hl-line-mode)
+
+        ;; Modeline
+        (require 'mini-modeline)
+        (setq mini-modeline-enhance-visual t)
+        (setq mini-modeline-display-gui-line nil)
+        (mini-modeline-mode t)
+
+        ;; Tabline
+        (require 'centaur-tabs)
+        (setq centaur-tabs-height 16)
+        (setq centaur-tabs-set-bar 'left)
+        (centaur-tabs-mode t)
+
+        ;; GUI Elements
+        (menu-bar-mode -1)
+        (tool-bar-mode -1)
+        (toggle-scroll-bar -1)
+        (whitespace-mode)
+
+        ;; Todos
+        (require 'hl-todo)
+        (setq hl-todo-keyword-faces
+        	  '(("TODO" . (face-attribute 'org-todo :foreground))
+        		("FIXME" . (face-attribute 'error :foreground))
+        		("HACK" . (face-attribute 'warning :foreground))))
+        (add-hook 'prog-mode-hook 'hl-todo-mode)
+
+        ;; Start Screen
+        (require 'dashboard)
+        (setq dashboard-startup-banner 'logo)
+        (setq dashboard-show-shortcuts t)
+        (dashboard-setup-startup-hook)
+
+        ;; Syntax
+        (require 'tree-sitter)
+        (require 'tree-sitter-langs)
+        (add-hook 'after-init-hook 'global-tree-sitter-mode)
+
+        ;; Ido
+        (require 'ido)
+        (setq ido-enable-flex-matching t)
+        (setq ido-everywhere t)
+        (ido-mode t)
+
+        ;; File tree
+        (require 'treemacs)
+        (setq doom-themes-treemacs-theme "doom-nord")
+        (doom-themes-treemacs-config)
+
+        ;; Git integration
+        (require 'magit)
+        ; users/enderger/emacs/completions
+        ;; Company
+        (require 'company)
+        (require 'company-quickhelp)
+        (add-hook 'after-init-hook 'global-company-mode)
+        (add-hook 'after-init-hook 'company-quickhelp-mode)
+
+        (setq company-idle-delay 0)
+        (setq company-minimum-prefix-length 1)
+        (setq company-selection-wrap-around t)
+
+        (with-eval-after-load 'company
+          (define-key company-active-map
+            (kbd "<tab>")
+            #'company-complete-common-or-cycle)
+          (define-key company-active-map
+            (kbd "<backtab>")
+            (lambda () (interactive)
+              (company-complete-common-or-cycle -1))))
+
+        ;; LSP
+        (require 'eglot)
+        (add-to-list 'eglot-server-programs
+          '(nim-mode . ("nimlsp")))
+
+        ;; Flymake
+        (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
+        (flymake-mode t)
+      '';
+      };
+
+    services.emacs = {
+        enable = true;
+        defaultEditor = true;
+        client.enable = true;
     };
     # users/enderger/git
     programs.git = {
@@ -903,10 +1400,10 @@ in {
           require('theme').setup()
           require('menubar').terminal = '${term}'
 
-          require('init').setup()
           require('keys').setup()
           require('rules').setup()
           require('screens').setup()
+          require('init').setup()
         '';
         lib = ''
           -- users/enderger/awesome/lib
@@ -1337,6 +1834,10 @@ in {
             spawn('systemctl --user start picom xidlehook')
             spawn('feh --bg-scale '..(require('beautiful').wallpaper))
             spawn('lxqt-policykit')
+
+            spawn('discordptb', {
+              tag = screen[2].tags[5]
+            })
           end
 
           return M
@@ -1690,6 +2191,16 @@ in {
                 titlebars_enabled = true 
               },
             },
+            {
+              id = 'discord',
+              rule = {
+                class = {"discord"},
+                properties = {
+                  tag = screen[2].tags[5]
+                }
+              }
+
+            }
           }
 
           -- signals
@@ -2114,14 +2625,19 @@ in {
     # users/enderger/picom
     services.picom = {
       enable = true;
-
-      backend = "xrender";
       blur = true;
+
+      # better Nvidia support
+      experimentalBackends = true;
+      backend = "glx";
       inactiveOpacity = "0.97";
       vSync = true;
 
       extraOptions = ''
-        unredir-if-possible = false;
+        unredir-if-possible = true;
+        use-damage = true;
+        glx-no-stencil = true;
+        xrender-sync-fence = true;
       '';
     };
     # users/enderger/xidlehook
@@ -2178,6 +2694,7 @@ in {
       etcher
       exercism
       jetbrains.idea-community
+      obs-studio    
       pcmanfm
       spectacle
       zoom-us
@@ -2186,12 +2703,14 @@ in {
       steam
       steam-run
       ckan
-      minecraft multimc
       glfw
+      minecraft polymc
 
       ## UTILITIES
       adoptopenjdk-openj9-bin-16
-      gnumake
+      cargo-expand
+      gcc gnumake
+      lldb
       lshw
       nix-prefetch-git
       pandoc
@@ -2201,7 +2720,9 @@ in {
         latest.rust-src
       ])
       ripgrep
+      tup
       wineWowPackages.full winetricks
+      xclip
       xorg.xkill
     ];
   };

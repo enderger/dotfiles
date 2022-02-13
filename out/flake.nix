@@ -13,10 +13,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     master.url = "github:nixos/nixpkgs/master";
     fallback.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs.follows = "unstable";
+
+    fix-emacs-ts.url = "github:pimeys/nixpkgs/emacs-tree-sitter/link-grammars";
     # flake/inputs.core
     hm.url = "github:nix-community/home-manager";
     fup.url = "github:gytis-ivaskevicius/flake-utils-plus";
     # flake/inputs.packages
+    emacs.url = "github:nix-community/emacs-overlay";
     nur.url = "github:nix-community/NUR";
     my-nur.url = "git+https://git.sr.ht/~hutzdog/NUR";
     fenix = {
@@ -40,6 +43,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       sharedOverlays = with inputs; [
         # flake/outputs/channels/overlays
         self.overlay
+        emacs.overlay
         nur.overlay
         my-nur.overlays.awesome
         neovim.overlay
@@ -55,7 +59,13 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         unstable = {
           input = inputs.unstable;
           overlaysBuilder = channels: [
-            (final: prev: { inherit (channels.master.vimPlugins) feline-nvim lsp-rooter-nvim; })
+            (final: prev: {
+              linuxPackages_xanmod = prev.linuxPackages_xanmod // {
+                inherit (channels.fallback.linuxPackages_xanmod) nvidia_x11; 
+              };
+
+              inherit (channels) fallback fix-emacs-ts;
+            })
           ];
         };
         # flake/outputs/channels/cumulative.master
@@ -70,13 +80,19 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
             allowInsecure = true;
           };
         };
+        # flake/outputs/channels/cumulative.other
+        fix-emacs-ts = {
+          input = inputs.fix-emacs-ts;
+        };
       };
       # flake/outputs/hosts
-      hostDefaults = {
-        system = "x86_64-linux";
+      hostDefaults = let
+        sys = "x86_64-linux";
+      in {
+        system = sys;
         modules = with self.moduleSets; system ++ hardware;
         channelName = "unstable";
-        specialArgs = { inherit inputs; };
+        specialArgs = { inherit inputs; system = sys; };
       };
 
       hosts = with inputs; {

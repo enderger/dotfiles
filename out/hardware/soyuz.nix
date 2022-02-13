@@ -14,7 +14,7 @@ in {
   # hardware/soyuz/kernel
   boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usb_storage" "ums_realtek" "usbhid" "sd_mod" "sr_mod" "nvme" ];
   boot.kernelModules = [ "kvm-amd" ];
-  boot.kernelParams = [ "processor.max_cstate=5" "intel_idle.max_cstate=1" ];
+  boot.kernelParams = [ "processor.max_cstate=5" "intel_idle.max_cstate=1" "video=HDMI-1:1920x1080@60" "video=VGA-1:1440x900" ];
   hardware.cpu.amd.updateMicrocode = true;
   # hardware/soyuz/bootloader
   boot.plymouth.enable = true;
@@ -24,10 +24,10 @@ in {
     useNetworkd = true;
     useDHCP = false;
     usePredictableInterfaceNames = true;
-    enableBCMWL = true;
+    enableBCMWL = false;
 
     interfaces = {
-      wlp6s0.useDHCP = true;
+      wlp5s0.useDHCP = true;
     };
 
     nameservers = [
@@ -36,7 +36,7 @@ in {
 
     wireless = {
       inherit (secrets) networks;
-      interfaces = [ "wlp6s0" ];
+      interfaces = [ "wlp5s0" ];
       enable = true;
     };
   };
@@ -49,17 +49,21 @@ in {
     driSupport = true;
     driSupport32Bit = true;
   };
-  services.xserver.videoDrivers = [ "nvidia" ];
 
-  services.xserver.xrandrHeads = [
+  # TODO: Figure out why Nvidia drivers refuse to download (again)
+  services.xserver.videoDrivers = [ "nvidia" ];
+  services.xserver.xrandrHeads = let
+    HDMI-monitor = "HDMI-0";
+    DVI-monitor = "DVI-D-0";
+  in [
     {
-      output = "HDMI-0";
+      output = HDMI-monitor;
       primary = true;
     }  
     {
-      output = "DVI-D-0";
+      output = DVI-monitor;
       monitorConfig = ''
-        Option "RightOf" "HDMI-A-0"
+        Option "RightOf" "${HDMI-monitor}"
       '';
     }
   ];
@@ -99,5 +103,5 @@ in {
 
   swapDevices = [{ device = "/dev/disk/by-uuid/412c3678-fbdb-4093-bb1d-3b20994f3613"; }];
   boot.tmpOnTmpfs = true;
-  nix.maxJobs = lib.mkDefault 16;
+  nix.settings.max-jobs = lib.mkDefault 16;
 }

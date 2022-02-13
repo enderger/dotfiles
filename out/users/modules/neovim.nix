@@ -29,6 +29,7 @@ in {
       '';
     };
 
+    # TODO: refactor to separate module, since they are now included with EMACS as well
     langServers.zls = {
       enable = lib.mkEnableOption "the Zig language server";
 
@@ -100,14 +101,19 @@ in {
     # users/modules/neovim/langservers/zls
     (lib.mkIf cfg.langServers.zls.enable (let zls = cfg.langServers.zls; in {
       programs.neovim.extraPackages = zls.packages;
+      home.packages = zls.packages;
 
       xdg.configFile."zls.json" = lib.mkIf (zls.settings != {}) {
         source = formats.json.generate "zls-config" zls.settings;
       };
     }))
     # users/modules/neovim/langservers/efm
-    (lib.mkIf cfg.langServers.efm.enable (let efm = cfg.langServers.efm; in {
-      programs.neovim.extraPackages = [ efm.package ] ++ efm.extraPackages;
+    (lib.mkIf cfg.langServers.efm.enable (let
+      efm = cfg.langServers.efm; 
+      packages = [ efm.package ] ++ efm.extraPackages; 
+    in {
+      programs.neovim.extraPackages = packages;
+      home.packages = packages;
 
       xdg.configFile."efm-langserver/config.yaml" = lib.mkIf (efm.settings != {}) {
         source = formats.yaml.generate "efm-config" efm.settings;
