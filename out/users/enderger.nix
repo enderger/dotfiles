@@ -1055,7 +1055,6 @@ in {
           # Keys
           ace-window
           meow
-
           vterm vterm-toggle
           which-key
 
@@ -1064,7 +1063,7 @@ in {
 
           # Languages
           p.deno
-          p.luajitPackages.lua-lsp lua-mode
+          p.sumneko-lua-language-server lua-mode
           markdown-mode poly-markdown poly-R ess
           p.nim p.nimlsp nim-mode    
           nix-mode
@@ -1082,11 +1081,15 @@ in {
           ])
           rust-mode
 
+          ## Shell
+          flymake-shellcheck p.shellcheck
+              
           ## Zig
           p.zig p.zls zig-mode
 
           # Integrations
           magit
+          restclient company-restclient
           treemacs
 
           # Theming
@@ -1101,6 +1104,105 @@ in {
       enable = true;
       package = emacs';
       extraConfig = ''
+        ; users/enderger/emacs/completions
+        ;; Company
+        (require 'company)
+        (require 'company-quickhelp)
+        (add-hook 'after-init-hook 'global-company-mode)
+        (add-hook 'after-init-hook 'company-quickhelp-mode)
+
+        (setq company-idle-delay 0)
+        (setq company-minimum-prefix-length 1)
+        (setq company-selection-wrap-around t)
+
+        (with-eval-after-load 'company
+          (define-key company-active-map
+            (kbd "<tab>")
+            #'company-complete-common-or-cycle)
+          (define-key company-active-map
+            (kbd "<backtab>")
+            (lambda () (interactive)
+              (company-complete-common-or-cycle -1))))
+
+        ;; LSP
+        (require 'eglot)
+
+        ;; Flymake
+        (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
+        ; users/enderger/emacs/interface
+        ;; Theme
+        (require 'doom-themes)
+        (load-theme 'doom-nord t)
+
+        ;; Numbers
+        (global-display-line-numbers-mode)
+        (setq display-line-numbers-type 'relative)
+        (set-face-attribute 'line-number-current-line nil
+          :weight 'bold
+          :foreground "white")
+
+        ;; Cursorline
+        (global-hl-line-mode)
+
+        ;; Modeline
+        (require 'mini-modeline)
+        (setq mini-modeline-enhance-visual t)
+        (setq mini-modeline-display-gui-line nil)
+        (mini-modeline-mode t)
+
+        ;; Tabline
+        (require 'centaur-tabs)
+        (setq centaur-tabs-height 16)
+        (setq centaur-tabs-set-bar 'left)
+        (centaur-tabs-mode t)
+
+        ;; GUI Elements
+        (menu-bar-mode -1)
+        (tool-bar-mode -1)
+        (toggle-scroll-bar -1)
+        (whitespace-mode)
+
+        ;; Todos
+        (require 'hl-todo)
+        (setq hl-todo-keyword-faces
+        	  '(("TODO" . (face-attribute 'org-todo :foreground))
+        		("FIXME" . (face-attribute 'error :foreground))
+        		("HACK" . (face-attribute 'warning :foreground))))
+        (add-hook 'prog-mode-hook 'hl-todo-mode)
+
+        ;; Start Screen
+        (require 'dashboard)
+        (setq dashboard-startup-banner 'logo)
+        (setq dashboard-show-shortcuts t)
+        (dashboard-setup-startup-hook)
+
+        ;; Syntax
+        (require 'tree-sitter)
+        (require 'tree-sitter-langs)
+        (add-hook 'after-init-hook 'global-tree-sitter-mode)
+
+        ;; Ido
+        (require 'ido)
+        (setq ido-enable-flex-matching t)
+        (setq ido-everywhere t)
+        (ido-mode t)
+
+        ;; File tree
+        (require 'treemacs)
+        (setq doom-themes-treemacs-theme "doom-nord")
+        (doom-themes-treemacs-config)
+
+        ;; Git integration
+        (require 'magit)
+
+        ;; REST Client
+        (require 'restclient)
+        (defun restclient-buffer ()
+          (interactive)
+          (switch-to-buffer-other-frame "*rest-client*")
+          (restclient-mode))
+        (require 'company-restclient)
+        (add-to-list 'company-backends 'company-restclient)
         ; users/enderger/emacs/keys
         ;; Which-key
         (require 'which-key)
@@ -1155,7 +1257,8 @@ in {
            '("e" . find-file)
            '("s" . ace-window)
            '("w" . save-buffer)
-           '("t" . vterm-toggle))
+           '("t" . vterm-toggle)
+           '("l" . restclient-buffer))
           (meow-normal-define-key
            '("0" . meow-expand-0)
            '("9" . meow-expand-9)
@@ -1229,10 +1332,12 @@ in {
         ; users/enderger/emacs/languages
         ;; Lua
         (require 'lua-mode)
+        (add-to-list 'eglot-server-programs '(lua-mode . ("lua-language-server")))
         (add-hook 'lua-mode-hook #'eglot-ensure)
 
         ;; Nim
         (require 'nim-mode)
+        (add-to-list 'eglot-server-programs '(nim-mode . ("nimlsp")))
         (add-hook 'nim-mode-hook #'eglot-ensure)
 
         ;; Nix
@@ -1252,110 +1357,22 @@ in {
 
         ;; Rust
         (require 'rust-mode)
-        (add-hook 'rust-mode-hook 'eglot-ensure)
+        (add-hook 'rust-mode-hook #'eglot-ensure)
         (add-hook 'rust-mode-hook (lambda () (prettify-symbols-mode)))
+
+        ;; Shell Script
+        (require 'flymake-shellcheck)
+        (add-hook 'shell-shell-mode-hook 'flymake-mode t)
+        (add-hook 'shell-shell-mode-hook 'flymake-shellcheck-load)
 
         ;; Zig
         (require 'zig-mode)
-        (add-hook 'zig-mode-hook 'eglot-ensure)
+        (add-hook 'zig-mode-hook #'eglot-ensure)
 
         ;; Markdown
         (require 'markdown-mode)
         (require 'poly-R)
         (require 'poly-markdown)
-        ; users/enderger/emacs/interface
-        ;; Theme
-        (require 'doom-themes)
-        (load-theme 'doom-nord t)
-
-        ;; Numbers
-        (global-display-line-numbers-mode)
-        (setq display-line-numbers-type 'relative)
-        (set-face-attribute 'line-number-current-line nil
-          :weight 'bold
-          :foreground "white")
-
-        ;; Cursorline
-        (global-hl-line-mode)
-
-        ;; Modeline
-        (require 'mini-modeline)
-        (setq mini-modeline-enhance-visual t)
-        (setq mini-modeline-display-gui-line nil)
-        (mini-modeline-mode t)
-
-        ;; Tabline
-        (require 'centaur-tabs)
-        (setq centaur-tabs-height 16)
-        (setq centaur-tabs-set-bar 'left)
-        (centaur-tabs-mode t)
-
-        ;; GUI Elements
-        (menu-bar-mode -1)
-        (tool-bar-mode -1)
-        (toggle-scroll-bar -1)
-        (whitespace-mode)
-
-        ;; Todos
-        (require 'hl-todo)
-        (setq hl-todo-keyword-faces
-        	  '(("TODO" . (face-attribute 'org-todo :foreground))
-        		("FIXME" . (face-attribute 'error :foreground))
-        		("HACK" . (face-attribute 'warning :foreground))))
-        (add-hook 'prog-mode-hook 'hl-todo-mode)
-
-        ;; Start Screen
-        (require 'dashboard)
-        (setq dashboard-startup-banner 'logo)
-        (setq dashboard-show-shortcuts t)
-        (dashboard-setup-startup-hook)
-
-        ;; Syntax
-        (require 'tree-sitter)
-        (require 'tree-sitter-langs)
-        (add-hook 'after-init-hook 'global-tree-sitter-mode)
-
-        ;; Ido
-        (require 'ido)
-        (setq ido-enable-flex-matching t)
-        (setq ido-everywhere t)
-        (ido-mode t)
-
-        ;; File tree
-        (require 'treemacs)
-        (setq doom-themes-treemacs-theme "doom-nord")
-        (doom-themes-treemacs-config)
-
-        ;; Git integration
-        (require 'magit)
-        ; users/enderger/emacs/completions
-        ;; Company
-        (require 'company)
-        (require 'company-quickhelp)
-        (add-hook 'after-init-hook 'global-company-mode)
-        (add-hook 'after-init-hook 'company-quickhelp-mode)
-
-        (setq company-idle-delay 0)
-        (setq company-minimum-prefix-length 1)
-        (setq company-selection-wrap-around t)
-
-        (with-eval-after-load 'company
-          (define-key company-active-map
-            (kbd "<tab>")
-            #'company-complete-common-or-cycle)
-          (define-key company-active-map
-            (kbd "<backtab>")
-            (lambda () (interactive)
-              (company-complete-common-or-cycle -1))))
-
-        ;; LSP
-        (require 'eglot)
-        (add-to-list 'eglot-server-programs
-          '(nim-mode . ("nimlsp")))
-
-        ;; Flymake
-        (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
-        (flymake-mode t)
       '';
       };
 
@@ -2690,8 +2707,7 @@ in {
       transcrypt
 
       ## APPLICATIONS
-      discord-ptb
-      etcher
+      discord
       exercism
       jetbrains.idea-community
       obs-studio    

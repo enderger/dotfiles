@@ -1218,10 +1218,10 @@ programs.emacs = let
   enable = true;
   package = emacs';
   extraConfig = ''
+    <<<users/enderger/emacs/completions>>>
+    <<<users/enderger/emacs/interface>>>
     <<<users/enderger/emacs/keys>>>
     <<<users/enderger/emacs/languages>>>
-    <<<users/enderger/emacs/interface>>>
-    <<<users/enderger/emacs/completions>>>
   '';
   };
 
@@ -1246,7 +1246,6 @@ pkgs.fix-emacs-ts.emacsPackages.tree-sitter-langs
 # Keys
 ace-window
 meow
-
 vterm vterm-toggle
 which-key
 
@@ -1255,7 +1254,7 @@ p.python3
 
 # Languages
 p.deno
-p.luajitPackages.lua-lsp lua-mode
+p.sumneko-lua-language-server lua-mode
 markdown-mode poly-markdown poly-R ess
 p.nim p.nimlsp nim-mode    
 nix-mode
@@ -1273,11 +1272,15 @@ utop p.ocamlPackages.utop
 ])
 rust-mode
 
+## Shell
+flymake-shellcheck p.shellcheck
+    
 ## Zig
 p.zig p.zls zig-mode
 
 # Integrations
 magit
+restclient company-restclient
 treemacs
 
 # Theming
@@ -1356,6 +1359,15 @@ mini-modeline
 
 ;; Git integration
 (require 'magit)
+
+;; REST Client
+(require 'restclient)
+(defun restclient-buffer ()
+  (interactive)
+  (switch-to-buffer-other-frame "*rest-client*")
+  (restclient-mode))
+(require 'company-restclient)
+(add-to-list 'company-backends 'company-restclient)
 ```
 
 #### Keys
@@ -1414,7 +1426,8 @@ mini-modeline
    '("e" . find-file)
    '("s" . ace-window)
    '("w" . save-buffer)
-   '("t" . vterm-toggle))
+   '("t" . vterm-toggle)
+   '("l" . restclient-buffer))
   (meow-normal-define-key
    '("0" . meow-expand-0)
    '("9" . meow-expand-9)
@@ -1510,12 +1523,9 @@ mini-modeline
 
 ;; LSP
 (require 'eglot)
-(add-to-list 'eglot-server-programs
-  '(nim-mode . ("nimlsp")))
 
 ;; Flymake
 (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
-(flymake-mode t)
 ```
 
 #### Languages
@@ -1523,10 +1533,12 @@ mini-modeline
 ; users/enderger/emacs/languages
 ;; Lua
 (require 'lua-mode)
+(add-to-list 'eglot-server-programs '(lua-mode . ("lua-language-server")))
 (add-hook 'lua-mode-hook #'eglot-ensure)
 
 ;; Nim
 (require 'nim-mode)
+(add-to-list 'eglot-server-programs '(nim-mode . ("nimlsp")))
 (add-hook 'nim-mode-hook #'eglot-ensure)
 
 ;; Nix
@@ -1546,12 +1558,17 @@ mini-modeline
 
 ;; Rust
 (require 'rust-mode)
-(add-hook 'rust-mode-hook 'eglot-ensure)
+(add-hook 'rust-mode-hook #'eglot-ensure)
 (add-hook 'rust-mode-hook (lambda () (prettify-symbols-mode)))
+
+;; Shell Script
+(require 'flymake-shellcheck)
+(add-hook 'shell-shell-mode-hook 'flymake-mode t)
+(add-hook 'shell-shell-mode-hook 'flymake-shellcheck-load)
 
 ;; Zig
 (require 'zig-mode)
-(add-hook 'zig-mode-hook 'eglot-ensure)
+(add-hook 'zig-mode-hook #'eglot-ensure)
 
 ;; Markdown
 (require 'markdown-mode)
@@ -3045,8 +3062,7 @@ pfetch
 transcrypt
 
 ## APPLICATIONS
-discord-ptb
-etcher
+discord
 exercism
 jetbrains.idea-community
 obs-studio    

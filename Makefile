@@ -1,5 +1,6 @@
 MEMORY := 8192
 TESTBED := "$(shell readlink ./result)#testbed"
+BUILDFLAGS := 
 
 build: clean
 	./bootstrap.nix
@@ -12,11 +13,14 @@ start-vm: build-vm
 	./result/bin/run-*-vm -m $(MEMORY)
 
 # SYSTEM
+build-system-upgrade: build
+	nixos-rebuild build $(BUILDFLAGS) --upgrade --flake "$(shell readlink ./result)#$(ATTR)"
+
 build-system: build
-	nixos-rebuild build --flake "$(shell readlink ./result)#$(ATTR)"
+	nixos-rebuild build $(BUILDFLAGS) --flake "$(shell readlink ./result)#$(ATTR)"
 
 switch-to-system: build
-	sudo nixos-rebuild switch --flake "$(shell readlink ./result)#$(ATTR)"
+	sudo nixos-rebuild switch $(BUILDFLAGS) --flake "$(shell readlink ./result)#$(ATTR)"
 
 # OTHER
 .PHONY: clean
