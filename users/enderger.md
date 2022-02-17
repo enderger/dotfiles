@@ -1253,10 +1253,22 @@ which-key
 p.python3
 
 # Languages
+## C(++)
+p.ccls    
+
+## Javascript  
 p.deno
+
+## Lua
 p.sumneko-lua-language-server lua-mode
+
+## Markdown
 markdown-mode poly-markdown poly-R ess
-p.nim p.nimlsp nim-mode    
+
+## Nim
+p.nim p.nimlsp nim-mode
+
+## Nix
 nix-mode
 
 ## Ocaml
@@ -1279,6 +1291,7 @@ flymake-shellcheck p.shellcheck
 p.zig p.zls zig-mode
 
 # Integrations
+elcord
 magit
 restclient company-restclient
 treemacs
@@ -1368,6 +1381,10 @@ mini-modeline
   (restclient-mode))
 (require 'company-restclient)
 (add-to-list 'company-backends 'company-restclient)
+
+;; Discord Presence
+(require 'elcord)
+(add-hook 'after-init-hook 'elcord-mode)
 ```
 
 #### Keys
@@ -1531,6 +1548,10 @@ mini-modeline
 #### Languages
 ```elisp "users/enderger/emacs/languages"
 ; users/enderger/emacs/languages
+;; C(++)
+(add-hook 'c-mode-hook #'eglot-ensure)
+(add-hook 'c++-mode-hook #'eglot-ensure)
+
 ;; Lua
 (require 'lua-mode)
 (add-to-list 'eglot-server-programs '(lua-mode . ("lua-language-server")))
