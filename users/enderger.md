@@ -65,34 +65,359 @@ in {
 This is my preferred shell, mainly for it's novel approach to information presentation.
 ```nix "users/enderger/nushell"
 # users/enderger/nushell
-programs.nushell = {
-  enable = true;
-  settings = {
-    complete_from_path = true;
-    ctrlc_exit = false;
-    disable_table_indexes = false;
-    filesize_format = "MiB";
-    nonzero_exit_errors = true;
-    pivot_mode = "auto";
-    prompt = "starship prompt";
-    rm_always_trash = false;
-    skip_welcome_message = true;
-    table_mode = "rounded";
 
-    line_editor = {
-      bell_style = "none";
-      completion_type = "circular";
-      edit_mode = "vi";
-      history_duplicates = "ignoreconsecutive";
-      history_ignore_space = true;
-    };
+programs.nushell.enable = true;
+xdg.configFile."nushell/config.nu".text = ''
+  # TODO: Completions
+  module completions {
+    # Custom completions for external commands (those outside of Nushell)
+    # Each completions has two parts: the form of the external command, including its flags and parameters
+    # and a helper command that knows how to complete values for those flags and parameters
+    #
+    # This is a simplified version of completions for git branches and git remotes
+    def "nu-complete git branches" [] {
+      ^git branch | lines | each { |line| \$line | str replace '[\*\+] ' "" | str trim }
+    }
+  
+    def "nu-complete git remotes" [] {
+      ^git remote | lines | each { |line| \$line | str trim }
+    }
+  
+    export extern "git checkout" [
+      branch?: string@"nu-complete git branches" # name of the branch to checkout
+      -b: string                                 # create and checkout a new branch
+      -B: string                                 # create/reset and checkout a branch
+      -l                                         # create reflog for new branch
+      --guess                                    # second guess 'git checkout <no-such-branch>' (default)
+      --overlay                                  # use overlay mode (default)
+      --quiet(-q)                                # suppress progress reporting
+      --recurse-submodules: string               # control recursive updating of submodules
+      --progress                                 # force progress reporting
+      --merge(-m)                                # perform a 3-way merge with the new branch
+      --conflict: string                         # conflict style (merge or diff3)
+      --detach(-d)                               # detach HEAD at named commit
+      --track(-t)                                # set upstream info for new branch
+      --force(-f)                                # force checkout (throw away local modifications)
+      --orphan: string                           # new unparented branch
+      --overwrite-ignore                         # update ignored files (default)
+      --ignore-other-worktrees                   # do not check if another worktree is holding the given ref
+      --ours(-2)                                 # checkout our version for unmerged files
+      --theirs(-3)                               # checkout their version for unmerged files
+      --patch(-p)                                # select hunks interactively
+      --ignore-skip-worktree-bits                # do not limit pathspecs to sparse entries only
+      --pathspec-from-file: string               # read pathspec from file
+    ]
+  
+    export extern "git push" [
+      remote?: string@"nu-complete git remotes", # the name of the remote
+      refspec?: string@"nu-complete git branches"# the branch / refspec
+      --verbose(-v)                              # be more verbose
+      --quiet(-q)                                # be more quiet
+      --repo: string                             # repository
+      --all                                      # push all refs
+      --mirror                                   # mirror all refs
+      --delete(-d)                               # delete refs
+      --tags                                     # push tags (can't be used with --all or --mirror)
+      --dry-run(-n)                              # dry run
+      --porcelain                                # machine-readable output
+      --force(-f)                                # force updates
+      --force-with-lease: string                 # require old value of ref to be at this value
+      --recurse-submodules: string               # control recursive pushing of submodules
+      --thin                                     # use thin pack
+      --receive-pack: string                     # receive pack program
+      --exec: string                             # receive pack program
+      --set-upstream(-u)                         # set upstream for git pull/status
+      --progress                                 # force progress reporting
+      --prune                                    # prune locally removed refs
+      --no-verify                                # bypass pre-push hook
+      --follow-tags                              # push missing but relevant tags
+      --signed: string                           # GPG sign the push
+      --atomic                                   # request atomic transaction on remote side
+      --push-option(-o): string                  # option to transmit
+      --ipv4(-4)                                 # use IPv4 addresses only
+      --ipv6(-6)                                 # use IPv6 addresses only
+    ]
+  }
 
-    textview = {
-      tab_width = 2;
-      theme = "base16";
-    };
-  };
-};
+  module prompt {
+      export env STARSHIP_SHELL {"nu"}
+      export env PROMPT_COMMAND {{ left_prompt }}
+      export env PROMPT_COMMAND_RIGHT {{ right_prompt }}
+      export env PROMPT_INDICATOR {""}
+
+      def left_prompt [] {
+        starship prompt
+      }
+
+      def right_prompt [] {
+        ""
+      }
+  }
+
+
+  # Get just the extern definitions without the custom completion commands
+  use completions *
+  use prompt *
+
+  # for more information on themes see
+  # https://www.nushell.sh/book/coloring_and_theming.html
+  let default_theme = {
+      # color for nushell primitives
+      separator: white
+      leading_trailing_space_bg: { attr: n } # no fg, no bg, attr none effectively turns this off
+      header: green_bold
+      empty: blue
+      bool: white
+      int: white
+      filesize: white
+      duration: white
+      date: white
+      range: white
+      float: white
+      string: white
+      nothing: white
+      binary: white
+      cellpath: white
+      row_index: green_bold
+      record: white
+      list: white
+      block: white
+      hints: dark_gray
+
+      # shapes are used to change the cli syntax highlighting
+      shape_garbage: { fg: "#FFFFFF" bg: "#FF0000" attr: b}
+      shape_binary: purple_bold
+      shape_bool: light_cyan
+      shape_int: purple_bold
+      shape_float: purple_bold
+      shape_range: yellow_bold
+      shape_internalcall: cyan_bold
+      shape_external: cyan
+      shape_externalarg: green_bold
+      shape_literal: blue
+      shape_operator: yellow
+      shape_signature: green_bold
+      shape_string: green
+      shape_string_interpolation: cyan_bold
+      shape_datetime: cyan_bold
+      shape_list: cyan_bold
+      shape_table: blue_bold
+      shape_record: cyan_bold
+      shape_block: blue_bold
+      shape_filepath: cyan
+      shape_globpattern: cyan_bold
+      shape_variable: purple
+      shape_flag: blue_bold
+      shape_custom: green
+      shape_nothing: light_cyan
+  }
+
+  # The default config record. This is where much of your global configuration is setup.
+  let \$config = {
+    filesize_metric: false
+    table_mode: rounded # basic, compact, compact_double, light, thin, with_love, rounded, reinforced, heavy, none, other
+    use_ls_colors: true
+    rm_always_trash: false
+    color_config: \$default_theme
+    use_grid_icons: true
+    footer_mode: "25" # always, never, number_of_rows, auto
+    quick_completions: false  # set this to false to prevent auto-selecting completions when only one remains
+    partial_completions: true  # set this to false to prevent partial filling of the prompt
+    animate_prompt: false # redraw the prompt every second
+    float_precision: 2
+    use_ansi_coloring: true
+    filesize_format: "auto" # b, kb, kib, mb, mib, gb, gib, tb, tib, pb, pib, eb, eib, zb, zib, auto
+    edit_mode: vi # emacs, vi
+    max_history_size: 10000 # Session has to be reloaded for this to take effect
+    sync_history_on_enter: true # Enable to share the history between multiple sessions, else you have to close the session to persist history to file
+    menus: [
+        # Configuration for default nushell menus
+        # Note the lack of souce parameter
+        {
+          name: completion_menu
+          only_buffer_difference: false
+          marker: "| "
+          type: {
+              layout: columnar
+              columns: 4
+              col_width: 20   # Optional value. If missing all the screen width is used to calculate column width
+              col_padding: 2
+          }
+          style: {
+              text: green
+              selected_text: green_reverse
+              description_text: yellow
+          }
+        }
+        {
+          name: history_menu
+          only_buffer_difference: true
+          marker: "? "
+          type: {
+              layout: list
+              page_size: 10
+          }
+          style: {
+              text: green
+              selected_text: green_reverse
+              description_text: yellow
+          }
+        }
+        {
+          name: help_menu
+          only_buffer_difference: true
+          marker: "? "
+          type: {
+              layout: description
+              columns: 4
+              col_width: 20   # Optional value. If missing all the screen width is used to calculate column width
+              col_padding: 2
+              selection_rows: 4
+              description_rows: 10
+          }
+          style: {
+              text: green
+              selected_text: green_reverse
+              description_text: yellow
+          }
+        }
+        # Example of extra menus created using a nushell source
+        # Use the source field to create a list of records that populates
+        # the menu
+        {
+          name: commands_menu
+          only_buffer_difference: false
+          marker: "# "
+          type: {
+              layout: columnar
+              columns: 4
+              col_width: 20
+              col_padding: 2
+          }
+          style: {
+              text: green
+              selected_text: green_reverse
+              description_text: yellow
+          }
+          source: { |buffer, position|
+              $nu.scope.commands
+              | where command =~ $buffer
+              | each { |it| {value: $it.command description: $it.usage} }
+          }
+        }
+        {
+          name: vars_menu
+          only_buffer_difference: true
+          marker: "# "
+          type: {
+              layout: list
+              page_size: 10
+          }
+          style: {
+              text: green
+              selected_text: green_reverse
+              description_text: yellow
+          }
+          source: { |buffer, position|
+              $nu.scope.vars
+              | where name =~ $buffer
+              | sort-by name
+              | each { |it| {value: $it.name description: $it.type} }
+          }
+        }
+        {
+          name: commands_with_description
+          only_buffer_difference: true
+          marker: "# "
+          type: {
+              layout: description
+              columns: 4
+              col_width: 20
+              col_padding: 2
+              selection_rows: 4
+              description_rows: 10
+          }
+          style: {
+              text: green
+              selected_text: green_reverse
+              description_text: yellow
+          }
+          source: { |buffer, position|
+              $nu.scope.commands
+              | where command =~ $buffer
+              | each { |it| {value: $it.command description: $it.usage} }
+          }
+        }
+    ]
+    keybindings: [
+      {
+        name: completion_menu
+        modifier: none
+        keycode: tab
+        mode: emacs # Options: emacs vi_normal vi_insert
+        event: {
+          until: [
+            { send: menu name: completion_menu }
+            { send: menunext }
+          ]
+        }
+      }
+      {
+        name: completion_previous
+        modifier: shift
+        keycode: backtab
+        mode: [emacs, vi_normal, vi_insert] # Note: You can add the same keybinding to all modes by using a list
+        event: { send: menuprevious }
+      }
+      {
+        name: history_menu
+        modifier: control
+        keycode: char_x
+        mode: emacs
+        event: {
+          until: [
+            { send: menu name: history_menu }
+            { send: menupagenext }
+          ]
+        }
+      }
+      {
+        name: history_previous
+        modifier: control
+        keycode: char_z
+        mode: emacs
+        event: {
+          until: [
+            { send: menupageprevious }
+            { edit: undo }
+          ]
+        }
+      }
+      # Keybindings used to trigger the user defined menus
+      {
+        name: commands_menu
+        modifier: control
+        keycode: char_t
+        mode: [emacs, vi_normal, vi_insert]
+        event: { send: menu name: commands_menu }
+      }
+      {
+        name: vars_menu
+        modifier: control
+        keycode: char_y
+        mode: [emacs, vi_normal, vi_insert]
+        event: { send: menu name: vars_menu }
+      }
+      {
+        name: commands_with_description
+        modifier: control
+        keycode: char_u
+        mode: [emacs, vi_normal, vi_insert]
+        event: { send: menu name: commands_with_description }
+      }
+    ]
+  }
+'';
 ```
 
 ### Starship
@@ -867,7 +1192,7 @@ lib.autocmd('BufRead,BufNewFile', 'setfiletype asm', '*.s')
 local ts = require('nvim-treesitter.configs')
 local ts_enabled = { enable = true }
 ts.setup {
-  ensure_installed = "maintained",
+  ensure_installed = "all",
 
   autopairs = ts_enabled,
 
@@ -895,7 +1220,8 @@ require('treesitter-context.config').setup {
 opt.foldexpr = vim.fn['nvim_treesitter#foldexpr']()
 
 -- Formatting
-lib.augroup('fmt', {{'BufWritePre', 'try | undojoin | Neoformat | catch /^Vim\\%((\\a\\+)\\)\\=:E790/ | finally | silent Neoformat | endtry' }})
+-- WARNING: Tends to destroy data, disabled for now
+--lib.augroup('fmt', {{'BufWritePre', ' undojoin | Neoformat' }})
 
 -- Lightspeed
 local lightspeed = require('lightspeed')
@@ -1218,7 +1544,7 @@ programs.emacs = let
   enable = true;
   package = emacs';
   extraConfig = ''
-    <<<users/enderger/emacs/completions>>>
+    <<<users/enderger/emacs/functionality>>>
     <<<users/enderger/emacs/interface>>>
     <<<users/enderger/emacs/keys>>>
     <<<users/enderger/emacs/languages>>>
@@ -1238,6 +1564,7 @@ services.emacs = {
 # Editing
 company company-quickhelp
 eglot
+format-all p.nodePackages.prettier
 
 # HACK: tree-sitter support in nixpkgs/emacs-overlay is broken
 pkgs.fix-emacs-ts.emacsPackages.tree-sitter
@@ -1250,13 +1577,17 @@ vterm vterm-toggle
 which-key
 
 # Dependencies
-p.python3
+p.python3 p.git
 
 # Languages
 ## C(++)
-p.ccls    
+p.ccls
 
-## Javascript  
+## Clojure
+clojure-mode cider
+p.clojure p.clojure-lsp p.leiningen
+
+## Javascript
 p.deno
 
 ## Lua
@@ -1278,6 +1609,10 @@ merlin merlin-company p.ocamlPackages.merlin
 tuareg
 utop p.ocamlPackages.utop
 
+## Raku
+flymake-rakudo p.rakudo
+raku-mode
+
 ## Rust
 (with p.fenix; combine [
   default.rustfmt-preview default.clippy-preview rust-analyzer
@@ -1286,13 +1621,13 @@ rust-mode
 
 ## Shell
 flymake-shellcheck p.shellcheck
-    
+
 ## Zig
 p.zig p.zls zig-mode
 
 # Integrations
 elcord
-magit
+magit git-gutter
 restclient company-restclient
 treemacs
 
@@ -1372,6 +1707,8 @@ mini-modeline
 
 ;; Git integration
 (require 'magit)
+(require 'git-gutter)
+(global-git-gutter-mode +1)
 
 ;; REST Client
 (require 'restclient)
@@ -1385,6 +1722,16 @@ mini-modeline
 ;; Discord Presence
 (require 'elcord)
 (add-hook 'after-init-hook 'elcord-mode)
+
+;; Highlight Whitespace
+(progn
+  (setq whitespace-style
+        '(face spaces tabs newline space-mark tab-mark newline-mark trailing))
+  (setq whitespace-display-mappings
+        '((space-mark ? [?·] [? ])
+          (newline-mark ?\n [?⏎ ?\n])
+          (tab-mark ?\t [?↦ ?\t]))))
+(global-whitespace-mode)
 ```
 
 #### Keys
@@ -1516,9 +1863,11 @@ mini-modeline
 (meow-setup)
 (meow-global-mode t)
 ```
-#### Completion
-```elisp "users/enderger/emacs/completions"
-; users/enderger/emacs/completions
+#### Functionality
+```elisp "users/enderger/emacs/functionality"
+; users/enderger/emacs/functionality
+
+; Completions
 ;; Company
 (require 'company)
 (require 'company-quickhelp)
@@ -1540,9 +1889,23 @@ mini-modeline
 
 ;; LSP
 (require 'eglot)
+(setq eglot-autoreconnect t)
 
 ;; Flymake
 (remove-hook 'flymake-diagnostic-functions 'flymake-proc-legacy-flymake)
+
+; Backup files
+(setq backup-directory-alist `(("." . "~/.cache/emacs/backups")))
+
+; Indentation
+(setq-default indent-tabs-mode nil)
+(electric-indent-mode nil)
+
+; Formatting
+(require 'format-all)
+(defun register-formatter (hook)
+  (add-hook hook 'format-all-ensure-formatter)
+  (add-hook hook 'format-all-mode))
 ```
 
 #### Languages
@@ -1551,6 +1914,18 @@ mini-modeline
 ;; C(++)
 (add-hook 'c-mode-hook #'eglot-ensure)
 (add-hook 'c++-mode-hook #'eglot-ensure)
+
+
+;; Clojure
+(require 'clojure-mode)
+(require 'cider)
+
+(add-hook 'clojure-mode-hook #'eglot-ensure)
+(add-hook 'clojurescript-mode-hook #'eglot-ensure)
+(add-hook 'clojurec-mode-hook #'eglot-ensure)
+
+;; Elisp
+(register-formatter 'emacs-lisp-mode-hook)
 
 ;; Lua
 (require 'lua-mode)
@@ -1577,10 +1952,17 @@ mini-modeline
 (add-to-list 'company-backends 'merlin-company-backend)
 (add-hook 'tuareg-mode-hook 'utop-minor-mode)
 
+;; Rakudo
+(require 'raku-mode)
+(require 'flymake-rakudo)
+(add-hook 'raku-mode-hook #'flymake-mode)
+(add-hook 'raku-mode-hook #'flymake-rakudo-setup)
+
 ;; Rust
 (require 'rust-mode)
 (add-hook 'rust-mode-hook #'eglot-ensure)
 (add-hook 'rust-mode-hook (lambda () (prettify-symbols-mode)))
+(register-formatter 'rust-mode-hook)
 
 ;; Shell Script
 (require 'flymake-shellcheck)
@@ -1598,7 +1980,7 @@ mini-modeline
 ```
 
 ## Other
-### Git 
+### Git
 ```nix "users/enderger/git"
 # users/enderger/git
 programs.git = {
@@ -3086,7 +3468,7 @@ transcrypt
 discord
 exercism
 jetbrains.idea-community
-obs-studio    
+obs-studio
 pcmanfm
 spectacle
 zoom-us

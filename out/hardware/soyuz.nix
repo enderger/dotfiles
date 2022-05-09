@@ -20,23 +20,30 @@ in {
   boot.plymouth.enable = true;
   boot.loader.grub.theme = pkgs.nixos-grub2-theme;
   # hardware/soyuz/networking
+  hardware.bluetooth.enable = true;
+  services.blueman.enable = true;
+
+  services.resolved = {
+    enable = true;
+    dnssec = "false";
+  };
+
   networking = {
     useNetworkd = true;
     useDHCP = false;
     usePredictableInterfaceNames = true;
-    enableBCMWL = false;
+    enableBCMWL = true;
 
     interfaces = {
-      wlp5s0.useDHCP = true;
+      wlp4s0.useDHCP = true;
     };
 
-    nameservers = [
-      "1.1.1.1" "9.9.9.9"
-    ];
+    nameservers = ["1.1.1.1" "8.8.8.8"];
 
     wireless = {
       inherit (secrets) networks;
-      interfaces = [ "wlp5s0" ];
+      interfaces = [ "wlp4s0" ];
+      userControlled.enable = true;
       enable = true;
     };
   };
@@ -59,7 +66,7 @@ in {
     {
       output = HDMI-monitor;
       primary = true;
-    }  
+    }
     {
       output = DVI-monitor;
       monitorConfig = ''
@@ -80,7 +87,7 @@ in {
   interface.hardware.printing = true;
   # hardware/soyuz/filesystem
   fileSystems = let
-    btrfs-filesystem = part: subvol: { 
+    btrfs-filesystem = part: subvol: {
       device = part;
       fsType = "btrfs";
       options = [ "subvol=${subvol}" ];
@@ -103,5 +110,18 @@ in {
 
   swapDevices = [{ device = "/dev/disk/by-uuid/412c3678-fbdb-4093-bb1d-3b20994f3613"; }];
   boot.tmpOnTmpfs = true;
-  nix.settings.max-jobs = lib.mkDefault 16;
+  # hardware/soyuz/rgb
+  hardware.i2c = {
+      enable = true;
+      group = "wheel";
+  };
+
+  services.udev.packages = with pkgs; [
+      openrgb
+  ];
+
+  environment.defaultPackages = with pkgs; [
+    openrgb
+  ];
+  nix.settings.max-jobs = lib.mkDefault 6;
 }

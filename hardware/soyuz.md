@@ -2,13 +2,14 @@
 title: Hardware :: Soyuz
 ---
 
-This is the hardware configuration for my main development PC. It may sound a bit questionable, but it's holding up quite well.
+This is the hardware configuration for my main development PC.
 
 # Specs
-- Model : HP Pavilion Power Desktop 580-1xx (modified)
-- CPU : AMD Ryzen 7 1700 (8 core 16 thread)
+- Model : Custom
+- Motherboard: ASUS Prime B550-plus
+- CPU : AMD Ryzen 5 5600X (6 core 12 thread)
 - GPU : NVIDIA GeForce GT 1030
-- Network Card : BCM4360 (added after-the-fact)
+- Network Card : BCM4360
 
 # Implementation
 ```nix hardware/soyuz.nix
@@ -30,7 +31,8 @@ in {
   <<<hardware/soyuz/audio>>>
   <<<hardware/soyuz/printing>>>
   <<<hardware/soyuz/filesystem>>>
-  nix.settings.max-jobs = lib.mkDefault 16;
+  <<<hardware/soyuz/rgb>>>
+  nix.settings.max-jobs = lib.mkDefault 6;
 }
 ```
 
@@ -56,23 +58,30 @@ boot.loader.grub.theme = pkgs.nixos-grub2-theme;
 We set up the networking configuration here, I prefer to use Networkd to make things work. I should note that the network configuration itself is in the secret file, so you'll need to supply your own. I also enable the [custom Broadcom module](./hardware/modules/broadcom.md).
 ```nix "hardware/soyuz/networking"
 # hardware/soyuz/networking
+hardware.bluetooth.enable = true;
+services.blueman.enable = true;
+
+services.resolved = {
+  enable = true;
+  dnssec = "false";
+};
+
 networking = {
   useNetworkd = true;
   useDHCP = false;
   usePredictableInterfaceNames = true;
-  enableBCMWL = false;
+  enableBCMWL = true;
 
   interfaces = {
-    wlp5s0.useDHCP = true;
+    wlp4s0.useDHCP = true;
   };
 
-  nameservers = [
-    "1.1.1.1" "9.9.9.9"
-  ];
+  nameservers = ["1.1.1.1" "8.8.8.8"];
 
   wireless = {
     inherit (secrets) networks;
-    interfaces = [ "wlp5s0" ];
+    interfaces = [ "wlp4s0" ];
+    userControlled.enable = true;
     enable = true;
   };
 };
@@ -100,7 +109,7 @@ in [
   {
     output = HDMI-monitor;
     primary = true;
-  }  
+  }
   {
     output = DVI-monitor;
     monitorConfig = ''
@@ -136,7 +145,7 @@ Finally, we need to configure the filesystem.
 ```nix "hardware/soyuz/filesystem"
 # hardware/soyuz/filesystem
 fileSystems = let
-  btrfs-filesystem = part: subvol: { 
+  btrfs-filesystem = part: subvol: {
     device = part;
     fsType = "btrfs";
     options = [ "subvol=${subvol}" ];
@@ -159,4 +168,24 @@ in {
 
 swapDevices = [{ device = "/dev/disk/by-uuid/412c3678-fbdb-4093-bb1d-3b20994f3613"; }];
 boot.tmpOnTmpfs = true;
+```
+
+## RGB control
+This section adds OpenRGB to control the RGB fan colours.
+TODO: abstract to a module
+
+```nix "hardware/soyuz/rgb"
+# hardware/soyuz/rgb
+hardware.i2c = {
+    enable = true;
+    group = "wheel";
+};
+
+services.udev.packages = with pkgs; [
+    openrgb
+];
+
+environment.defaultPackages = with pkgs; [
+  openrgb
+];
 ```

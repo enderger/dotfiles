@@ -131,7 +131,9 @@ environment.systemPackages = with pkgs; [
   git
   htop
   lynx
+  openal
   neovim-nightly
+  pulseaudio
   tinycc
   transcrypt
   wget

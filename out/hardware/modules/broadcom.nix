@@ -17,7 +17,11 @@ in {
     (lib.mkIf cfg.enableBCMWL {
       boot.kernelModules = [ "wl" ];
       boot.extraModulePackages = with config.boot.kernelPackages; [ broadcom_sta ];
-      boot.blacklistedKernelModules = [ "bcma" ];
+      boot.blacklistedKernelModules = [ "bcma" "b43" ];
+      networking.enableB43Firmware = true;
+      networking.wireless = {
+        driver = "wext";
+      };
     })
   ]);
 }

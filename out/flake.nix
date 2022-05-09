@@ -9,9 +9,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
   inputs = {
     # flake/inputs.nixpkgs
     stable.url = "github:nixos/nixpkgs/nixos-21.05";
-    unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
+    unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     master.url = "github:nixos/nixpkgs/master";
-    fallback.url = "github:nixos/nixpkgs/nixos-unstable";
+    fallback.url = "github:nixos/nixpkgs/nixos-unstable-small";
     nixpkgs.follows = "unstable";
 
     fix-emacs-ts.url = "github:pimeys/nixpkgs/emacs-tree-sitter/link-grammars";
@@ -60,10 +60,6 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           input = inputs.unstable;
           overlaysBuilder = channels: [
             (final: prev: {
-              linuxPackages_xanmod = prev.linuxPackages_xanmod // {
-                inherit (channels.fallback.linuxPackages_xanmod) nvidia_x11; 
-              };
-
               inherit (channels) fallback fix-emacs-ts;
             })
           ];

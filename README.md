@@ -42,17 +42,17 @@ Firstly, we need to define every input taken by this Flake. See the [nix3-flake 
 ### Nixpkgs
 The first input we need is the main repo for Nix, called **Nixpkgs**. The different release channels of NixOS are dictated by different branches of this input, so we'll include a few here.
 - `stable` : The current stable release of Nix, currently `21.05`
-- `unstable` : The rolling version of Nix, I use the `nixos-unstable-small` channel for even faster releases
-- `fallback` : The `nixos-unstable` branch, which I provide as a fallback channel via an overlay
+- `unstable` : The rolling version of Nix, I use the `nixos-unstable` channel for even faster releases
+- `fallback` : The `nixos-unstable-small` branch, which I provide as a fallback channel via an overlay
 - `nixpkgs` : An alias to whichever channel dependencies should use
 - `fix-emacs-ts` : Provides a working Tree-Sitter derivation for EMACS.
 
 ```nix "flake/inputs" +=
 # flake/inputs.nixpkgs
 stable.url = "github:nixos/nixpkgs/nixos-21.05";
-unstable.url = "github:nixos/nixpkgs/nixos-unstable-small";
+unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 master.url = "github:nixos/nixpkgs/master";
-fallback.url = "github:nixos/nixpkgs/nixos-unstable";
+fallback.url = "github:nixos/nixpkgs/nixos-unstable-small";
 nixpkgs.follows = "unstable";
 
 fix-emacs-ts.url = "github:pimeys/nixpkgs/emacs-tree-sitter/link-grammars";
@@ -157,10 +157,6 @@ unstable = {
   input = inputs.unstable;
   overlaysBuilder = channels: [
     (final: prev: {
-      linuxPackages_xanmod = prev.linuxPackages_xanmod // {
-        inherit (channels.fallback.linuxPackages_xanmod) nvidia_x11; 
-      };
-
       inherit (channels) fallback fix-emacs-ts;
     })
   ];

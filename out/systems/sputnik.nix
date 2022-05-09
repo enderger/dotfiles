@@ -77,7 +77,9 @@ in {
     git
     htop
     lynx
+    openal
     neovim-nightly
+    pulseaudio
     tinycc
     transcrypt
     wget
