@@ -120,6 +120,13 @@ Here, we have everything which doesn't fit into a category cleanly.
 # systems/sputnik/misc
 documentation.man.generateCaches = true;
 services.dbus.packages = with pkgs; [ dconf ];
+
+virtualisation.libvirtd = {
+    enable = true;
+    qemu = {
+        ovmf.enable = true;
+    };
+};
 ```
 
 # Packages

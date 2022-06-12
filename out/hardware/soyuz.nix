@@ -13,8 +13,12 @@ in {
   time = { inherit (secrets) timeZone; };
   # hardware/soyuz/kernel
   boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usb_storage" "ums_realtek" "usbhid" "sd_mod" "sr_mod" "nvme" ];
-  boot.kernelModules = [ "kvm-amd" ];
-  boot.kernelParams = [ "processor.max_cstate=5" "intel_idle.max_cstate=1" "video=HDMI-1:1920x1080@60" "video=VGA-1:1440x900" ];
+  boot.kernelModules = [ "kvm-amd" "iwlwifi" ];
+  boot.kernelParams = [ "processor.max_cstate=5" "intel_idle.max_cstate=1" "video=HDMI-0:1920x1080@60" "video=DVI-D-0:1440x900" ];
+  boot.extraModprobeConfig = ''
+    options iwlwifi 11n_disable=1 swcrypto=0 bt_coex_active=0 power_save=0 uapsd_disable=1
+    options iwlmvm power_scheme=1
+  '';
   hardware.cpu.amd.updateMicrocode = true;
   # hardware/soyuz/bootloader
   boot.plymouth.enable = true;
@@ -32,7 +36,8 @@ in {
     useNetworkd = true;
     useDHCP = false;
     usePredictableInterfaceNames = true;
-    enableBCMWL = true;
+    #enableBCMWL = true;
+    #enableBCMBT = true;
 
     interfaces = {
       wlp4s0.useDHCP = true;
@@ -43,6 +48,7 @@ in {
     wireless = {
       inherit (secrets) networks;
       interfaces = [ "wlp4s0" ];
+      #    driver = "wext";
       userControlled.enable = true;
       enable = true;
     };

@@ -43,7 +43,7 @@ in {
     isNormalUser = true;
     shell = pkgs.nushell;
     group = "wheel";
-    extraGroups = [ "docker" ];
+    extraGroups = [ "docker" "libvirt" ];
     inherit (secrets) hashedPassword;
   };
 
@@ -1048,7 +1048,7 @@ in {
           }
 
 
-          require('treesitter-context.config').setup {
+          require('treesitter-context').setup {
             enable = true,
           }
 
@@ -1376,8 +1376,8 @@ in {
           format-all p.nodePackages.prettier
 
           # HACK: tree-sitter support in nixpkgs/emacs-overlay is broken
-          pkgs.fix-emacs-ts.emacsPackages.tree-sitter
-          pkgs.fix-emacs-ts.emacsPackages.tree-sitter-langs
+          p.emacs28Packages.tree-sitter
+          p.emacs28Packages.tree-sitter-langs
 
           # Keys
           ace-window
@@ -2253,9 +2253,9 @@ in {
           function M.setup()
             spawn('systemctl --user start picom xidlehook')
             spawn('feh --bg-scale '..(require('beautiful').wallpaper))
-            spawn('lxqt-policykit')
+            spawn('lxqt-policykit-agent')
 
-            spawn('discordptb', {
+            spawn('discord', {
               tag = screen[2].tags[5]
             })
           end
@@ -3113,6 +3113,7 @@ in {
       discord
       exercism
       jetbrains.idea-community
+      libreoffice
       obs-studio
       pcmanfm
       spectacle
@@ -3132,6 +3133,7 @@ in {
       lldb
       lshw
       nix-prefetch-git
+      packwiz
       pandoc
       pciutils
       (with fenix; combine [
@@ -3140,6 +3142,7 @@ in {
       ])
       ripgrep
       tup
+      virt-manager
       wineWowPackages.full winetricks
       xclip
       xorg.xkill

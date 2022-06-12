@@ -9,7 +9,7 @@ This is the hardware configuration for my main development PC.
 - Motherboard: ASUS Prime B550-plus
 - CPU : AMD Ryzen 5 5600X (6 core 12 thread)
 - GPU : NVIDIA GeForce GT 1030
-- Network Card : BCM4360
+- Network Card : ASUS PCE-AX3000
 
 # Implementation
 ```nix hardware/soyuz.nix
@@ -41,8 +41,12 @@ Firstly, we need to configure the kernel modules needed to make the system work.
 ```nix "hardware/soyuz/kernel"
 # hardware/soyuz/kernel
 boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "usb_storage" "ums_realtek" "usbhid" "sd_mod" "sr_mod" "nvme" ];
-boot.kernelModules = [ "kvm-amd" ];
-boot.kernelParams = [ "processor.max_cstate=5" "intel_idle.max_cstate=1" "video=HDMI-1:1920x1080@60" "video=VGA-1:1440x900" ];
+boot.kernelModules = [ "kvm-amd" "iwlwifi" ];
+boot.kernelParams = [ "processor.max_cstate=5" "intel_idle.max_cstate=1" "video=HDMI-0:1920x1080@60" "video=DVI-D-0:1440x900" ];
+boot.extraModprobeConfig = ''
+  options iwlwifi 11n_disable=1 swcrypto=0 bt_coex_active=0 power_save=0 uapsd_disable=1
+  options iwlmvm power_scheme=1
+'';
 hardware.cpu.amd.updateMicrocode = true;
 ```
 
@@ -70,7 +74,8 @@ networking = {
   useNetworkd = true;
   useDHCP = false;
   usePredictableInterfaceNames = true;
-  enableBCMWL = true;
+  #enableBCMWL = true;
+  #enableBCMBT = true;
 
   interfaces = {
     wlp4s0.useDHCP = true;
@@ -81,6 +86,7 @@ networking = {
   wireless = {
     inherit (secrets) networks;
     interfaces = [ "wlp4s0" ];
+    #    driver = "wext";
     userControlled.enable = true;
     enable = true;
   };

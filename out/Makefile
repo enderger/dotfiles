@@ -3,7 +3,7 @@ TESTBED := "$(shell readlink ./result)#testbed"
 BUILDFLAGS := 
 
 build: clean
-	./bootstrap.nix
+	nix build -f ./bootstrap.nix $(BUILDFLAGS)
 
 # VM
 build-vm: build

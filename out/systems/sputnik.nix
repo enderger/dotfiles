@@ -71,6 +71,13 @@ in {
   # systems/sputnik/misc
   documentation.man.generateCaches = true;
   services.dbus.packages = with pkgs; [ dconf ];
+
+  virtualisation.libvirtd = {
+      enable = true;
+      qemu = {
+          ovmf.enable = true;
+      };
+  };
   # systems/sputnik/packages
   environment.systemPackages = with pkgs; [
     curl

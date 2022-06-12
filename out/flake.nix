@@ -19,6 +19,10 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
     hm.url = "github:nix-community/home-manager";
     fup.url = "github:gytis-ivaskevicius/flake-utils-plus";
     # flake/inputs.packages
+    discord = {
+      url = "github:InternetUnexplorer/discord-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     emacs.url = "github:nix-community/emacs-overlay";
     nur.url = "github:nix-community/NUR";
     my-nur.url = "git+https://git.sr.ht/~hutzdog/NUR";
@@ -43,6 +47,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
       sharedOverlays = with inputs; [
         # flake/outputs/channels/overlays
         self.overlay
+        discord.overlay
         emacs.overlay
         nur.overlay
         my-nur.overlays.awesome

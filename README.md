@@ -71,6 +71,7 @@ fup.url = "github:gytis-ivaskevicius/flake-utils-plus";
 
 ### Package Sources
 Next, let's add those inputs which are intended to extend Nixpkgs.
+- `discord` : Provides builds which are up-to-date.
 - `emacs` : The EMACS unstable builds, packaged for nix
 - `nur` : The NUR (Nix User Repositories) extend the Nixpkgs ecosystem with a set of user-maintained package sets.
 - `my-nur` : My own NUR repo
@@ -79,6 +80,10 @@ Next, let's add those inputs which are intended to extend Nixpkgs.
 
 ```nix "flake/inputs" +=
 # flake/inputs.packages
+discord = {
+  url = "github:InternetUnexplorer/discord-overlay";
+  inputs.nixpkgs.follows = "nixpkgs";
+};
 emacs.url = "github:nix-community/emacs-overlay";
 nur.url = "github:nix-community/NUR";
 my-nur.url = "git+https://git.sr.ht/~hutzdog/NUR";
@@ -133,6 +138,7 @@ Before we define our channels, we need to define the `flake/outputs/channels/ove
 ```nix "flake/outputs/channels/overlays"
 # flake/outputs/channels/overlays
 self.overlay
+discord.overlay
 emacs.overlay
 nur.overlay
 my-nur.overlays.awesome
