@@ -11,17 +11,18 @@ let myNUR = builtins.getFlake "git+https://git.sr.ht/~hutzdog/NUR"; in
 { system ? builtins.currentSystem
 , pkgs ? import <nixpkgs> { inherit system; }
 , lmt ? myNUR.packages."${system}".lmt
+, path ? ./.
 }:
 pkgs.stdenv.mkDerivation {
   name = "tangle";
   nativeBuildInputs = [ lmt ];
   src = builtins.path { 
     filter = p: t: let
-        bn = baseNameOf p;
-        inherit (pkgs) lib;
-      in t != "symlink" && (t != "directory" || bn != "out") && !(bn == "index.md") && !(lib.hasPrefix "." bn);
-    path = ./.; 
-    name = "src"; 
+      bn = baseNameOf p;
+      inherit (pkgs) lib;
+    in t != "symlink" && (t != "directory" || bn != "out") && !(bn == "index.md") && !(lib.hasPrefix "." bn);
+    inherit path;
+    name = "src";
   };
 
   buildPhase = ''

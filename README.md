@@ -103,14 +103,18 @@ We now will use these to define what our Flake actually does, with the help of F
 ```nix "flake/outputs"
 # flake/outputs
 inputs.fup.lib.mkFlake {
-  inherit self inputs; 
+  inherit self inputs;
   supportedSystems = [ "aarch64-linux" "x86_64-linux" ];
 
   <<<flake/outputs/channels>>>
   <<<flake/outputs/hosts>>>
   <<<flake/outputs/modules>>>
   <<<flake/outputs/overlay>>>
-  <<<flake/outputs/shell>>>
+
+  outputsBuilder = channels: {
+    <<<flake/outputs/apps>>>
+    <<<flake/outputs/shell>>>
+  };
 }
 ```
 
@@ -142,6 +146,7 @@ discord.overlay
 emacs.overlay
 nur.overlay
 my-nur.overlays.awesome
+my-nur.overlays.nheko
 neovim.overlay
 fenix.overlay
 ```
@@ -163,7 +168,9 @@ unstable = {
   input = inputs.unstable;
   overlaysBuilder = channels: [
     (final: prev: {
-      inherit (channels) fallback fix-emacs-ts;
+      inherit (channels) stable fallback fix-emacs-ts;
+      # HACK: home manager module does not have a way to override this
+      inherit (channels.stable) pass-secret-service;
     })
   ];
 };
@@ -258,7 +265,7 @@ nixosModules = let
     <<<hardware/modules>>>
     <<<users/modules>>>
   ];
-in inputs.fup.lib.modulesFromList moduleList;
+in inputs.fup.lib.exportModules moduleList;
 
 moduleSets = {
   system = [
@@ -279,13 +286,79 @@ Here, we include the overlay for the packages contined in the pkgs directory.
 overlay = import ./pkgs;
 ```
 
+### Apps
+This defines the build infrastructure for this flake.
+```nix "flake/outputs/apps"
+# flake/outputs/apps
+apps = let
+    pkgs = channels.unstable;
+    local = attr: attr.${pkgs.system};
+    mkApp = drv: inputs.fup.lib.mkApp {inherit drv;};
+    tangle-drv = pkgs.writeShellApplication {
+        name = "tangle";
+        text = ''
+          OUTPUT="''${1:-./out}"
+          TMPDIR="$(mktemp -d)"
+
+          >&2 echo "Building in $OUTPUT..."
+          nix build -f ./bootstrap.nix -o "$TMPDIR/result" \
+            --arg lmt ${(local inputs.my-nur.packages).lmt} \
+            --arg pkgs "import ${pkgs.path} {system = ${pkgs.system};}"
+
+          rm -rf "$OUTPUT"
+          mkdir "$OUTPUT"
+          cp -rL "$TMPDIR/result"/* -t "$OUTPUT"
+          chmod -R +w "$OUTPUT"
+        '';
+    };
+in rec {
+    tangle = mkApp tangle-drv;
+
+    switch = mkApp (pkgs.writeShellApplication {
+        name = "build";
+        runtimeInputs = [ tangle-drv ];
+        text = ''
+          SYSTEM="''${1:-}"
+          if [ -z "$SYSTEM" ]; then
+            echo "USAGE: $0 <SYSTEM> <FLAGS>"
+            exit 1
+          fi
+          TMPDIR="$(mktemp -d)"
+
+          tangle "$TMPDIR"
+          >&2 echo "Switching to system $SYSTEM..."
+          nixos-rebuild switch "''${@:2}" --flake "$TMPDIR#$SYSTEM"
+        '';
+    });
+
+    vm = mkApp (pkgs.writeShellApplication {
+        name = "vm";
+        runtimeInputs = [ tangle-drv ];
+        text = ''
+          SYSTEM="''${1:-testbed}"
+          MEMORY="''${2:-8192}"
+          TMPDIR="$(mktemp -d)"
+          NIX_VM_PATH="nixosConfigurations.''${SYSTEM}.config.system.build.vm"
+
+          mkdir "$TMPDIR/tangle"
+          tangle "$TMPDIR/tangle"
+          >&2 echo "Building VM..."
+          nix build "$TMPDIR/tangle#$NIX_VM_PATH" "''${@:3}" -o "$TMPDIR/vm"
+          >&2 echo "Running VM..."
+
+          "$TMPDIR/vm/bin/run-*-vm" -m "$MEMORY"
+        '';
+    });
+};
+```
+
 ### Shell
-Here, we will include the development shell. This is the environment needed to work with this Git repository. I base it on stable since it is least likely to bork. Note that this is not needed to use the bootstrap script, since that is self-contained.
+Here, we will include the development shell. This is the environment needed to work with this Git repository. Note that this is not needed to use the bootstrap script, since that is self-contained.
 ```nix "flake/outputs/shell"
 # flake/outputs/shell
-devShellBuilder = { stable, ... }:
-  import ./shell.nix { pkgs = stable; };
+devShell = import ./shell.nix { pkgs = channels.unstable; };
 ```
+
 
 # License
 This project is licensed under the Mozilla Public License 2.0 (see <./LICENSE>).

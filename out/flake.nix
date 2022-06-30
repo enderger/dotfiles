@@ -36,7 +36,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
   outputs = inputs@{ self, ... }:
     # flake/outputs
     inputs.fup.lib.mkFlake {
-      inherit self inputs; 
+      inherit self inputs;
       supportedSystems = [ "aarch64-linux" "x86_64-linux" ];
 
       # flake/outputs/channels
@@ -51,6 +51,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         emacs.overlay
         nur.overlay
         my-nur.overlays.awesome
+        my-nur.overlays.nheko
         neovim.overlay
         fenix.overlay
       ];
@@ -65,7 +66,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           input = inputs.unstable;
           overlaysBuilder = channels: [
             (final: prev: {
-              inherit (channels) fallback fix-emacs-ts;
+              inherit (channels) stable fallback fix-emacs-ts;
+              # HACK: home manager module does not have a way to override this
+              inherit (channels.stable) pass-secret-service;
             })
           ];
         };
@@ -136,7 +139,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
           # users/modules.awesome
           ./users/modules/awesome.nix
         ];
-      in inputs.fup.lib.modulesFromList moduleList;
+      in inputs.fup.lib.exportModules moduleList;
 
       moduleSets = {
         system = [
@@ -165,9 +168,72 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
         ];
       };
       overlay = import ./pkgs;
-      # flake/outputs/shell
-      devShellBuilder = { stable, ... }:
-        import ./shell.nix { pkgs = stable; };
+
+      outputsBuilder = channels: {
+        # flake/outputs/apps
+        apps = let
+            pkgs = channels.unstable;
+            local = attr: attr.${pkgs.system};
+            mkApp = drv: inputs.fup.lib.mkApp {inherit drv;};
+            tangle-drv = pkgs.writeShellApplication {
+                name = "tangle";
+                text = ''
+                  OUTPUT="''${1:-./out}"
+                  TMPDIR="$(mktemp -d)"
+
+                  >&2 echo "Building in $OUTPUT..."
+                  nix build -f ./bootstrap.nix -o "$TMPDIR/result" \
+                    --arg lmt ${(local inputs.my-nur.packages).lmt} \
+                    --arg pkgs "import ${pkgs.path} {system = ${pkgs.system};}"
+
+                  rm -rf "$OUTPUT"
+                  mkdir "$OUTPUT"
+                  cp -rL "$TMPDIR/result"/* -t "$OUTPUT"
+                  chmod -R +w "$OUTPUT"
+                '';
+            };
+        in rec {
+            tangle = mkApp tangle-drv;
+
+            switch = mkApp (pkgs.writeShellApplication {
+                name = "build";
+                runtimeInputs = [ tangle-drv ];
+                text = ''
+                  SYSTEM="''${1:-}"
+                  if [ -z "$SYSTEM" ]; then
+                    echo "USAGE: $0 <SYSTEM> <FLAGS>"
+                    exit 1
+                  fi
+                  TMPDIR="$(mktemp -d)"
+
+                  tangle "$TMPDIR"
+                  >&2 echo "Switching to system $SYSTEM..."
+                  nixos-rebuild switch "''${@:2}" --flake "$TMPDIR#$SYSTEM"
+                '';
+            });
+
+            vm = mkApp (pkgs.writeShellApplication {
+                name = "vm";
+                runtimeInputs = [ tangle-drv ];
+                text = ''
+                  SYSTEM="''${1:-testbed}"
+                  MEMORY="''${2:-8192}"
+                  TMPDIR="$(mktemp -d)"
+                  NIX_VM_PATH="nixosConfigurations.''${SYSTEM}.config.system.build.vm"
+
+                  mkdir "$TMPDIR/tangle"
+                  tangle "$TMPDIR/tangle"
+                  >&2 echo "Building VM..."
+                  nix build "$TMPDIR/tangle#$NIX_VM_PATH" "''${@:3}" -o "$TMPDIR/vm"
+                  >&2 echo "Running VM..."
+
+                  "$TMPDIR/vm/bin/run-*-vm" -m "$MEMORY"
+                '';
+            });
+        };
+        # flake/outputs/shell
+        devShell = import ./shell.nix { pkgs = channels.unstable; };
+      };
     }
   ;
 }

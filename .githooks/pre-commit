@@ -1,14 +1,5 @@
 #!/usr/bin/env bash
 cd $(dirname $0)/..
 
-echo "Building..."
-nix-build 'bootstrap.nix'
-
-rm -rf out
-mkdir out
-cp -rL result/* out
-chmod -R +w out
-
-rm -f result
+nix run .#tangle
 git add out
-echo "DONE!"

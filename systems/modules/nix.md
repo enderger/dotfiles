@@ -26,6 +26,7 @@ This module simply provides a default configuration for Nix which is a bit more 
   environment.variables.LD_LIBRARY_PATH = lib.mkForce [
       "/run/current-system/sw/lib"
   ];
+  system.stateVersion = "22.11";
 }
 ```
 

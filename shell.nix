@@ -10,5 +10,8 @@ pkgs.mkShell {
   buildInputs = with pkgs; [
     git gnupg transcrypt
     python39Packages.mistletoe
+    (pkgs.writeShellScriptBin "nixFlakes" ''
+      exec ${pkgs.nixUnstable}/bin/nix --experimental-features "nix-command flakes" "$@")
+    '')
   ];
 }

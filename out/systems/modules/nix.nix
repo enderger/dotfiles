@@ -22,4 +22,5 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
   environment.variables.LD_LIBRARY_PATH = lib.mkForce [
       "/run/current-system/sw/lib"
   ];
+  system.stateVersion = "22.11";
 }

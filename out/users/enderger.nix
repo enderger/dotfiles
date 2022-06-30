@@ -49,15 +49,79 @@ in {
 
   services.xserver.windowManager = {
     # users/enderger/windowManagers
-    awesome.enable = true;
+    awesome = {
+        enable = true;
+        package = pkgs.awesome-master;
+    };
   };
 
   home-manager.users.enderger = { config, ... }: {
     # CLI setup
     # users/enderger/nushell
 
-    programs.nushell.enable = true;
-    xdg.configFile."nushell/config.nu".text = ''
+    programs.nushell = {
+        enable = true;
+        envFile.text = ''
+    # Nushell Environment Config File
+
+    def create_left_prompt [] {
+        let path_segment = ($env.PWD)
+
+        $path_segment
+    }
+
+    def create_right_prompt [] {
+        let time_segment = ([
+            (date now | date format '%m/%d/%Y %r')
+        ] | str collect)
+
+        $time_segment
+    }
+
+    # Use nushell functions to define your right and left prompt
+    let-env PROMPT_COMMAND = { create_left_prompt }
+    let-env PROMPT_COMMAND_RIGHT = { create_right_prompt }
+
+    # The prompt indicators are environmental variables that represent
+    # the state of the prompt
+    let-env PROMPT_INDICATOR = { "〉" }
+    let-env PROMPT_INDICATOR_VI_INSERT = { ": " }
+    let-env PROMPT_INDICATOR_VI_NORMAL = { "〉" }
+    let-env PROMPT_MULTILINE_INDICATOR = { "::: " }
+
+    # Specifies how environment variables are:
+    # - converted from a string to a value on Nushell startup (from_string)
+    # - converted from a value back to a string when running external commands (to_string)
+    # Note: The conversions happen *after* config.nu is loaded
+    let-env ENV_CONVERSIONS = {
+      "PATH": {
+        from_string: { |s| $s | split row (char esep) }
+        to_string: { |v| $v | str collect (char esep) }
+      }
+      "Path": {
+        from_string: { |s| $s | split row (char esep) }
+        to_string: { |v| $v | str collect (char esep) }
+      }
+    }
+
+    # Directories to search for scripts when calling source or use
+    #
+    # By default, <nushell-config-dir>/scripts is added
+    let-env NU_LIB_DIRS = [
+        ($nu.config-path | path dirname | path join 'scripts')
+    ]
+
+    # Directories to search for plugin binaries when calling register
+    #
+    # By default, <nushell-config-dir>/plugins is added
+    let-env NU_PLUGIN_DIRS = [
+        ($nu.config-path | path dirname | path join 'plugins')
+    ]
+
+    # To add entries to PATH (on Windows you might use Path), you can use the following pattern:
+    # let-env PATH = ($env.PATH | prepend '/some/path')
+        '';
+        configFile.text = ''
       # TODO: Completions
       module completions {
         # Custom completions for external commands (those outside of Nushell)
@@ -148,6 +212,19 @@ in {
       # Get just the extern definitions without the custom completion commands
       use completions *
       use prompt *
+
+      # Direnv Nushell helper
+      def-env "direnv nu" [] {
+        ^direnv export elvish | from json | load-env
+      }
+
+      # Aliases
+      alias "nix build-log" = nix build --log-format bar-with-log
+      alias "nix prefetch github" = nix-prefetch-github
+
+      def "nixos rebuild" [subcmd flake ...args] {
+        nixos-rebuild $subcmd --flake $flake $args
+      }
 
       # for more information on themes see
       # https://www.nushell.sh/book/coloring_and_theming.html
@@ -407,7 +484,8 @@ in {
           }
         ]
       }
-    '';
+      '';
+    };
     # users/enderger/starship
     programs.starship = {
       enable = true;
@@ -1425,6 +1503,7 @@ in {
           ## Rust
           (with p.fenix; combine [
             default.rustfmt-preview default.clippy-preview rust-analyzer
+            p.gcc
           ])
           rust-mode
 
@@ -1435,6 +1514,7 @@ in {
           p.zig p.zls zig-mode
 
           # Integrations
+          direnv
           elcord
           magit git-gutter
           restclient company-restclient
@@ -1473,6 +1553,10 @@ in {
             (kbd "<backtab>")
             (lambda () (interactive)
               (company-complete-common-or-cycle -1))))
+
+        ;; Direnv
+        (require 'direnv)
+        (direnv-mode)
 
         ;; LSP
         (require 'eglot)
@@ -1789,6 +1873,11 @@ in {
       enable = true;
       userEmail = "endergeryt@gmail.com";
       userName = "Enderger";
+    };
+    # users/enderger/direnv
+    programs.direnv = {
+        enable = true;
+        nix-direnv.enable = true;
     };
 
     # GUI Setup
@@ -2251,9 +2340,11 @@ in {
           local spawn = require('awful.spawn').once
 
           function M.setup()
-            spawn('systemctl --user start picom xidlehook')
+            spawn('systemctl --user start graphical-session-pre')
             spawn('feh --bg-scale '..(require('beautiful').wallpaper))
             spawn('lxqt-policykit-agent')
+            spawn('blueman-applet')
+            spawn('nheko')
 
             spawn('discord', {
               tag = screen[2].tags[5]
@@ -3074,6 +3165,42 @@ in {
         }
       ];
     };
+    # users/enderger/pass
+    services.gpg-agent = {
+        enable = true;
+        enableSshSupport = true;
+        pinentryFlavor = "qt";
+    };
+    programs.password-store = {
+        enable = true;
+        package = pkgs.pass.withExtensions (ext: [ ext.pass-otp ]);
+        settings = {
+            PASSWORD_STORE_DIR = "${config.home.homeDirectory}/.password-store";
+        };
+    };
+    services.pass-secret-service.enable = true;
+    systemd.user.services.pass-secret-service = {
+        Service.Type = "dbus";
+        Service.BusName = "org.freedesktop.secrets";
+        Unit = let targets = [ "gpg-agent.service" "activate-secrets.service" ]; in {
+            Wants = targets;
+            After = targets;
+            PartOf = [ "graphical-session-pre.target" ];
+        };
+    };
+    programs.vscode = {
+        enable = true;
+        package = pkgs.vscodium;
+        extensions = with pkgs.vscode-extensions; [
+            bungcip.better-toml
+            editorconfig.editorconfig
+            redhat.java
+            skellock.just
+            arcticicestudio.nord-visual-studio-code
+            kahole.magit
+            vscodevim.vim
+        ];
+    };
     # users/enderger/themes
     gtk = {
       enable = true;
@@ -3104,6 +3231,7 @@ in {
       # users/enderger/packages
       ## DEPENDENCIES
       glow
+      libsecret
       lxqt.lxqt-policykit
       neovide
       pfetch
@@ -3114,6 +3242,8 @@ in {
       exercism
       jetbrains.idea-community
       libreoffice
+      libresprite
+      nheko-master
       obs-studio
       pcmanfm
       spectacle
@@ -3127,7 +3257,7 @@ in {
       minecraft polymc
 
       ## UTILITIES
-      adoptopenjdk-openj9-bin-16
+      jdk17 gradle
       cargo-expand
       gcc gnumake
       lldb
@@ -3147,5 +3277,7 @@ in {
       xclip
       xorg.xkill
     ];
+
+    home.stateVersion = "22.11";
   };
 }
